@@ -10,6 +10,9 @@ int main() {
     printf("\n=== CRC32 Tests ===\n");
     failures += run_crc32_tests();
 
+    printf("\n=== Packet Cook Tests ===\n");
+    failures += run_packet_tests();
+
     printf("\n");
     if (failures == 0)
         printf("All tests passed.\n");

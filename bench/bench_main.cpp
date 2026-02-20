@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
 
     register_fec_benchmarks(&bench);
     register_crc32_benchmarks(&bench);
+    register_packet_benchmarks(&bench);
 
     if (json_output) {
         /* github-action-benchmark customSmallerIsBetter format

@@ -16,9 +16,11 @@ static const int bench_sizes_count = sizeof(bench_sizes) / sizeof(bench_sizes[0]
 /* Registration functions called from bench_main.cpp */
 void register_fec_benchmarks(void *bench_ptr);
 void register_crc32_benchmarks(void *bench_ptr);
+void register_packet_benchmarks(void *bench_ptr);
 
 /* Registration functions called from test_main.cpp */
 int run_fec_tests();
 int run_crc32_tests();
+int run_packet_tests();
 
 #endif

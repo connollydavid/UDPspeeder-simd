@@ -20,7 +20,7 @@ extern int mtu_warn;
 
 extern int disable_mtu_warn;
 extern int disable_fec;
-extern int disable_checksum;
+/* disable_checksum now lives in cook_ctx_t (packet_cook.h) */
 
 extern int debug_force_flush_fec;
 

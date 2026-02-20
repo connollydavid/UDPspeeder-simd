@@ -136,7 +136,7 @@ static void remote_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) 
         mylog(log_warn, "huge packet,data len=%d (>%d).strongly suggested to set a smaller mtu at upper level,to get rid of this warn\n ", data_len, mtu_warn);
     }
 
-    if (de_cook(data, data_len) != 0) {
+    if (de_cook(&cook_ctx, data, data_len) != 0) {
         mylog(log_debug, "de_cook error");
         return;
     }
