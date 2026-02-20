@@ -357,6 +357,29 @@ generate_gf(void)
 
 #if defined(__x86_64__)
 #include <immintrin.h>
+#include <cpuid.h>
+
+static int cpu_has_avx2(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+
+    /* OSXSAVE — OS supports XSAVE */
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+	return 0;
+    if (!(ecx & (1u << 27)))
+	return 0;
+
+    /* XCR0 bits 1-2 — OS saves SSE+AVX state */
+    unsigned int xcr0;
+    __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
+    if ((xcr0 & 0x6) != 0x6)
+	return 0;
+
+    /* AVX2: leaf 7, sub-leaf 0, EBX bit 5 */
+    if (!__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx))
+	return 0;
+    return (ebx >> 5) & 1;
+}
 
 __attribute__((target("ssse3")))
 static void
@@ -383,6 +406,49 @@ addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
     for (; i < sz; i++)
 	GF_ADDMULC(dst[i], src[i]);
 }
+
+__attribute__((target("avx2")))
+static void
+addmul1_avx2(gf *dst, gf *src, gf c, int sz)
+{
+    __m128i tbl128_lo = _mm_load_si128((const __m128i *)gf_lo_table[c]);
+    __m128i tbl128_hi = _mm_load_si128((const __m128i *)gf_hi_table[c]);
+    __m256i tbl_lo = _mm256_broadcastsi128_si256(tbl128_lo);
+    __m256i tbl_hi = _mm256_broadcastsi128_si256(tbl128_hi);
+    __m256i mask   = _mm256_set1_epi8(0x0F);
+
+    int i = 0;
+    for (; i + 32 <= sz; i += 32) {
+	__m256i x  = _mm256_loadu_si256((const __m256i *)(src + i));
+	__m256i lo = _mm256_shuffle_epi8(tbl_lo, _mm256_and_si256(x, mask));
+	__m256i hi = _mm256_shuffle_epi8(tbl_hi,
+		_mm256_and_si256(_mm256_srli_epi64(x, 4), mask));
+	__m256i d  = _mm256_loadu_si256((const __m256i *)(dst + i));
+	_mm256_storeu_si256((__m256i *)(dst + i),
+		_mm256_xor_si256(d, _mm256_xor_si256(lo, hi)));
+    }
+
+    /* SSE tail: at most one 16-byte chunk */
+    if (i + 16 <= sz) {
+	__m128i mx = _mm_set1_epi8(0x0F);
+	__m128i x  = _mm_loadu_si128((const __m128i *)(src + i));
+	__m128i lo = _mm_shuffle_epi8(tbl128_lo, _mm_and_si128(x, mx));
+	__m128i hi = _mm_shuffle_epi8(tbl128_hi,
+		_mm_and_si128(_mm_srli_epi64(x, 4), mx));
+	__m128i d  = _mm_loadu_si128((const __m128i *)(dst + i));
+	_mm_storeu_si128((__m128i *)(dst + i),
+		_mm_xor_si128(d, _mm_xor_si128(lo, hi)));
+	i += 16;
+    }
+
+    /* scalar tail */
+    USE_GF_MULC ;
+    GF_MULC0(c) ;
+    for (; i < sz; i++)
+	GF_ADDMULC(dst[i], src[i]);
+}
+
+static void (*addmul1_x86_fn)(gf *, gf *, gf, int) = addmul1_ssse3;
 #endif /* __x86_64__ */
 
 #if defined(__aarch64__)
@@ -417,7 +483,7 @@ static void
 addmul1(gf *dst1, gf *src1, gf c, int sz)
 {
 #if defined(__x86_64__)
-    addmul1_ssse3(dst1, src1, c, sz);
+    addmul1_x86_fn(dst1, src1, c, sz);
 #elif defined(__aarch64__)
     addmul1_neon(dst1, src1, c, sz);
 #else
@@ -721,6 +787,10 @@ init_fec()
     DDB(fprintf(stderr, "init_mul_table took %ldus\n", ticks[0]);)
 #if (GF_BITS <= 8)
     init_simd_tables();
+#endif
+#if defined(__x86_64__)
+    if (cpu_has_avx2())
+	addmul1_x86_fn = addmul1_avx2;
 #endif
     fec_initialized = 1 ;
 }
