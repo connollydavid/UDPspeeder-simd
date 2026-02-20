@@ -117,3 +117,21 @@ clean:
 
 git_version:
 	    echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > git_version.h
+
+# --- Benchmark and test targets ---
+BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp
+TEST_SOURCES=bench/test_main.cpp bench/test_fec.cpp bench/test_crc32.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp
+BENCH_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O2 -DBENCH_EXPOSE_INTERNALS
+
+bench: git_version
+	${cc_local} -o bench_udpspeeder -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS}
+
+test: git_version
+	${cc_local} -o test_udpspeeder -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS}
+	./test_udpspeeder
+
+bench-musl: git_version
+	musl-gcc -x c++ -o bench_udpspeeder_musl -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static -lstdc++
+
+bench-cross: git_version
+	${CC} -o bench_udpspeeder_cross -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static

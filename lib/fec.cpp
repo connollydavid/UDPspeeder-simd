@@ -915,3 +915,9 @@ test_gf()
     }
 }
 #endif /* TEST */
+
+#ifdef BENCH_EXPOSE_INTERNALS
+void bench_addmul1(gf *dst, gf *src, gf c, int sz) {
+    addmul1(dst, src, c, sz);
+}
+#endif

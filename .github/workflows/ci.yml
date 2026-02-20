@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [branch_libev, master]
+  pull_request:
+    branches: [branch_libev, master]
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  test-and-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run correctness tests
+        run: make test
+
+      - name: Build benchmarks
+        run: make bench
+
+      - name: Run benchmarks
+        run: ./bench_udpspeeder
+
+      - name: Run benchmarks (JSON)
+        run: ./bench_udpspeeder --json
+
+      - name: Store benchmark results
+        if: github.ref == 'refs/heads/branch_libev'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: UDPspeeder Benchmarks
+          tool: customSmallerIsBetter
+          output-file-path: bench_results.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: false
+          benchmark-data-dir-path: dev/bench
+
+  cross-compile:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: x86_64-musl
+            target: bench-musl
+            packages: musl-tools
+            make_args: ""
+          - name: arm-linux-gnueabihf
+            target: bench-cross
+            packages: g++-arm-linux-gnueabihf
+            make_args: "CC=arm-linux-gnueabihf-g++"
+          - name: aarch64-linux-gnu
+            target: bench-cross
+            packages: g++-aarch64-linux-gnu
+            make_args: "CC=aarch64-linux-gnu-g++"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cross-compiler
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+
+      - name: Build (${{ matrix.name }})
+        run: make ${{ matrix.target }} ${{ matrix.make_args }}
+
+      - name: Verify binary
+        run: file bench_udpspeeder_*
