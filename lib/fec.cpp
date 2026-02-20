@@ -210,6 +210,27 @@ init_mul_table()
     for (j=0; j< GF_SIZE+1; j++)
 	    gf_mul_table[0][j] = gf_mul_table[j][0] = 0;
 }
+
+/*
+ * SIMD nibble lookup tables for GF(2^8) multiply-by-constant.
+ * For each constant c, lo_table[c][i] = c*i and hi_table[c][i] = c*(i<<4).
+ * This enables PSHUFB/TBL to process 16 bytes per instruction pair.
+ */
+static gf gf_lo_table[GF_SIZE + 1][16] __attribute__((aligned(16)));
+static gf gf_hi_table[GF_SIZE + 1][16] __attribute__((aligned(16)));
+
+static void
+init_simd_tables()
+{
+    int c, i;
+    for (c = 0; c <= GF_SIZE; c++) {
+	for (i = 0; i < 16; i++) {
+	    gf_lo_table[c][i] = gf_mul_table[c][i];
+	    gf_hi_table[c][i] = gf_mul_table[c][i << 4];
+	}
+    }
+}
+
 #else	/* GF_BITS > 8 */
 static inline gf
 gf_mul(x,y)
@@ -326,27 +347,88 @@ generate_gf(void)
 
 /*
  * addmul() computes dst[] = dst[] + c * src[]
- * This is used often, so better optimize it! Currently the loop is
- * unrolled 16 times, a good value for 486 and pentium-class machines.
- * The case c=0 is also optimized, whereas c=1 is not. These
- * calls are unfrequent in my typical apps so I did not bother.
- * 
- * Note that gcc on
+ *
+ * SIMD paths use nibble decomposition: c*x = lo_table[x & 0x0F] ^ hi_table[x >> 4]
+ * where each table has 16 entries fitting in one 128-bit SIMD register.
+ * PSHUFB (x86 SSSE3) / TBL (ARM NEON) performs 16 parallel lookups.
  */
 #define addmul(dst, src, c, sz) \
     if (c != 0) addmul1(dst, src, c, sz)
+
+#if defined(__x86_64__)
+#include <immintrin.h>
+
+__attribute__((target("ssse3")))
+static void
+addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
+{
+    __m128i tbl_lo = _mm_load_si128((const __m128i *)gf_lo_table[c]);
+    __m128i tbl_hi = _mm_load_si128((const __m128i *)gf_hi_table[c]);
+    __m128i mask   = _mm_set1_epi8(0x0F);
+
+    int i = 0;
+    for (; i + 16 <= sz; i += 16) {
+	__m128i x = _mm_loadu_si128((const __m128i *)(src + i));
+	__m128i lo = _mm_shuffle_epi8(tbl_lo, _mm_and_si128(x, mask));
+	__m128i hi = _mm_shuffle_epi8(tbl_hi,
+		_mm_and_si128(_mm_srli_epi64(x, 4), mask));
+	__m128i d = _mm_loadu_si128((const __m128i *)(dst + i));
+	_mm_storeu_si128((__m128i *)(dst + i),
+		_mm_xor_si128(d, _mm_xor_si128(lo, hi)));
+    }
+
+    /* scalar tail */
+    USE_GF_MULC ;
+    GF_MULC0(c) ;
+    for (; i < sz; i++)
+	GF_ADDMULC(dst[i], src[i]);
+}
+#endif /* __x86_64__ */
+
+#if defined(__aarch64__)
+#include <arm_neon.h>
+
+static void
+addmul1_neon(gf *dst, gf *src, gf c, int sz)
+{
+    uint8x16_t tbl_lo = vld1q_u8(gf_lo_table[c]);
+    uint8x16_t tbl_hi = vld1q_u8(gf_hi_table[c]);
+    uint8x16_t mask   = vdupq_n_u8(0x0F);
+
+    int i = 0;
+    for (; i + 16 <= sz; i += 16) {
+	uint8x16_t x = vld1q_u8(src + i);
+	uint8x16_t lo = vqtbl1q_u8(tbl_lo, vandq_u8(x, mask));
+	uint8x16_t hi = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x, 4));
+	uint8x16_t d = vld1q_u8(dst + i);
+	vst1q_u8(dst + i, veorq_u8(d, veorq_u8(lo, hi)));
+    }
+
+    /* scalar tail */
+    USE_GF_MULC ;
+    GF_MULC0(c) ;
+    for (; i < sz; i++)
+	GF_ADDMULC(dst[i], src[i]);
+}
+#endif /* __aarch64__ */
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
 static void
 addmul1(gf *dst1, gf *src1, gf c, int sz)
 {
+#if defined(__x86_64__)
+    addmul1_ssse3(dst1, src1, c, sz);
+#elif defined(__aarch64__)
+    addmul1_neon(dst1, src1, c, sz);
+#else
+    /* scalar fallback for MIPS, i486, ARMv7, etc. */
     USE_GF_MULC ;
     gf *dst = dst1, *src = src1 ;
     gf *lim = &dst[sz - UNROLL + 1] ;
 
     GF_MULC0(c) ;
 
-#if (UNROLL > 1) /* unrolling by 8/16 is quite effective on the pentium */
+#if (UNROLL > 1)
     for (; dst < lim ; dst += UNROLL, src += UNROLL ) {
 	GF_ADDMULC( dst[0] , src[0] );
 	GF_ADDMULC( dst[1] , src[1] );
@@ -371,8 +453,9 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
     }
 #endif
     lim += UNROLL - 1 ;
-    for (; dst < lim; dst++, src++ )		/* final components */
+    for (; dst < lim; dst++, src++ )
 	GF_ADDMULC( *dst , *src );
+#endif /* architecture dispatch */
 }
 
 /*
@@ -628,6 +711,9 @@ init_fec()
     init_mul_table();
     TOCK(ticks[0]);
     DDB(fprintf(stderr, "init_mul_table took %ldus\n", ticks[0]);)
+#if (GF_BITS <= 8)
+    init_simd_tables();
+#endif
     fec_initialized = 1 ;
 }
 
