@@ -9,7 +9,7 @@
 #include "log.h"
 #include "packet.h"
 #include "misc.h"
-#include "crc32/Crc32.h"
+#include "crc32c.h"
 
 int iv_min = 4;
 int iv_max = 32;  //< 256;
@@ -238,7 +238,7 @@ int put_conv0(u32_t conv, const char *input, int len_in, char *&output, int &len
     u32_t n_conv = htonl(conv);
     memcpy(output, &n_conv, sizeof(n_conv));
     memcpy(output + sizeof(n_conv), input, len_in);
-    u32_t crc32 = (u32_t)crc32_fast(output, len_in + sizeof(crc32));
+    u32_t crc32 = (u32_t)crc32c(output, len_in + sizeof(crc32));
     u32_t crc32_n = htonl(crc32);
     len_out = len_in + (int)(sizeof(n_conv)) + (int)sizeof(crc32_n);
     memcpy(output + len_in + (int)(sizeof(n_conv)), &crc32_n, sizeof(crc32_n));
@@ -258,7 +258,7 @@ int get_conv0(u32_t &conv, const char *input, int len_in, char *&output, int &le
     }
     memcpy(&crc32_n, input + len_in - (int)sizeof(crc32_n), sizeof(crc32_n));
     u32_t crc32 = ntohl(crc32_n);
-    if (crc32 != (u32_t)crc32_fast(input, len_in - sizeof(crc32_n))) {
+    if (crc32 != (u32_t)crc32c(input, len_in - sizeof(crc32_n))) {
         mylog(log_debug, "crc32 check failed\n");
         return -1;
     }
@@ -268,7 +268,7 @@ int put_crc32(char *s, int &len) {
     if (disable_checksum) return 0;
     assert(len >= 0);
     // if(len<0) return -1;
-    u32_t crc32 = (u32_t)crc32_fast(s, len);
+    u32_t crc32 = (u32_t)crc32c(s, len);
     write_u32(s + len, crc32);
     len += sizeof(u32_t);
 
@@ -304,7 +304,7 @@ int rm_crc32(char *s, int &len) {
     len -= sizeof(u32_t);
     if (len < 0) return -1;
     u32_t crc32_in = read_u32(s + len);
-    u32_t crc32 = (u32_t)crc32_fast(s, len);
+    u32_t crc32 = (u32_t)crc32c(s, len);
     if (crc32 != crc32_in) return -1;
     return 0;
 }
