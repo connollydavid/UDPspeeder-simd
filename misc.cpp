@@ -631,6 +631,7 @@ void process_arg(int argc, char *argv[]) {
                     mylog(log_fatal, "key len=0??\n");
                     myexit(-1);
                 }
+                cook_ctx_prepare_key(&cook_ctx);
                 break;
             case 'j':
                 if (strchr(optarg, ':') == 0) {

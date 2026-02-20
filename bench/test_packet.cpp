@@ -27,6 +27,7 @@ static int test_cook_roundtrip() {
     int failures = 0;
     cook_ctx_t ctx = {};
     strcpy(ctx.key, "testkey123");
+    cook_ctx_prepare_key(&ctx);
     ctx.iv_min = 4;
     ctx.iv_max = 32;
 

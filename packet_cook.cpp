@@ -4,6 +4,16 @@
 #include <string.h>
 #include <assert.h>
 
+#if defined(__x86_64__) || defined(_M_X64)
+#include <emmintrin.h>  /* SSE2 — baseline on all x86_64 */
+#define COOK_VEC_WIDTH 16
+#elif defined(__aarch64__)
+#include <arm_neon.h>
+#define COOK_VEC_WIDTH 16
+#else
+#define COOK_VEC_WIDTH 1
+#endif
+
 /* Provided by common.cpp in production, stubs in bench */
 extern "C++" void get_fake_random_chars(char *s, int len);
 extern "C++" int random_between(uint32_t a, uint32_t b);
@@ -30,21 +40,119 @@ cook_read_u32(char *p)
     return res;
 }
 
-static void
-encrypt_0(char *input, int &len, char *key)
+/* --- SIMD repeating-pattern XOR ----------------------------------------- */
+
+static int
+cook_gcd(int a, int b)
 {
-    int i, j;
-    if (key[0] == 0) return;
-    for (i = 0, j = 0; i < len; i++, j++) {
-        if (key[j] == 0) j = 0;
-        input[i] ^= key[j];
+    while (b) { int t = b; b = a % b; a = t; }
+    return a;
+}
+
+static int
+cook_lcm(int a, int b)
+{
+    return a / cook_gcd(a, b) * b;
+}
+
+/*
+ * Fill tile[0..tile_len-1] with pat[0..pat_len-1] repeating.
+ * tile_len must be a multiple of pat_len.
+ */
+static void
+expand_tile(char *tile, int tile_len, const char *pat, int pat_len)
+{
+    memcpy(tile, pat, pat_len);
+    int filled = pat_len;
+    while (filled < tile_len) {
+        int chunk = tile_len - filled;
+        if (chunk > filled) chunk = filled;
+        memcpy(tile + filled, tile, chunk);
+        filled += chunk;
     }
 }
 
+/*
+ * XOR data[0..len-1] with tile[0..tile_len-1] repeating.
+ * tile_len MUST be a multiple of COOK_VEC_WIDTH.
+ */
 static void
-decrypt_0(char *input, int &len, char *key)
+xor_tile(char *data, int len, const char *tile, int tile_len)
 {
-    encrypt_0(input, len, key);
+#if defined(__x86_64__) || defined(_M_X64)
+    int t = 0, i = 0;
+    for (; i + 16 <= len; i += 16) {
+        __m128i d = _mm_loadu_si128((const __m128i *)(data + i));
+        __m128i k = _mm_loadu_si128((const __m128i *)(tile + t));
+        _mm_storeu_si128((__m128i *)(data + i), _mm_xor_si128(d, k));
+        t += 16;
+        if (t >= tile_len) t = 0;
+    }
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        t++;
+        if (t >= tile_len) t = 0;
+    }
+#elif defined(__aarch64__)
+    int t = 0, i = 0;
+    for (; i + 16 <= len; i += 16) {
+        uint8x16_t d = vld1q_u8((const uint8_t *)(data + i));
+        uint8x16_t k = vld1q_u8((const uint8_t *)(tile + t));
+        vst1q_u8((uint8_t *)(data + i), veorq_u8(d, k));
+        t += 16;
+        if (t >= tile_len) t = 0;
+    }
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        t++;
+        if (t >= tile_len) t = 0;
+    }
+#else
+    for (int i = 0, t = 0; i < len; i++) {
+        data[i] ^= tile[t];
+        t++;
+        if (t >= tile_len) t = 0;
+    }
+#endif
+}
+
+/*
+ * Expand pattern into a SIMD-aligned tile on the stack and XOR.
+ * Used for obscure IV (4-32 bytes, changes per packet).
+ */
+static void
+xor_with_pattern(char *data, int len, const char *pat, int pat_len)
+{
+    if (pat_len <= 0 || len <= 0) return;
+    int tile_len = cook_lcm(pat_len, COOK_VEC_WIDTH);
+    char tile[512]; /* max lcm(31, 16) = 496 */
+    assert(tile_len <= (int)sizeof(tile));
+    expand_tile(tile, tile_len, pat, pat_len);
+    xor_tile(data, len, tile, tile_len);
+}
+
+/* --- Key preparation ---------------------------------------------------- */
+
+void
+cook_ctx_prepare_key(cook_ctx_t *ctx)
+{
+    ctx->key_len = (int)strlen(ctx->key);
+    if (ctx->key_len == 0) {
+        ctx->key_tile_len = 0;
+        return;
+    }
+    ctx->key_tile_len = cook_lcm(ctx->key_len, COOK_VEC_WIDTH);
+    assert(ctx->key_tile_len <= (int)sizeof(ctx->key_tile));
+    expand_tile(ctx->key_tile, ctx->key_tile_len, ctx->key, ctx->key_len);
+}
+
+/* --- Cook operations ---------------------------------------------------- */
+
+static void
+encrypt_0(cook_ctx_t *ctx, char *input, int len)
+{
+    if (ctx->key_tile_len == 0) return;
+    xor_tile(input, len, ctx->key_tile, ctx->key_tile_len);
 }
 
 static int
@@ -56,10 +164,7 @@ do_obscure(cook_ctx_t *ctx, char *data, int &len)
     int iv_len = random_between(ctx->iv_min, ctx->iv_max);
     get_fake_random_chars(data + len, iv_len);
     data[iv_len + len] = (uint8_t)iv_len;
-    for (int i = 0, j = 0; i < len; i++, j++) {
-        if (j == iv_len) j = 0;
-        data[i] ^= data[len + j];
-    }
+    xor_with_pattern(data, len, data + len, iv_len);
 
     len = len + iv_len + 1;
     return 0;
@@ -74,10 +179,7 @@ de_obscure(char *data, int &len)
     if (len < 1 + iv_len) return -1;
 
     len = len - 1 - iv_len;
-    for (int i = 0, j = 0; i < len; i++, j++) {
-        if (j == iv_len) j = 0;
-        data[i] ^= data[len + j];
-    }
+    xor_with_pattern(data, len, data + len, iv_len);
 
     return 0;
 }
@@ -111,14 +213,14 @@ do_cook(cook_ctx_t *ctx, char *data, int &len)
 {
     put_crc32(ctx, data, len);
     if (!ctx->disable_obscure) do_obscure(ctx, data, len);
-    if (!ctx->disable_xor) encrypt_0(data, len, ctx->key);
+    if (!ctx->disable_xor) encrypt_0(ctx, data, len);
     return 0;
 }
 
 int
 de_cook(cook_ctx_t *ctx, char *data, int &len)
 {
-    if (!ctx->disable_xor) decrypt_0(data, len, ctx->key);
+    if (!ctx->disable_xor) encrypt_0(ctx, data, len);
     if (!ctx->disable_obscure) {
         if (de_obscure(data, len) != 0)
             return -1;

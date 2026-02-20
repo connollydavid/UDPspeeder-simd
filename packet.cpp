@@ -11,7 +11,7 @@
 #include "misc.h"
 #include "crc32c.h"
 
-cook_ctx_t cook_ctx = { {}, 4, 32, 0, 0, 0 };
+cook_ctx_t cook_ctx = { {}, 0, 0, {}, 4, 32, 0, 0, 0 };
 
 u64_t packet_send_count = 0;
 u64_t dup_packet_send_count = 0;
