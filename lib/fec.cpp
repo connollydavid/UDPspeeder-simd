@@ -586,13 +586,12 @@ invert_mat(gf *src, int k)
     int irow, icol, row, col, i, ix ;
 
     int error = 1 ;
-    int *indxc = (int*)my_malloc(k*sizeof(int), "indxc");
-    int *indxr = (int*)my_malloc(k*sizeof(int), "indxr");
-    int *ipiv = (int*)my_malloc(k*sizeof(int), "ipiv");
-    gf *id_row = NEW_GF_MATRIX(1, k);
-    gf *temp_row = NEW_GF_MATRIX(1, k);
+    int indxc[k];
+    int indxr[k];
+    int ipiv[k];
+    gf id_row[k];
 
-    bzero(id_row, k*sizeof(gf));
+    memset(id_row, 0, (unsigned)k * sizeof(gf));
     DEB( pivloops=0; pivswaps=0 ; /* diagnostic */ )
     /*
      * ipiv marks elements already used as pivots.
@@ -697,11 +696,6 @@ found_piv:
     }
     error = 0 ;
 fail:
-    free(indxc);
-    free(indxr);
-    free(ipiv);
-    free(id_row);
-    free(temp_row);
     return error ;
 }
 
@@ -807,6 +801,9 @@ struct fec_parms {
     u_long magic ;
     int k, n ;		/* parameters of the code */
     gf *enc_matrix ;
+    gf *dec_matrix ;	/* k*k scratch for build_decode_matrix */
+    gf *dec_buf ;	/* k*dec_buf_sz scratch for fec_decode */
+    int dec_buf_sz ;	/* current sz capacity, 0 = not yet allocated */
 } ;
 
 void
@@ -819,6 +816,8 @@ fec_free(void *p0)
 	return ;
     }
     free(p->enc_matrix);
+    free(p->dec_matrix);
+    free(p->dec_buf);
     free(p);
 }
 
@@ -846,6 +845,9 @@ fec_new(int k, int n)
     retval->k = k ;
     retval->n = n ;
     retval->enc_matrix = NEW_GF_MATRIX(n, k);
+    retval->dec_matrix = NEW_GF_MATRIX(k, k);
+    retval->dec_buf = NULL ;
+    retval->dec_buf_sz = 0 ;
     retval->magic = ( ( FEC_MAGIC ^ k) ^ n) ^ (int)((long)retval->enc_matrix) ;
     tmp_m = NEW_GF_MATRIX(n, k);
     /*
@@ -956,11 +958,11 @@ shuffle(gf *pkt[], int index[], int k)
  * indexes. The matrix must be already allocated as
  * a vector of k*k elements, in row-major order
  */
-static gf *
-build_decode_matrix(struct fec_parms *code, gf *pkt[], int index[])
+static int
+build_decode_matrix(struct fec_parms *code, gf *pkt[], int index[], gf *matrix)
 {
     int i , k = code->k ;
-    gf *p, *matrix = NEW_GF_MATRIX(k, k);
+    gf *p ;
 
     TICK(ticks[9]);
     for (i = 0, p = matrix ; i < k ; i++, p += k ) {
@@ -971,21 +973,19 @@ build_decode_matrix(struct fec_parms *code, gf *pkt[], int index[])
 	} else
 #endif
 	if (index[i] < code->n )
-	    bcopy( &(code->enc_matrix[index[i]*k]), p, k*sizeof(gf) ); 
+	    bcopy( &(code->enc_matrix[index[i]*k]), p, k*sizeof(gf) );
 	else {
 	    fprintf(stderr, "decode: invalid index %d (max %d)\n",
 		index[i], code->n - 1 );
-	    free(matrix) ;
-	    return NULL ;
+	    return -1 ;
 	}
     }
     TICK(ticks[9]);
     if (invert_mat(matrix, k)) {
-	free(matrix);
-	matrix = NULL ;
+	return -1 ;
     }
     TOCK(ticks[9]);
-    return matrix ;
+    return 0 ;
 }
 
 /*
@@ -1005,29 +1005,32 @@ fec_decode(void *code0, void *pkt0[], int index[], int sz)
 {
 	struct fec_parms * code=(struct fec_parms*)code0;
 	gf **pkt=(gf**)pkt0;
-    gf *m_dec ; 
-    gf **new_pkt ;
     int row, col , k = code->k ;
+    gf *new_pkt[k] ;
 
     if (GF_BITS > 8)
 	sz /= 2 ;
 
     if (shuffle(pkt, index, k))	/* error if true */
 	return 1 ;
-    m_dec = build_decode_matrix(code, pkt, index);
-
-    if (m_dec == NULL)
+    if (build_decode_matrix(code, pkt, index, code->dec_matrix))
 	return 1 ; /* error */
+
+    /* ensure decode scratch buffer is large enough */
+    if (code->dec_buf_sz < sz) {
+	free(code->dec_buf);
+	code->dec_buf = (gf *)my_malloc(k * sz * sizeof(gf), "dec_buf");
+	code->dec_buf_sz = sz ;
+    }
     /*
      * do the actual decoding
      */
-    new_pkt = (gf** )my_malloc (k * sizeof (gf * ), "new pkt pointers" );
     for (row = 0 ; row < k ; row++ ) {
 	if (index[row] >= k) {
-	    new_pkt[row] = (gf*)my_malloc (sz * sizeof (gf), "new pkt buffer" );
+	    new_pkt[row] = code->dec_buf + row * sz ;
 	    bzero(new_pkt[row], sz * sizeof(gf) ) ;
 	    for (col = 0 ; col < k ; col++ )
-		addmul(new_pkt[row], pkt[col], m_dec[row*k + col], sz) ;
+		addmul(new_pkt[row], pkt[col], code->dec_matrix[row*k + col], sz) ;
 	}
     }
     /*
@@ -1036,11 +1039,8 @@ fec_decode(void *code0, void *pkt0[], int index[], int sz)
     for (row = 0 ; row < k ; row++ ) {
 	if (index[row] >= k) {
 	    bcopy(new_pkt[row], pkt[row], sz*sizeof(gf));
-	    free(new_pkt[row]);
 	}
     }
-    free(new_pkt);
-    free(m_dec);
 
     return 0;
 }
