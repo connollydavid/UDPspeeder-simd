@@ -421,7 +421,15 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
 #elif defined(__aarch64__)
     addmul1_neon(dst1, src1, c, sz);
 #else
-    /* scalar fallback for MIPS, i486, ARMv7, etc. */
+    /*
+     * Scalar fallback for MIPS, i486, ARMv7, etc.
+     *
+     * NOT auto-vectorizable: the 256-entry table lookup (gf_mulc_table[c][src[i]])
+     * is a data-dependent gather. The nibble decomposition that makes PSHUFB/TBL
+     * work requires GF(2^8) algebraic insight no compiler performs. Pragmas like
+     * omp simd, __restrict__, and -ftree-vectorize don't help — they grant
+     * permission to vectorize but can't transform the lookup. Deliberate choice.
+     */
     USE_GF_MULC ;
     gf *dst = dst1, *src = src1 ;
     gf *lim = &dst[sz - UNROLL + 1] ;
