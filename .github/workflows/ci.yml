@@ -11,7 +11,7 @@ permissions:
   deployments: write
 
 jobs:
-  test-and-bench:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,31 +42,54 @@ jobs:
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
 
-  cross-compile:
+  build-static:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - name: x86_64-musl
-            target: bench-musl
-            packages: musl-tools
+          - name: x86_64
+            packages: ""
+            bench_target: bench-static
+            test_target: test-static
+            prod_target: all
             make_args: ""
-          - name: arm-linux-gnueabihf
-            target: bench-cross
-            packages: g++-arm-linux-gnueabihf
-            make_args: "CC=arm-linux-gnueabihf-g++"
-          - name: aarch64-linux-gnu
-            target: bench-cross
+            bench_bin: bench_udpspeeder_static
+            test_bin: test_udpspeeder_static
+            prod_bin: speederv2
+          - name: aarch64
             packages: g++-aarch64-linux-gnu
+            bench_target: bench-cross
+            test_target: test-cross
+            prod_target: all-cross
             make_args: "CC=aarch64-linux-gnu-g++"
+            bench_bin: bench_udpspeeder_cross
+            test_bin: test_udpspeeder_cross
+            prod_bin: speederv2_cross
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cross-compiler
+      - name: Install toolchain
+        if: matrix.packages != ''
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
 
-      - name: Build (${{ matrix.name }})
-        run: make ${{ matrix.target }} ${{ matrix.make_args }}
+      - name: Build bench (${{ matrix.name }})
+        run: make ${{ matrix.bench_target }} ${{ matrix.make_args }}
 
-      - name: Verify binary
-        run: file bench_udpspeeder_*
+      - name: Build test (${{ matrix.name }})
+        run: make ${{ matrix.test_target }} ${{ matrix.make_args }}
+
+      - name: Build production (${{ matrix.name }})
+        run: make ${{ matrix.prod_target }} ${{ matrix.make_args }}
+
+      - name: Verify binaries
+        run: file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-${{ matrix.name }}
+          path: |
+            ${{ matrix.bench_bin }}
+            ${{ matrix.test_bin }}
+            ${{ matrix.prod_bin }}
+            bench/profile.sh
