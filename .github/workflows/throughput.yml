@@ -51,12 +51,11 @@ jobs:
 
       - name: Generate JSON results (current)
         run: |
-          echo "[" > throughput_results.json
-          ./bench/throughput.sh ./speederv2_current --disable-fec --json >> throughput_results.json
-          echo "," >> throughput_results.json
-          ./bench/throughput.sh ./speederv2_current --fec 20:10 --json >> throughput_results.json
-          echo "]" >> throughput_results.json
+          nofec=$(./bench/throughput.sh ./speederv2_current --disable-fec --json)
+          fec=$(./bench/throughput.sh ./speederv2_current --fec 20:10 --json)
+          printf '[%s, %s]\n' "$nofec" "$fec" > throughput_results.json
           cat throughput_results.json
+          python3 -c "import json; json.load(open('throughput_results.json'))"
 
       - name: Store throughput results
         if: github.ref == 'refs/heads/branch_libev'

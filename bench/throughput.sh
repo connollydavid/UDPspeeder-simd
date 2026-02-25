@@ -150,8 +150,9 @@ median_idx=$(( ITERATIONS / 2 ))
 median=${sorted[$median_idx]}
 
 # --- Output ---
+median=${median:-0.0}
 if [[ $JSON -eq 1 ]]; then
-    echo "{\"name\": \"throughput/$FEC_LABEL\", \"unit\": \"MB/s\", \"value\": $median}"
+    printf '{"name": "throughput/%s", "unit": "MB/s", "value": %s}\n' "$FEC_LABEL" "$median"
 else
     echo "Throughput ($FEC_LABEL): $median MB/s  [runs: ${results[*]}]"
 fi
