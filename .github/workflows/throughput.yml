@@ -37,25 +37,20 @@ jobs:
       - name: Rename baseline binary
         run: mv baseline/speederv2 speederv2_baseline
 
-      - name: Throughput — current, no FEC
-        run: ./bench/throughput.sh ./speederv2_current --disable-fec
-
-      - name: Throughput — current, FEC 20:10
-        run: ./bench/throughput.sh ./speederv2_current --fec 20:10
-
-      - name: Throughput — baseline, no FEC
-        run: ./bench/throughput.sh ./speederv2_baseline --disable-fec
-
-      - name: Throughput — baseline, FEC 20:10
-        run: ./bench/throughput.sh ./speederv2_baseline --fec 20:10
-
-      - name: Generate JSON results (current)
+      - name: Generate JSON results (current + baseline)
         run: |
-          nofec=$(./bench/throughput.sh ./speederv2_current --disable-fec --json)
-          fec=$(./bench/throughput.sh ./speederv2_current --fec 20:10 --json)
-          printf '[%s, %s]\n' "$nofec" "$fec" > throughput_results.json
+          cur_nofec=$(./bench/throughput.sh ./speederv2_current --disable-fec --json)
+          cur_fec=$(./bench/throughput.sh ./speederv2_current --fec 20:10 --json)
+          base_nofec=$(./bench/throughput.sh ./speederv2_baseline --disable-fec --json)
+          base_fec=$(./bench/throughput.sh ./speederv2_baseline --fec 20:10 --json)
+
+          # Rename baseline entries to include "baseline/" prefix
+          base_nofec=$(echo "$base_nofec" | sed 's|"throughput/|"baseline/throughput/|')
+          base_fec=$(echo "$base_fec" | sed 's|"throughput/|"baseline/throughput/|')
+
+          printf '[%s, %s, %s, %s]\n' "$cur_nofec" "$cur_fec" "$base_nofec" "$base_fec" > throughput_results.json
           cat throughput_results.json
-          python3 -c "import json; json.load(open('throughput_results.json'))"
+          python3 -c "import json; d=json.load(open('throughput_results.json')); [print(f\"  {e['name']}: {e['value']} {e['unit']}\") for e in d]"
 
       - name: Store throughput results
         if: github.ref == 'refs/heads/branch_libev'
