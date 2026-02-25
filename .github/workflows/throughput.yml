@@ -1,0 +1,70 @@
+name: Throughput
+
+on:
+  push:
+    branches: [branch_libev, master]
+  pull_request:
+    branches: [branch_libev, master]
+
+permissions:
+  contents: write
+
+jobs:
+  throughput:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+
+      - name: Build current binary
+        run: make all
+
+      - name: Rename current binary
+        run: mv speederv2 speederv2_current
+
+      - name: Checkout baseline
+        uses: actions/checkout@v4
+        with:
+          ref: baseline
+          path: baseline
+
+      - name: Build baseline binary
+        run: make -C baseline all
+
+      - name: Rename baseline binary
+        run: mv baseline/speederv2 speederv2_baseline
+
+      - name: Throughput — current, no FEC
+        run: ./bench/throughput.sh ./speederv2_current --disable-fec
+
+      - name: Throughput — current, FEC 20:10
+        run: ./bench/throughput.sh ./speederv2_current --fec 20:10
+
+      - name: Throughput — baseline, no FEC
+        run: ./bench/throughput.sh ./speederv2_baseline --disable-fec
+
+      - name: Throughput — baseline, FEC 20:10
+        run: ./bench/throughput.sh ./speederv2_baseline --fec 20:10
+
+      - name: Generate JSON results (current)
+        run: |
+          echo "[" > throughput_results.json
+          ./bench/throughput.sh ./speederv2_current --disable-fec --json >> throughput_results.json
+          echo "," >> throughput_results.json
+          ./bench/throughput.sh ./speederv2_current --fec 20:10 --json >> throughput_results.json
+          echo "]" >> throughput_results.json
+          cat throughput_results.json
+
+      - name: Store throughput results
+        if: github.ref == 'refs/heads/branch_libev'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: UDPspeeder Throughput
+          tool: customBiggerIsBetter
+          output-file-path: throughput_results.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '70%'
+          comment-on-alert: true
+          fail-on-alert: false
+          benchmark-data-dir-path: dev/throughput
