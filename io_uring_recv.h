@@ -8,11 +8,17 @@
 #include <stdint.h>
 #include <sys/socket.h>
 
-/* --- Kernel structure / constant fallbacks (for older headers) ------------ */
+/* --- Kernel constant fallbacks (for older headers) ----------------------- */
 
 #include <linux/io_uring.h>
 #include <sys/syscall.h>
 
+/*
+ * Macro fallbacks — these are #define'd in kernel headers (not enums),
+ * so #ifndef works reliably.  Struct/enum fallbacks are NOT provided;
+ * compilation requires kernel headers 6.0+ (Ubuntu 22.04 HWE or 24.04).
+ * Runtime probe handles older kernels gracefully.
+ */
 #ifndef IORING_RECV_MULTISHOT
 #define IORING_RECV_MULTISHOT (1U << 1)
 #endif
@@ -24,54 +30,6 @@
 #endif
 #ifndef IORING_CQE_BUFFER_SHIFT
 #define IORING_CQE_BUFFER_SHIFT 16
-#endif
-#ifndef IORING_REGISTER_PBUF_RING
-#define IORING_REGISTER_PBUF_RING 22
-#endif
-#ifndef IORING_UNREGISTER_PBUF_RING
-#define IORING_UNREGISTER_PBUF_RING 23
-#endif
-
-#ifndef IORING_OP_ASYNC_CANCEL
-#define IORING_OP_ASYNC_CANCEL 14
-#endif
-
-/* io_uring_buf_ring — provided buffer ring shared with kernel (5.19+) */
-#ifndef HAVE_IO_URING_BUF_RING
-struct io_uring_buf {
-    __u64 addr;
-    __u32 len;
-    __u16 bid;
-    __u16 resv;
-};
-struct io_uring_buf_ring {
-    union {
-        struct {
-            __u64 resv1;
-            __u32 resv2;
-            __u16 resv3;
-            __u16 tail;
-        };
-        struct io_uring_buf bufs[0];
-    };
-};
-struct io_uring_buf_reg {
-    __u64 ring_addr;
-    __u32 ring_entries;
-    __u16 bgid;
-    __u16 flags;
-    __u64 resv[3];
-};
-#endif
-
-/* io_uring_recvmsg_out — header in provided buffer for multishot recvmsg */
-#ifndef HAVE_IO_URING_RECVMSG_OUT
-struct io_uring_recvmsg_out {
-    __u32 namelen;
-    __u32 controllen;
-    __u32 payloadlen;
-    __u32 flags;
-};
 #endif
 
 /* --- Public API ---------------------------------------------------------- */

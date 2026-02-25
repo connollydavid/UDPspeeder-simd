@@ -11,7 +11,6 @@ uring_ctx_t *g_uring_ctx = NULL;
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdatomic.h>
 
 /* --- Raw syscall wrappers ------------------------------------------------ */
 
@@ -40,13 +39,13 @@ sys_io_uring_register(int fd, unsigned opcode, void *arg, unsigned nr_args)
 static inline void
 io_uring_smp_store_release(unsigned *p, unsigned v)
 {
-    atomic_store_explicit((_Atomic unsigned *)p, v, memory_order_release);
+    __atomic_store_n(p, v, __ATOMIC_RELEASE);
 }
 
 static inline unsigned
 io_uring_smp_load_acquire(const unsigned *p)
 {
-    return atomic_load_explicit((const _Atomic unsigned *)p, memory_order_acquire);
+    return __atomic_load_n(p, __ATOMIC_ACQUIRE);
 }
 
 /* --- SQE helpers --------------------------------------------------------- */
@@ -81,7 +80,7 @@ buf_ring_add(uring_ctx_t *ctx, int buf_id)
     buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size);
     buf->len = (__u32)ctx->buf_size;
     buf->bid = (__u16)buf_id;
-    io_uring_smp_store_release(&br->tail, idx + 1);
+    __atomic_store_n(&br->tail, (__u16)(idx + 1), __ATOMIC_RELEASE);
 }
 
 /* --- Public API ---------------------------------------------------------- */
