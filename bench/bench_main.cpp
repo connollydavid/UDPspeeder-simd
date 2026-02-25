@@ -1,6 +1,7 @@
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include "nanobench.h"
 #include "bench_common.h"
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <vector>
@@ -13,11 +14,24 @@ int main(int argc, char *argv[]) {
     }
 
     ankerl::nanobench::Bench bench;
-    bench.title("UDPspeeder").warmup(3).relative(false);
+    bench.title("UDPspeeder").warmup(3).epochs(21).relative(false);
 
     register_fec_benchmarks(&bench);
     register_crc32_benchmarks(&bench);
     register_packet_benchmarks(&bench);
+
+    /* Emit stability warnings for noisy benchmarks */
+    {
+        auto results = bench.results();
+        for (size_t i = 0; i < results.size(); i++) {
+            double mdape = results[i].medianAbsolutePercentError(
+                ankerl::nanobench::Result::Measure::elapsed);
+            if (mdape > 0.05) {
+                fprintf(stderr, "WARNING: %s has MdAPE %.1f%% (>5%%)\n",
+                    results[i].config().mBenchmarkName.c_str(), mdape * 100.0);
+            }
+        }
+    }
 
     if (json_output) {
         /* github-action-benchmark customSmallerIsBetter format

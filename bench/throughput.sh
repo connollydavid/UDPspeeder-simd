@@ -11,10 +11,10 @@
 set -euo pipefail
 
 BINARY=""
-DURATION=5
+DURATION=10
 FEC_ARGS="--disable-fec"
 FEC_LABEL="no-fec"
-ITERATIONS=3
+ITERATIONS=5
 JSON=0
 
 while [[ $# -gt 0 ]]; do
@@ -130,6 +130,10 @@ while time.monotonic() < end:
 
     python3 -c "print(f'{$bytes / $elapsed / 1e6 * 8:.1f}')"
 }
+
+# Warmup run (discarded) — primes tunnel, caches, socket buffers
+echo "  Warmup run..." >&2
+run_once > /dev/null
 
 # Run iterations and compute median
 results=()

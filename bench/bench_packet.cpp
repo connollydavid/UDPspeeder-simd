@@ -20,8 +20,8 @@ static cook_ctx_t make_ctx(int checksum, int obscure, int xor_enc) {
     cook_ctx_t ctx = {};
     strcpy(ctx.key, "benchmarkkey1234");
     cook_ctx_prepare_key(&ctx);
-    ctx.iv_min = 4;
-    ctx.iv_max = 32;
+    ctx.iv_min = 16;
+    ctx.iv_max = 16;
     ctx.disable_checksum = !checksum;
     ctx.disable_obscure = !obscure;
     ctx.disable_xor = !xor_enc;

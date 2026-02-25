@@ -26,7 +26,7 @@ jobs:
         run: ./bench_udpspeeder
 
       - name: Run benchmarks (JSON)
-        run: ./bench_udpspeeder --json
+        run: taskset -c 0 ./bench_udpspeeder --json
 
       - name: Store benchmark results
         if: github.ref == 'refs/heads/branch_libev'
@@ -37,7 +37,7 @@ jobs:
           output-file-path: bench_results.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '200%'
+          alert-threshold: '115%'
           comment-on-alert: true
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
