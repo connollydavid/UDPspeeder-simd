@@ -7,9 +7,6 @@
 #   --disable-fec    explicitly disable FEC
 #   --iterations N   number of runs, reports median (default: 3)
 #   --json           output JSON for github-action-benchmark
-#
-# Topology:
-#   Python sender → speederv2 client (:20002) → speederv2 server (:20000) → Python receiver (:20001)
 
 set -euo pipefail
 
@@ -20,7 +17,6 @@ FEC_LABEL="no-fec"
 ITERATIONS=3
 JSON=0
 
-# --- Argument parsing ---
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --duration) DURATION="$2"; shift 2 ;;
@@ -43,34 +39,33 @@ if [[ ! -x "$BINARY" ]]; then
     exit 1
 fi
 
-# --- Ports ---
 PORT_TUNNEL=20000
 PORT_APP=20001
 PORT_CLIENT=20002
 
-# --- Cleanup trap ---
-PIDS=()
-cleanup() {
-    for pid in "${PIDS[@]}"; do
-        kill "$pid" 2>/dev/null || true
-        wait "$pid" 2>/dev/null || true
-    done
-    PIDS=()
+# Kill any leftover processes from previous runs
+kill_tunnel() {
+    local pids
+    pids=$(jobs -p 2>/dev/null) || true
+    if [[ -n "$pids" ]]; then
+        kill $pids 2>/dev/null || true
+        wait $pids 2>/dev/null || true
+    fi
 }
-trap cleanup EXIT
+trap kill_tunnel EXIT
 
-# --- Single throughput run ---
 run_once() {
     local tmpfile
     tmpfile=$(mktemp)
-    cleanup
+    kill_tunnel
 
-    # Start UDP receiver
+    # UDP receiver: writes "bytes elapsed" to tmpfile, exits after 2s of no data
     python3 -c "
-import socket, time
+import socket, time, sys
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind(('127.0.0.1', $PORT_APP))
-sock.settimeout($DURATION + 4)
+sock.settimeout(2)
 total = 0
 start = None
 try:
@@ -82,22 +77,22 @@ try:
 except socket.timeout:
     pass
 elapsed = time.monotonic() - start if start else 0
-print(f'{total} {elapsed}')
+result = f'{total} {elapsed:.6f}'
+sys.stdout.write(result + '\n')
+sys.stdout.flush()
 " > "$tmpfile" 2>/dev/null &
-    PIDS+=($!)
+    local recv_pid=$!
 
-    # Start speederv2 server
-    $BINARY -s -l 127.0.0.1:$PORT_TUNNEL -r 127.0.0.1:$PORT_APP $FEC_ARGS --log-level 0 &
-    PIDS+=($!)
+    # Start tunnel
+    $BINARY -s -l 127.0.0.1:$PORT_TUNNEL -r 127.0.0.1:$PORT_APP $FEC_ARGS --log-level 0 >/dev/null 2>&1 &
+    local server_pid=$!
 
-    # Start speederv2 client
-    $BINARY -c -l 127.0.0.1:$PORT_CLIENT -r 127.0.0.1:$PORT_TUNNEL $FEC_ARGS --log-level 0 &
-    PIDS+=($!)
+    $BINARY -c -l 127.0.0.1:$PORT_CLIENT -r 127.0.0.1:$PORT_TUNNEL $FEC_ARGS --log-level 0 >/dev/null 2>&1 &
+    local client_pid=$!
 
-    # Wait for tunnel to initialize
     sleep 1
 
-    # Start UDP sender (runs for DURATION seconds)
+    # UDP sender: blasts 1400-byte packets for DURATION seconds
     python3 -c "
 import socket, time
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -109,48 +104,47 @@ while time.monotonic() < end:
     except OSError:
         pass
 "
+    echo "  sender done, waiting for receiver..." >&2
 
-    # Give receiver time to drain
-    sleep 2
+    # Wait for receiver to exit naturally (2s socket timeout after last packet)
+    wait $recv_pid 2>/dev/null || true
 
-    # Stop everything
-    cleanup
+    # Kill tunnel processes
+    kill $server_pid $client_pid 2>/dev/null || true
+    wait $server_pid $client_pid 2>/dev/null || true
 
     # Parse result
-    local result
+    local result bytes elapsed
     result=$(cat "$tmpfile")
     rm -f "$tmpfile"
 
-    local bytes elapsed
     bytes=$(echo "$result" | awk '{print $1}')
     elapsed=$(echo "$result" | awk '{print $2}')
 
+    echo "  received $bytes bytes in ${elapsed}s" >&2
+
     if [[ -z "$bytes" || "$bytes" == "0" ]]; then
-        echo "0" # failed run
+        echo "0.0"
         return
     fi
 
-    # Output MB/s with 1 decimal place
     python3 -c "print(f'{$bytes / $elapsed / 1e6:.1f}')"
 }
 
-# --- Run iterations and compute median ---
+# Run iterations and compute median
 results=()
 for i in $(seq 1 "$ITERATIONS"); do
-    if [[ $JSON -eq 0 ]]; then
-        echo "  Run $i/$ITERATIONS..." >&2
-    fi
+    echo "  Run $i/$ITERATIONS..." >&2
     mbps=$(run_once)
     results+=("$mbps")
+    echo "  → $mbps MB/s" >&2
 done
 
-# Sort and pick median
 IFS=$'\n' sorted=($(printf '%s\n' "${results[@]}" | sort -n)); unset IFS
 median_idx=$(( ITERATIONS / 2 ))
 median=${sorted[$median_idx]}
-
-# --- Output ---
 median=${median:-0.0}
+
 if [[ $JSON -eq 1 ]]; then
     printf '{"name": "throughput/%s", "unit": "MB/s", "value": %s}\n' "$FEC_LABEL" "$median"
 else
