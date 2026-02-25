@@ -121,7 +121,7 @@ void data_from_remote_or_fec_timeout_or_conn_timer(conn_info_t &conn_info, fd64_
 
 static void server_process_tunnel_packet(struct ev_loop *loop, int local_listen_fd,
                                           char *data, int data_len,
-                                          const struct sockaddr *src_addr, socklen_t src_addr_len) {
+                                          struct sockaddr *src_addr, socklen_t src_addr_len) {
     int ret;
 
     if (data_len == max_data_len + 1) {

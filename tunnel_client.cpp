@@ -1,7 +1,7 @@
 #include "tunnel.h"
 
 static void client_process_local_packet(conn_info_t &conn_info, char *data, int data_len,
-                                         const struct sockaddr *src_addr, socklen_t src_addr_len) {
+                                         struct sockaddr *src_addr, socklen_t src_addr_len) {
     fd64_t &remote_fd64 = conn_info.remote_fd64;
     address_t addr;
     u32_t conv;
