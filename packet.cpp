@@ -173,6 +173,14 @@ int put_conv(u32_t conv, const char *input, int len_in, char *&output, int &len_
 
     return 0;
 }
+int put_conv_inplace(u32_t conv, char *buf, int data_len, int &len_out) {
+    /* buf must have data at buf+sizeof(u32_t) with sizeof(u32_t) bytes of headroom.
+     * Writes conv header at buf[0..3], total len = data_len + 4. */
+    u32_t n_conv = htonl(conv);
+    memcpy(buf, &n_conv, sizeof(n_conv));
+    len_out = data_len + (int)sizeof(n_conv);
+    return 0;
+}
 int get_conv(u32_t &conv, const char *input, int len_in, char *&output, int &len_out) {
     u32_t n_conv;
     memcpy(&n_conv, input, sizeof(n_conv));

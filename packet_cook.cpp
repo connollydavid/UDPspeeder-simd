@@ -6,6 +6,7 @@
 
 #if defined(__x86_64__) || defined(_M_X64)
 #include <emmintrin.h>  /* SSE2 — baseline on all x86_64 */
+#include <immintrin.h>  /* AVX2 — for xor_tile_avx2 (guarded by target attr) */
 #define COOK_VEC_WIDTH 16
 #elif defined(__aarch64__)
 #include <arm_neon.h>
@@ -76,10 +77,68 @@ expand_tile(char *tile, int tile_len, const char *pat, int pat_len)
  * XOR data[0..len-1] with tile[0..tile_len-1] repeating.
  * tile_len MUST be a multiple of COOK_VEC_WIDTH.
  */
+#if defined(__x86_64__) || defined(_M_X64)
+__attribute__((target("avx2")))
+static void
+xor_tile_avx2(char *data, int len, const char *tile, int tile_len)
+{
+    int t = 0, i = 0;
+    if (tile_len == 16) {
+        /* Common case: broadcast 16-byte tile to 256-bit, no wrap logic */
+        __m256i tile256 = _mm256_broadcastsi128_si256(
+            _mm_loadu_si128((const __m128i *)tile));
+        for (; i + 32 <= len; i += 32) {
+            __m256i d = _mm256_loadu_si256((const __m256i *)(data + i));
+            _mm256_storeu_si256((__m256i *)(data + i),
+                _mm256_xor_si256(d, tile256));
+        }
+        /* t stays 0: i is multiple of 32, tile_len=16, so (i % 16) == 0 */
+    } else {
+        /* General case: tile_len is a multiple of 16 */
+        for (; i + 32 <= len; i += 32) {
+            __m128i k1 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16;
+            if (t >= tile_len) t -= tile_len;
+            __m128i k2 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16;
+            if (t >= tile_len) t -= tile_len;
+            __m256i key = _mm256_set_m128i(k2, k1);
+            __m256i d = _mm256_loadu_si256((const __m256i *)(data + i));
+            _mm256_storeu_si256((__m256i *)(data + i),
+                _mm256_xor_si256(d, key));
+        }
+    }
+    /* SSE2 tail */
+    for (; i + 16 <= len; i += 16) {
+        __m128i d = _mm_loadu_si128((const __m128i *)(data + i));
+        __m128i k = _mm_loadu_si128((const __m128i *)(tile + t));
+        _mm_storeu_si128((__m128i *)(data + i), _mm_xor_si128(d, k));
+        t += 16;
+        if (t >= tile_len) t = 0;
+    }
+    /* scalar tail */
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+}
+#endif
+
 static void
 xor_tile(char *data, int len, const char *tile, int tile_len)
 {
 #if defined(__x86_64__) || defined(_M_X64)
+    static int has_avx2 = -1;
+    if (has_avx2 < 0) {
+        /* Check AVX2: CPUID leaf 7, EBX bit 5 */
+        unsigned int eax, ebx, ecx, edx;
+        __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
+        has_avx2 = (ebx >> 5) & 1;
+    }
+    if (has_avx2) {
+        xor_tile_avx2(data, len, tile, tile_len);
+        return;
+    }
     int t = 0, i = 0;
     for (; i + 16 <= len; i += 16) {
         __m128i d = _mm_loadu_si128((const __m128i *)(data + i));

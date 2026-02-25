@@ -390,6 +390,22 @@ addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
     __m128i mask   = _mm_set1_epi8(0x0F);
 
     int i = 0;
+    /* 2x unrolled: process 32 bytes per iteration for better ILP */
+    for (; i + 32 <= sz; i += 32) {
+	__m128i x1 = _mm_loadu_si128((const __m128i *)(src + i));
+	__m128i x2 = _mm_loadu_si128((const __m128i *)(src + i + 16));
+	__m128i lo1 = _mm_shuffle_epi8(tbl_lo, _mm_and_si128(x1, mask));
+	__m128i hi1 = _mm_shuffle_epi8(tbl_hi, _mm_and_si128(_mm_srli_epi64(x1, 4), mask));
+	__m128i lo2 = _mm_shuffle_epi8(tbl_lo, _mm_and_si128(x2, mask));
+	__m128i hi2 = _mm_shuffle_epi8(tbl_hi, _mm_and_si128(_mm_srli_epi64(x2, 4), mask));
+	__m128i d1 = _mm_loadu_si128((const __m128i *)(dst + i));
+	__m128i d2 = _mm_loadu_si128((const __m128i *)(dst + i + 16));
+	_mm_storeu_si128((__m128i *)(dst + i),
+		_mm_xor_si128(d1, _mm_xor_si128(lo1, hi1)));
+	_mm_storeu_si128((__m128i *)(dst + i + 16),
+		_mm_xor_si128(d2, _mm_xor_si128(lo2, hi2)));
+    }
+    /* 16-byte tail */
     for (; i + 16 <= sz; i += 16) {
 	__m128i x = _mm_loadu_si128((const __m128i *)(src + i));
 	__m128i lo = _mm_shuffle_epi8(tbl_lo, _mm_and_si128(x, mask));
@@ -418,6 +434,22 @@ addmul1_avx2(gf *dst, gf *src, gf c, int sz)
     __m256i mask   = _mm256_set1_epi8(0x0F);
 
     int i = 0;
+    /* 2x unrolled: process 64 bytes per iteration for better ILP */
+    for (; i + 64 <= sz; i += 64) {
+	__m256i x1  = _mm256_loadu_si256((const __m256i *)(src + i));
+	__m256i x2  = _mm256_loadu_si256((const __m256i *)(src + i + 32));
+	__m256i lo1 = _mm256_shuffle_epi8(tbl_lo, _mm256_and_si256(x1, mask));
+	__m256i hi1 = _mm256_shuffle_epi8(tbl_hi, _mm256_and_si256(_mm256_srli_epi64(x1, 4), mask));
+	__m256i lo2 = _mm256_shuffle_epi8(tbl_lo, _mm256_and_si256(x2, mask));
+	__m256i hi2 = _mm256_shuffle_epi8(tbl_hi, _mm256_and_si256(_mm256_srli_epi64(x2, 4), mask));
+	__m256i d1  = _mm256_loadu_si256((const __m256i *)(dst + i));
+	__m256i d2  = _mm256_loadu_si256((const __m256i *)(dst + i + 32));
+	_mm256_storeu_si256((__m256i *)(dst + i),
+		_mm256_xor_si256(d1, _mm256_xor_si256(lo1, hi1)));
+	_mm256_storeu_si256((__m256i *)(dst + i + 32),
+		_mm256_xor_si256(d2, _mm256_xor_si256(lo2, hi2)));
+    }
+    /* 32-byte tail */
     for (; i + 32 <= sz; i += 32) {
 	__m256i x  = _mm256_loadu_si256((const __m256i *)(src + i));
 	__m256i lo = _mm256_shuffle_epi8(tbl_lo, _mm256_and_si256(x, mask));
