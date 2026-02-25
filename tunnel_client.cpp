@@ -1,4 +1,5 @@
 #include "tunnel.h"
+#include "io_uring_recv.h"
 
 static void client_process_local_packet(conn_info_t &conn_info, char *data, int data_len,
                                          struct sockaddr *src_addr, socklen_t src_addr_len) {
@@ -52,6 +53,63 @@ static void client_process_local_packet(conn_info_t &conn_info, char *data, int 
     }
 }
 
+static void client_process_remote_packet(conn_info_t &conn_info, char *data, int data_len) {
+    if (data_len == max_data_len + 1) {
+        mylog(log_warn, "huge packet, data_len > %d, packet truncated, dropped\n", max_data_len);
+        return;
+    }
+
+    mylog(log_trace, "received data from remote, len=%d\n", data_len);
+    if (data_len < 0) {
+        if (get_sock_errno() == ECONNREFUSED) {
+            mylog(log_debug, "recv failed %d ,errno:%s\n", data_len, get_sock_error());
+        }
+
+        mylog(log_warn, "recv failed %d ,errno:%s\n", data_len, get_sock_error());
+        return;
+    }
+    if (!disable_mtu_warn && data_len > mtu_warn) {
+        mylog(log_warn, "huge packet,data len=%d (>%d).strongly suggested to set a smaller mtu at upper level,to get rid of this warn\n ", data_len, mtu_warn);
+    }
+
+    if (de_cook(&cook_ctx, data, data_len) != 0) {
+        mylog(log_debug, "de_cook error");
+        return;
+    }
+
+    int out_n;
+    char **out_arr;
+    int *out_len;
+    my_time_t *out_delay;
+    from_fec_to_normal(conn_info, data, data_len, out_n, out_arr, out_len, out_delay);
+
+    mylog(log_trace, "out_n=%d\n", out_n);
+
+    for (int i = 0; i < out_n; i++) {
+        u32_t conv;
+        char *new_data;
+        int new_len;
+        if (get_conv(conv, out_arr[i], out_len[i], new_data, new_len) != 0) {
+            mylog(log_debug, "get_conv(conv,out_arr[i],out_len[i],new_data,new_len)!=0");
+            continue;
+        }
+        if (!conn_info.conv_manager.c.is_conv_used(conv)) {
+            mylog(log_trace, "!conn_info.conv_manager.is_conv_used(conv)");
+            continue;
+        }
+
+        conn_info.conv_manager.c.update_active_time(conv);
+
+        address_t addr = conn_info.conv_manager.c.find_data_by_conv(conv);
+        dest_t dest;
+        dest.inner.fd_addr.fd = conn_info.local_listen_fd;
+        dest.inner.fd_addr.addr = addr;
+        dest.type = type_fd_addr;
+
+        delay_send(out_delay[i], dest, new_data, new_len);
+    }
+}
+
 void data_from_local_or_fec_timeout(conn_info_t &conn_info, int is_time_out) {
     fd64_t &remote_fd64 = conn_info.remote_fd64;
     int &local_listen_fd = conn_info.local_listen_fd;
@@ -99,75 +157,19 @@ static void remote_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) 
 
     conn_info_t &conn_info = *((conn_info_t *)watcher->data);
 
-    char data[buf_len];
     if (!fd_manager.exist(watcher->u64))  // fd64 has been closed
     {
         mylog(log_trace, "!fd_manager.exist(events[idx].data.u64)");
         return;
     }
     fd64_t &remote_fd64 = conn_info.remote_fd64;
-    int &remote_fd = conn_info.remote_fd;
-
     assert(watcher->u64 == remote_fd64);
 
     int fd = fd_manager.to_fd(remote_fd64);
 
+    char data[buf_len];
     int data_len = recv(fd, data, max_data_len + 1, 0);
-
-    if (data_len == max_data_len + 1) {
-        mylog(log_warn, "huge packet, data_len > %d, packet truncated, dropped\n", max_data_len);
-        return;
-    }
-
-    mylog(log_trace, "received data from udp fd %d, len=%d\n", remote_fd, data_len);
-    if (data_len < 0) {
-        if (get_sock_errno() == ECONNREFUSED) {
-            mylog(log_debug, "recv failed %d ,udp_fd%d,errno:%s\n", data_len, remote_fd, get_sock_error());
-        }
-
-        mylog(log_warn, "recv failed %d ,udp_fd%d,errno:%s\n", data_len, remote_fd, get_sock_error());
-        return;
-    }
-    if (!disable_mtu_warn && data_len > mtu_warn) {
-        mylog(log_warn, "huge packet,data len=%d (>%d).strongly suggested to set a smaller mtu at upper level,to get rid of this warn\n ", data_len, mtu_warn);
-    }
-
-    if (de_cook(&cook_ctx, data, data_len) != 0) {
-        mylog(log_debug, "de_cook error");
-        return;
-    }
-
-    int out_n;
-    char **out_arr;
-    int *out_len;
-    my_time_t *out_delay;
-    from_fec_to_normal(conn_info, data, data_len, out_n, out_arr, out_len, out_delay);
-
-    mylog(log_trace, "out_n=%d\n", out_n);
-
-    for (int i = 0; i < out_n; i++) {
-        u32_t conv;
-        char *new_data;
-        int new_len;
-        if (get_conv(conv, out_arr[i], out_len[i], new_data, new_len) != 0) {
-            mylog(log_debug, "get_conv(conv,out_arr[i],out_len[i],new_data,new_len)!=0");
-            continue;
-        }
-        if (!conn_info.conv_manager.c.is_conv_used(conv)) {
-            mylog(log_trace, "!conn_info.conv_manager.is_conv_used(conv)");
-            continue;
-        }
-
-        conn_info.conv_manager.c.update_active_time(conv);
-
-        address_t addr = conn_info.conv_manager.c.find_data_by_conv(conv);
-        dest_t dest;
-        dest.inner.fd_addr.fd = conn_info.local_listen_fd;
-        dest.inner.fd_addr.addr = addr;
-        dest.type = type_fd_addr;
-
-        delay_send(out_delay[i], dest, new_data, new_len);
-    }
+    client_process_remote_packet(conn_info, data, data_len);
 }
 
 static void fifo_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
@@ -237,6 +239,74 @@ static void prepare_cb(struct ev_loop *loop, struct ev_prepare *watcher, int rev
     delay_manager.check();
 }
 
+#ifdef __linux__
+static uring_ctx_t client_uring_ctx;
+
+static void client_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
+    assert(!(revents & EV_ERROR));
+
+    conn_info_t &conn_info = *((conn_info_t *)watcher->data);
+    uring_ctx_t *ctx = &client_uring_ctx;
+
+    struct io_uring_cqe *cqe;
+    int processed = 0;
+    int need_submit = 0;
+
+    while (processed < 16 && uring_peek_cqe(ctx, &cqe) == 0) {
+        uint8_t type = uring_tag_type(cqe->user_data);
+        int more = cqe->flags & IORING_CQE_F_MORE;
+
+        if (cqe->res < 0) {
+            if (!more && cqe->res != -ECANCELED) {
+                if (type == URING_TAG_CLIENT_LOCAL)
+                    uring_add_multishot_recvmsg(ctx, conn_info.local_listen_fd, cqe->user_data);
+                else if (type == URING_TAG_CLIENT_REMOTE)
+                    uring_add_multishot_recv(ctx, fd_manager.to_fd(conn_info.remote_fd64), cqe->user_data);
+                need_submit = 1;
+            }
+            uring_cqe_seen(ctx);
+            processed++;
+            continue;
+        }
+
+        if (type == URING_TAG_CLIENT_LOCAL) {
+            uring_recv_buf_t recv_buf;
+            if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
+                char data[buf_len];
+                int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
+                memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
+                client_process_local_packet(conn_info, data, copy_len,
+                                             (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
+                uring_recycle_buf(ctx, recv_buf.buf_id);
+            }
+        } else if (type == URING_TAG_CLIENT_REMOTE) {
+            uring_recv_buf_t recv_buf;
+            if (uring_parse_recv_cqe(ctx, cqe, &recv_buf) == 0) {
+                char data[buf_len];
+                int copy_len = recv_buf.len < buf_len ? recv_buf.len : buf_len;
+                memcpy(data, recv_buf.data, copy_len);
+                client_process_remote_packet(conn_info, data, copy_len);
+                uring_recycle_buf(ctx, recv_buf.buf_id);
+            }
+        }
+
+        if (!more) {
+            if (type == URING_TAG_CLIENT_LOCAL)
+                uring_add_multishot_recvmsg(ctx, conn_info.local_listen_fd, cqe->user_data);
+            else if (type == URING_TAG_CLIENT_REMOTE)
+                uring_add_multishot_recv(ctx, fd_manager.to_fd(conn_info.remote_fd64), cqe->user_data);
+            need_submit = 1;
+        }
+
+        uring_cqe_seen(ctx);
+        processed++;
+    }
+
+    if (need_submit)
+        uring_submit(ctx);
+}
+#endif
+
 int tunnel_client_event_loop() {
     int i, j, k;
     int ret;
@@ -264,19 +334,6 @@ int tunnel_client_event_loop() {
 
     conn_info.loop = loop;
 
-    // ev.events = EPOLLIN;
-    // ev.data.u64 = local_listen_fd;
-    // ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, local_listen_fd, &ev);
-    // if (ret!=0) {
-    //	mylog(log_fatal,"add  udp_listen_fd error\n");
-    //	myexit(-1);
-    // }
-    struct ev_io local_listen_watcher;
-    local_listen_watcher.data = &conn_info;
-
-    ev_io_init(&local_listen_watcher, local_listen_cb, local_listen_fd, EV_READ);
-    ev_io_start(loop, &local_listen_watcher);
-
     int &remote_fd = conn_info.remote_fd;
     fd64_t &remote_fd64 = conn_info.remote_fd64;
 
@@ -285,21 +342,37 @@ int tunnel_client_event_loop() {
 
     mylog(log_debug, "remote_fd64=%llu\n", remote_fd64);
 
-    // ev.events = EPOLLIN;
-    // ev.data.u64 = remote_fd64;
+    int use_uring = 0;
+#ifdef __linux__
+    if (uring_init(&client_uring_ctx, 64, 256, buf_len) == 0) {
+        g_uring_ctx = &client_uring_ctx;
+        static struct ev_io uring_watcher;
+        uring_watcher.data = &conn_info;
+        ev_io_init(&uring_watcher, client_uring_cb, client_uring_ctx.ring_fd, EV_READ);
+        ev_io_start(loop, &uring_watcher);
 
-    // ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, remote_fd, &ev);
-    // if (ret!= 0) {
-    //	mylog(log_fatal,"add raw_fd error\n");
-    //	myexit(-1);
-    // }
+        uring_add_multishot_recvmsg(&client_uring_ctx, local_listen_fd,
+                                      uring_tag(URING_TAG_CLIENT_LOCAL, 0));
+        uring_add_multishot_recv(&client_uring_ctx, remote_fd,
+                                   uring_tag(URING_TAG_CLIENT_REMOTE, 0));
+        uring_submit(&client_uring_ctx);
+        use_uring = 1;
+        mylog(log_info, "io_uring: active for client sockets\n");
+    }
+#endif
+
+    struct ev_io local_listen_watcher;
+    local_listen_watcher.data = &conn_info;
+    ev_io_init(&local_listen_watcher, local_listen_cb, local_listen_fd, EV_READ);
+    if (!use_uring)
+        ev_io_start(loop, &local_listen_watcher);
 
     struct ev_io remote_watcher;
     remote_watcher.data = &conn_info;
     remote_watcher.u64 = remote_fd64;
-
     ev_io_init(&remote_watcher, remote_cb, remote_fd, EV_READ);
-    ev_io_start(loop, &remote_watcher);
+    if (!use_uring)
+        ev_io_start(loop, &remote_watcher);
 
     // ev.events = EPOLLIN;
     // ev.data.u64 = delay_manager.get_timer_fd();
