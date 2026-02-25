@@ -128,7 +128,7 @@ while time.monotonic() < end:
         return
     fi
 
-    python3 -c "print(f'{$bytes / $elapsed / 1e6:.1f}')"
+    python3 -c "print(f'{$bytes / $elapsed / 1e6 * 8:.1f}')"
 }
 
 # Run iterations and compute median
@@ -137,7 +137,7 @@ for i in $(seq 1 "$ITERATIONS"); do
     echo "  Run $i/$ITERATIONS..." >&2
     mbps=$(run_once)
     results+=("$mbps")
-    echo "  → $mbps MB/s" >&2
+    echo "  → $mbps Mbps" >&2
 done
 
 IFS=$'\n' sorted=($(printf '%s\n' "${results[@]}" | sort -n)); unset IFS
@@ -146,7 +146,7 @@ median=${sorted[$median_idx]}
 median=${median:-0.0}
 
 if [[ $JSON -eq 1 ]]; then
-    printf '{"name": "throughput/%s", "unit": "MB/s", "value": %s}\n' "$FEC_LABEL" "$median"
+    printf '{"name": "throughput/%s", "unit": "Mbps", "value": %s}\n' "$FEC_LABEL" "$median"
 else
-    echo "Throughput ($FEC_LABEL): $median MB/s  [runs: ${results[*]}]"
+    echo "Throughput ($FEC_LABEL): $median Mbps  [runs: ${results[*]}]"
 fi
