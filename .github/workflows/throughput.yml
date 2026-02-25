@@ -61,7 +61,7 @@ jobs:
           output-file-path: throughput_results.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '70%'
+          alert-threshold: '115%'
           comment-on-alert: true
           fail-on-alert: false
           benchmark-data-dir-path: dev/throughput
