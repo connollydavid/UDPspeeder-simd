@@ -1,7 +1,8 @@
 # UDPspeeder Optimization Results
 
 Benchmarked on Intel Core i5-7300U (Kaby Lake, 2C/4T, SSE4.2 + AVX2).
-Target platforms: Intel N150 (Alder Lake-N), Mediatek Filogic (ARMv8).
+Target platforms: Intel N150 (Alder Lake-N), Mediatek Filogic (ARMv8),
+TP-Link TL-WDR4900 (Freescale P1014 e500v2, PowerPC SPE).
 
 ## End-to-end throughput (GitHub Actions, 1400B UDP, loopback)
 
@@ -179,6 +180,62 @@ Shard tracking uses a 32-byte bitmap (`u32_t[8]`, 256 bits) instead of
 Eliminates ~50K malloc/free pairs per second at line rate (one allocation per
 FEC group for the map node containing the ~1 KB `fec_group_t`).
 
+### 14. PowerPC e500v2 SPE XOR for cook pipeline
+
+Added SPE (Signal Processing Extension) assembly for the XOR cook stage on
+PowerPC e500v2 (Freescale P1014, used in TP-Link TL-WDR4900 running OpenWrt).
+
+The e500v2 has no AltiVec/VMX. SPE provides 64-bit operations: `evldd`/`evstdd`
+(8-byte aligned load/store) and `evxor` (64-bit XOR). GCC 9+ removed SPE
+intrinsics, so this is standalone assembly (`xor_spe.S`) following the Linux
+kernel pattern (`arch/powerpc/crypto/aes-spe-core.S`).
+
+Implementation details:
+- **4x unrolled main loop**: 32 bytes/iteration with `evldd`/`evxor`/`evstdd`
+- **Alignment handling**: scalar head loop until data is 8-byte aligned,
+  8-byte tail loop, then byte tail for remainder
+- **Tile wrap**: offset tracking with compare-and-reset per doubleword
+- **Build guard**: `HAVE_PPC_SPE` define, set via `make SPE=1`
+- **Word-width generic fallback**: non-SPE generic platforms (MIPS, RISC-V,
+  ARMv7) now use `sizeof(unsigned long)` XOR instead of byte-at-a-time
+
+PPC assembly gotchas fixed during development:
+- OpenWrt binutils 2.44 requires `%r` register prefix (`%r0`, `%r3`); bare
+  `r0` is treated as a symbol reference ("unsupported relocation" errors)
+- PPC r0-as-zero: `addi rD, r0, imm` treats r0 as literal 0, not the
+  register. Fixed by using `addic` (no r0 special case, but clobbers XER[CA])
+- `evldd` reads 8 bytes at tile+offset; after unaligned head loop, offset
+  can be 1-7, straddling tile boundary. Fixed with `COOK_VEC_WIDTH` padding
+  bytes at end of tile buffers
+
+SPE only helps the XOR stage of cook. It cannot help `addmul1` (requires
+byte-level shuffle, absent on SPE) or CRC32C (no hardware CRC on e500v2).
+
+PowerPC e500v2 microbenchmarks (QEMU, GitHub Actions):
+
+| Path | Baseline | Current | Speedup |
+|---|---|---|---|
+| crc32c/1500B (sw slicing-by-8) | 2,609 ns | 1,804 ns | **1.4x** |
+| rs_encode k=10 n=15 | 182,166 ns | 123,385 ns | **1.5x** |
+| rs_decode k=10 n=15 | 169,905 ns | 133,963 ns | **1.3x** |
+| addmul1/1500B (scalar) | 2,453 ns | 2,447 ns | 1.0x |
+
+RS encode/decode improvement is from pre-allocated decode buffers (#7), not
+SPE. CRC32C improvement is from switching CRC32-zlib to CRC32C-Castagnoli
+(software slicing-by-8 table, #2). addmul1 is identical (both scalar).
+
+Cook pipeline numbers (current only, no baseline cook tests):
+
+| Path | PPC (QEMU) ns |
+|---|---|
+| do_cook/1500B | 4,090 |
+| de_cook/1500B | 3,971 |
+| cook_xor_only/1500B | 1,091 |
+| cook_obscure_only/1500B | 1,415 |
+| cook_crc32_only/1500B | 1,983 |
+
+Files: `xor_spe.S` (new), `packet_cook.cpp`, `makefile`, `.github/workflows/ci.yml`
+
 ## Analysis and diminishing returns
 
 After 13 optimizations, the codebase has no remaining low-hanging fruit:
@@ -187,7 +244,8 @@ After 13 optimizations, the codebase has no remaining low-hanging fruit:
 without per-packet syscalls. sendmmsg batches sends.
 
 **Compute hotspots**: SIMD-vectorized. GF(2^8) multiply-accumulate uses
-AVX2/SSSE3/NEON. CRC32C uses hardware instructions. XOR cook uses SSE2/NEON.
+AVX2/SSSE3/NEON. CRC32C uses hardware instructions. XOR cook uses
+SSE2/NEON/SPE (PPC e500v2). Word-width fallback for generic platforms.
 
 **Allocation overhead**: Eliminated from hot paths. FEC decode uses pre-allocated
 buffers, flat arrays, and direct-mapped tables. No `malloc`/`free` per packet
@@ -219,3 +277,30 @@ passes have nothing to improve.
 for arbitrary buffer pointers). On both target architectures, unaligned
 accesses that don't cross cache line boundaries are free. Estimated
 impact of forced alignment: <1%.
+
+## Cross-architecture notes
+
+**x86_64** (N150, CI runners): Full SIMD coverage. AVX2 addmul1, SSE4.2
+CRC32C, SSE2/AVX2 XOR cook. io_uring multishot recv, sendmmsg batching.
+All optimizations apply.
+
+**ARMv8/AArch64** (Mediatek Filogic): NEON addmul1 (TBL), ARMv8-CRC
+CRC32C, NEON XOR cook. All three compute paths are vectorized. io_uring
+available if kernel 6.0+. Cross-compiled and QEMU-tested in CI; untested
+on real Filogic hardware.
+
+**PowerPC e500v2** (TL-WDR4900): SPE XOR only. addmul1 is scalar
+(SPE has no byte-level shuffle/permute equivalent to PSHUFB/TBL).
+CRC32C is software slicing-by-8 (no hardware CRC). No io_uring
+(older kernel). Expected real-hardware throughput: 50-150 Mbps no-fec,
+15-40 Mbps fec-20:10, limited by scalar addmul1.
+
+**MIPS 24Kc** (AR71xx OpenWrt targets): No useful SIMD. MIPS SIMD
+Architecture (MSA) is only on MIPS32r5+ (P5600, I6400), not 24Kc.
+All paths would be scalar. Build targets exist in makefile but are
+untested with current optimization work.
+
+**RISC-V RV64GCV**: Hypothetical future target. The V extension has
+`vrgather` which can implement GF(2^8) nibble-decomposition lookup
+(equivalent to PSHUFB/TBL), potentially vectorizing addmul1. This
+is the only other ISA besides x86/ARM that could accelerate FEC.
