@@ -374,13 +374,17 @@ struct fec_data_t {
     int len;
 };
 struct fec_group_t {
-    int type = -1;
-    int data_num = -1;
-    int redundant_num = -1;
-    int len = -1;
-    int fec_done = 0;
-    // int data_counter=0;
-    map<int, int> group_mp;
+    int type;
+    int data_num;
+    int redundant_num;
+    int len;
+    int fec_done;
+    int shard_count;
+    int shard_idx[max_fec_packet_num + 1];  /* shard_idx[i] = fec_data index, or -1; +1 for full u8 range */
+
+    fec_group_t() : type(-1), data_num(-1), redundant_num(-1), len(-1), fec_done(0), shard_count(0) {
+        memset(shard_idx, -1, sizeof(shard_idx));
+    }
 };
 class fec_decode_manager_t : not_copy_able_t {
     anti_replay_t anti_replay;
