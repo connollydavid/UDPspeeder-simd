@@ -75,6 +75,48 @@ built per-packet on the stack (4-32 bytes, tile at most 496 bytes).
 
 Eliminates allocation jitter on the real-time decode path.
 
+### 8. io_uring multishot receive with provided buffer rings
+
+Replaced per-packet `recvfrom()` / `recv()` syscalls with io_uring
+multishot receive using kernel-managed provided buffer rings. The kernel
+fills pre-registered buffers and posts completions to a shared ring —
+userspace drains batches of completions without syscalls per packet.
+
+Key implementation details:
+- **Multishot recvmsg** for unconnected sockets (server local, client local)
+  with `IORING_OP_RECVMSG` + `IORING_RECV_MULTISHOT` + `IOSQE_BUFFER_SELECT`
+- **Multishot recv** for connected sockets (server remote, client remote)
+- **Provided buffer ring** (`IORING_REGISTER_PBUF_RING`): 256 buffers,
+  power-of-2 ring, kernel picks buffers without userspace involvement
+- **Batched CQ drain**: single `acquire` load on CQ tail, process all ready
+  CQEs, single `release` store to advance CQ head
+- **Batched buffer recycling**: deferred ring entries with single atomic
+  tail commit per batch
+- **Combined submit+flush**: `io_uring_enter(IORING_ENTER_SQ_WAKEUP |
+  IORING_ENTER_GETEVENTS)` — one syscall for SQE submission and CQE
+  materialization
+- **Zero-copy paths**: SERVER_LOCAL and CLIENT_REMOTE process directly from
+  provided buffers (no memcpy). CLIENT_LOCAL and SERVER_REMOTE still copy
+  for conv header headroom.
+- **COOP_TASKRUN + SINGLE_ISSUER** flags with fallback for older kernels
+- **CQ ring sized 4x buffer count** to avoid multishot stalls
+- Graceful fallback to `recvfrom()` on older kernels or non-Linux
+
+Bugs fixed during development:
+- `io_uring_recvmsg_out` payload offset must use template `msg_namelen`
+  (128 bytes for `sockaddr_storage`), not `hdr->namelen` (actual, e.g. 16)
+- CQ tail read requires `acquire` barrier (correctness on ARM/NEON targets)
+- Ring fd notification gap after CQ drain: explicit `IORING_ENTER_GETEVENTS`
+  flush needed to materialize deferred completions
+
+GitHub Actions throughput (no-fec, 1400B UDP, loopback):
+
+| Path | Median Mbps | Runs |
+|---|---|---|
+| io_uring multishot | 798.5 | 784.8, 798.5, 837.8 |
+| recvfrom baseline | 629.9 | 627.6, 629.9, 654.0 |
+| **Improvement** | **+27%** | |
+
 ## Not done (deliberately)
 
 **Auto-vectorization of scalar GF(2^8) fallback**: The scalar `addmul1`
