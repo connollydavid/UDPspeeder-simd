@@ -272,10 +272,11 @@ static void client_uring_drain(struct ev_loop *loop) {
             if (type == URING_TAG_CLIENT_LOCAL) {
                 uring_recv_buf_t recv_buf;
                 if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
-                    char data[buf_len];
-                    int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
-                    memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
-                    client_process_local_packet(conn_info, data, copy_len,
+                    /* Zero-copy: recvmsg has 140+ bytes of headroom before payload;
+                       use sizeof(u32_t) of it for in-place conv header insertion. */
+                    char *data = recv_buf.data - sizeof(u32_t);
+                    int data_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
+                    client_process_local_packet(conn_info, data, data_len,
                                                  (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
                     uring_recycle_buf(ctx, recv_buf.buf_id);
                 }

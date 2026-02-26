@@ -77,8 +77,8 @@ buf_ring_add(uring_ctx_t *ctx, int buf_id)
     struct io_uring_buf_ring *br = ctx->buf_ring;
     unsigned short idx = br->tail;
     struct io_uring_buf *buf = &br->bufs[idx & (ctx->buf_count - 1)];
-    buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size);
-    buf->len = (__u32)ctx->buf_size;
+    buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size + URING_RECV_HEADROOM);
+    buf->len = (__u32)(ctx->buf_size - URING_RECV_HEADROOM);
     buf->bid = (__u16)buf_id;
     /* For init: publish immediately.  For runtime: use buf_ring_add_deferred + commit. */
     __atomic_store_n(&br->tail, (__u16)(idx + 1), __ATOMIC_RELEASE);
@@ -92,8 +92,8 @@ buf_ring_add_deferred(uring_ctx_t *ctx, int buf_id)
     struct io_uring_buf_ring *br = ctx->buf_ring;
     unsigned short idx = ctx->buf_ring_pending;
     struct io_uring_buf *buf = &br->bufs[idx & (ctx->buf_count - 1)];
-    buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size);
-    buf->len = (__u32)ctx->buf_size;
+    buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size + URING_RECV_HEADROOM);
+    buf->len = (__u32)(ctx->buf_size - URING_RECV_HEADROOM);
     buf->bid = (__u16)buf_id;
     ctx->buf_ring_pending = (__u16)(idx + 1);
 }
@@ -425,18 +425,19 @@ uring_parse_recvmsg_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
     int buf_id = (int)(cqe->flags >> IORING_CQE_BUFFER_SHIFT);
     if (buf_id < 0 || buf_id >= ctx->buf_count) return -1;
 
-    char *buf = ctx->buf_pool + (long)buf_id * ctx->buf_size;
-    struct io_uring_recvmsg_out *hdr = (struct io_uring_recvmsg_out *)buf;
+    /* Kernel writes at registered addr = pool + id*buf_size + HEADROOM */
+    char *kernel_start = ctx->buf_pool + (long)buf_id * ctx->buf_size + URING_RECV_HEADROOM;
+    struct io_uring_recvmsg_out *hdr = (struct io_uring_recvmsg_out *)kernel_start;
 
     out->buf_id = buf_id;
     out->addr_len = (socklen_t)(hdr->namelen < sizeof(out->addr) ? hdr->namelen : sizeof(out->addr));
-    memcpy(&out->addr, buf + sizeof(*hdr), out->addr_len);
+    memcpy(&out->addr, kernel_start + sizeof(*hdr), out->addr_len);
     /* Kernel reserves msg_namelen bytes (from template) for name area,
        not hdr->namelen (actual). Use template sizes for offset. */
     int header_len = (int)(sizeof(*hdr) + ctx->recvmsg_hdr.msg_namelen
                            + ctx->recvmsg_hdr.msg_controllen);
-    out->data = buf + header_len;
-    int max_payload = ctx->buf_size - header_len;
+    out->data = kernel_start + header_len;
+    int max_payload = ctx->buf_size - URING_RECV_HEADROOM - header_len;
     out->len = (int)hdr->payloadlen;
     if (out->len > max_payload) out->len = max_payload;
 
@@ -457,9 +458,10 @@ uring_parse_recv_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
     int buf_id = (int)(cqe->flags >> IORING_CQE_BUFFER_SHIFT);
     if (buf_id < 0 || buf_id >= ctx->buf_count) return -1;
 
-    char *buf = ctx->buf_pool + (long)buf_id * ctx->buf_size;
+    /* Kernel writes at registered addr = pool + id*buf_size + HEADROOM */
+    char *kernel_start = ctx->buf_pool + (long)buf_id * ctx->buf_size + URING_RECV_HEADROOM;
     out->buf_id = buf_id;
-    out->data = buf;
+    out->data = kernel_start;
     out->len = cqe->res;
     out->addr_len = 0;
 

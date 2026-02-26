@@ -98,6 +98,9 @@ static inline uint64_t uring_tag_payload(uint64_t user_data) {
 #define URING_TAG_SERVER_LOCAL   0x03
 #define URING_TAG_SERVER_REMOTE  0x04
 
+/* Headroom reserved before each provided buffer for in-place conv header */
+#define URING_RECV_HEADROOM  4  /* sizeof(u32_t) */
+
 int  uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size);
 void uring_destroy(uring_ctx_t *ctx);
 

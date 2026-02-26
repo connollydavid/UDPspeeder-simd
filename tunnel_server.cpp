@@ -388,10 +388,11 @@ static void server_uring_drain(struct ev_loop *loop) {
                         address_t &addr = fd_manager.get_info(fd64).addr;
                         if (conn_manager.exist(addr)) {
                             conn_info_t &conn_info = conn_manager.find_insert(addr);
-                            char data[buf_len];
-                            int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
-                            memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
-                            server_process_remote_packet(conn_info, fd64, data, copy_len);
+                            /* Zero-copy: URING_RECV_HEADROOM bytes before data
+                               reserved for in-place conv header insertion. */
+                            char *data = recv_buf.data - sizeof(u32_t);
+                            int data_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
+                            server_process_remote_packet(conn_info, fd64, data, data_len);
                         }
                     }
                     uring_recycle_buf(ctx, recv_buf.buf_id);
