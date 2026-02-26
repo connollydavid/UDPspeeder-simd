@@ -10,12 +10,16 @@ cc_amd64=/toolchains/lede-sdk-17.01.2-x86-64_gcc-5.4.0_musl-1.1.16.Linux-x86_64/
 #cc_bcm2708=/home/wangyu/raspberry/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++ 
 
 
-SOURCES0=main.cpp log.cpp common.cpp lib/fec.cpp lib/rs.cpp packet.cpp packet_cook.cpp delay_manager.cpp fd_manager.cpp connection.cpp fec_manager.cpp misc.cpp tunnel_client.cpp tunnel_server.cpp io_uring_recv.cpp
-SOURCES=${SOURCES0} my_ev.cpp -isystem libev 
+SOURCES0=main.cpp log.cpp common.cpp lib/fec.cpp lib/rs.cpp packet.cpp packet_cook.cpp delay_manager.cpp fd_manager.cpp connection.cpp fec_manager.cpp misc.cpp tunnel_client.cpp tunnel_server.cpp io_uring_recv.cpp xor_spe.S
+SOURCES=${SOURCES0} my_ev.cpp -isystem libev
 NAME=speederv2
 
 
 FLAGS= -std=c++11   -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers ${OPT}
+
+ifdef SPE
+FLAGS += -DHAVE_PPC_SPE -Wa,-mspe
+endif
 
 TARGETS=amd64 arm mips24kc_be x86  mips24kc_le
 
@@ -119,9 +123,13 @@ git_version:
 	    echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > git_version.h
 
 # --- Benchmark and test targets ---
-BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp bench/bench_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp
-TEST_SOURCES=bench/test_main.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp
+BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp bench/bench_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
+TEST_SOURCES=bench/test_main.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
 BENCH_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O2 -DBENCH_EXPOSE_INTERNALS
+
+ifdef SPE
+BENCH_FLAGS += -DHAVE_PPC_SPE -Wa,-mspe
+endif
 
 bench: git_version
 	${cc_local} -o bench_udpspeeder -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS}

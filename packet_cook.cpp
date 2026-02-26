@@ -11,8 +11,14 @@
 #elif defined(__aarch64__)
 #include <arm_neon.h>
 #define COOK_VEC_WIDTH 16
+#elif defined(HAVE_PPC_SPE)
+#define COOK_VEC_WIDTH 8
 #else
-#define COOK_VEC_WIDTH 1
+#define COOK_VEC_WIDTH ((int)sizeof(unsigned long))
+#endif
+
+#ifdef HAVE_PPC_SPE
+extern "C" void xor_tile_spe(char *data, int len, const char *tile, int tile_len);
 #endif
 
 /* Provided by common.cpp in production, stubs in bench */
@@ -166,11 +172,24 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         t++;
         if (t >= tile_len) t = 0;
     }
+#elif defined(HAVE_PPC_SPE)
+    xor_tile_spe(data, len, tile, tile_len);
 #else
-    for (int i = 0, t = 0; i < len; i++) {
-        data[i] ^= tile[t];
-        t++;
+    /* Word-width XOR for generic platforms (MIPS, RISC-V, PPC, i486, ARMv7).
+     * sizeof(unsigned long) = 4 on 32-bit, 8 on 64-bit. */
+    int t = 0, i = 0;
+    for (; i + COOK_VEC_WIDTH <= len; i += COOK_VEC_WIDTH) {
+        unsigned long d, k;
+        memcpy(&d, data + i, sizeof(d));
+        memcpy(&k, tile + t, sizeof(k));
+        d ^= k;
+        memcpy(data + i, &d, sizeof(d));
+        t += COOK_VEC_WIDTH;
         if (t >= tile_len) t = 0;
+    }
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
     }
 #endif
 }
@@ -184,9 +203,13 @@ xor_with_pattern(char *data, int len, const char *pat, int pat_len)
 {
     if (pat_len <= 0 || len <= 0) return;
     int tile_len = cook_lcm(pat_len, COOK_VEC_WIDTH);
-    char tile[512]; /* max lcm(31, 16) = 496 */
-    assert(tile_len <= (int)sizeof(tile));
+    /* Extra COOK_VEC_WIDTH bytes: when SPE evldd reads 8 bytes at a
+     * non-zero tile offset, the load may straddle the tile boundary.
+     * Padding with a copy of the tile start makes this safe. */
+    char tile[512 + COOK_VEC_WIDTH];
+    assert(tile_len <= 512);
     expand_tile(tile, tile_len, pat, pat_len);
+    memcpy(tile + tile_len, tile, COOK_VEC_WIDTH);
     xor_tile(data, len, tile, tile_len);
 }
 
@@ -201,8 +224,9 @@ cook_ctx_prepare_key(cook_ctx_t *ctx)
         return;
     }
     ctx->key_tile_len = cook_lcm(ctx->key_len, COOK_VEC_WIDTH);
-    assert(ctx->key_tile_len <= (int)sizeof(ctx->key_tile));
+    assert(ctx->key_tile_len + COOK_VEC_WIDTH <= (int)sizeof(ctx->key_tile));
     expand_tile(ctx->key_tile, ctx->key_tile_len, ctx->key, ctx->key_len);
+    memcpy(ctx->key_tile + ctx->key_tile_len, ctx->key_tile, COOK_VEC_WIDTH);
 }
 
 /* --- Cook operations ---------------------------------------------------- */

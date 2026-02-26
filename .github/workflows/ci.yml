@@ -58,6 +58,7 @@ jobs:
         include:
           - name: x86_64
             packages: ""
+            toolchain_url: ""
             bench_target: bench-static
             test_target: test-static
             prod_target: all
@@ -65,8 +66,10 @@ jobs:
             bench_bin: bench_udpspeeder_static
             test_bin: test_udpspeeder_static
             prod_bin: speederv2
+            qemu_cmd: ""
           - name: aarch64
-            packages: g++-aarch64-linux-gnu
+            packages: g++-aarch64-linux-gnu qemu-user-static
+            toolchain_url: ""
             bench_target: bench-cross
             test_target: test-cross
             prod_target: all-cross
@@ -74,24 +77,89 @@ jobs:
             bench_bin: bench_udpspeeder_cross
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
+            qemu_cmd: qemu-aarch64-static
+          - name: powerpc
+            packages: qemu-user-static zstd
+            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mpc85xx/p1010/openwrt-toolchain-25.12.0-rc5-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+            bench_target: bench-cross
+            test_target: test-cross
+            prod_target: all-cross
+            make_args: "SPE=1"
+            bench_bin: bench_udpspeeder_cross
+            test_bin: test_udpspeeder_cross
+            prod_bin: speederv2_cross
+            qemu_cmd: "qemu-ppc-static -cpu e500v2"
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install toolchain
+      - name: Install packages
         if: matrix.packages != ''
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
 
+      - name: Download OpenWrt toolchain
+        if: matrix.toolchain_url != ''
+        run: |
+          curl -fSL "${{ matrix.toolchain_url }}" -o toolchain.tar.zst
+          mkdir -p /tmp/openwrt-toolchain
+          tar --zstd -xf toolchain.tar.zst -C /tmp/openwrt-toolchain --strip-components=1
+          # Find the g++ binary
+          PPC_GXX=$(find /tmp/openwrt-toolchain -name '*-g++' -path '*/bin/*' | head -1)
+          echo "PPC_GXX=${PPC_GXX}" >> "$GITHUB_ENV"
+          echo "STAGING_DIR=/tmp/openwrt-toolchain" >> "$GITHUB_ENV"
+          echo "Found toolchain: ${PPC_GXX}"
+
       - name: Build bench (${{ matrix.name }})
-        run: make ${{ matrix.bench_target }} ${{ matrix.make_args }}
+        run: |
+          ARGS="${{ matrix.make_args }}"
+          if [ -n "$PPC_GXX" ]; then
+            ARGS="CC=${PPC_GXX} ${ARGS}"
+          fi
+          make ${{ matrix.bench_target }} ${ARGS}
 
       - name: Build test (${{ matrix.name }})
-        run: make ${{ matrix.test_target }} ${{ matrix.make_args }}
+        run: |
+          ARGS="${{ matrix.make_args }}"
+          if [ -n "$PPC_GXX" ]; then
+            ARGS="CC=${PPC_GXX} ${ARGS}"
+          fi
+          make ${{ matrix.test_target }} ${ARGS}
 
       - name: Build production (${{ matrix.name }})
-        run: make ${{ matrix.prod_target }} ${{ matrix.make_args }}
+        run: |
+          ARGS="${{ matrix.make_args }}"
+          if [ -n "$PPC_GXX" ]; then
+            ARGS="CC=${PPC_GXX} ${ARGS}"
+          fi
+          make ${{ matrix.prod_target }} ${ARGS}
 
       - name: Verify binaries
         run: file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
+
+      - name: Run tests (QEMU)
+        if: matrix.qemu_cmd != ''
+        run: ${{ matrix.qemu_cmd }} ./${{ matrix.test_bin }}
+
+      - name: Run benchmarks (QEMU)
+        if: matrix.qemu_cmd != ''
+        run: ${{ matrix.qemu_cmd }} ./${{ matrix.bench_bin }}
+
+      - name: Run benchmarks JSON (QEMU)
+        if: matrix.qemu_cmd != '' && matrix.name == 'powerpc'
+        run: ${{ matrix.qemu_cmd }} ./${{ matrix.bench_bin }} --json
+
+      - name: Store PPC benchmark results
+        if: matrix.name == 'powerpc' && github.ref == 'refs/heads/branch_libev'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)
+          tool: customSmallerIsBetter
+          output-file-path: bench_results.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: false
+          benchmark-data-dir-path: dev/bench-powerpc
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
