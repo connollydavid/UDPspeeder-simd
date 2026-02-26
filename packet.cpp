@@ -56,6 +56,76 @@ int send_fd(int fd, char *buf, int len, int flags) {
     return send(fd, buf, len, flags);
 }
 
+int my_send_batch(const dest_t &dest, char **data_arr, int *len_arr, int count) {
+    if (count <= 0) return 0;
+    if (count == 1) return my_send(dest, data_arr[0], len_arr[0]);
+
+    /* Cook all packets */
+    if (dest.cook) {
+        for (int i = 0; i < count; i++)
+            do_cook(&cook_ctx, data_arr[i], len_arr[i]);
+    }
+
+    /* Resolve fd and optional destination address.
+     * Copy address out of const dest (same as sendto_fd_addr taking addr by value). */
+    int fd;
+    address_t addr_copy;
+    struct sockaddr *addr_ptr = NULL;
+    socklen_t addr_len = 0;
+
+    switch (dest.type) {
+        case type_fd_addr:
+            fd = dest.inner.fd_addr.fd;
+            addr_copy = dest.inner.fd_addr.addr;
+            addr_ptr = (struct sockaddr *)&addr_copy.inner;
+            addr_len = addr_copy.get_len();
+            break;
+        case type_fd64_addr:
+            if (!fd_manager.exist(dest.inner.fd64)) return -1;
+            fd = fd_manager.to_fd(dest.inner.fd64);
+            addr_copy = dest.inner.fd64_addr.addr;
+            addr_ptr = (struct sockaddr *)&addr_copy.inner;
+            addr_len = addr_copy.get_len();
+            break;
+        case type_fd64:
+            if (!fd_manager.exist(dest.inner.fd64)) return -1;
+            fd = fd_manager.to_fd(dest.inner.fd64);
+            break;
+        case type_fd:
+            fd = dest.inner.fd;
+            break;
+        default:
+            for (int i = 0; i < count; i++)
+                my_send(dest, data_arr[i], len_arr[i]);
+            return count;
+    }
+
+#ifdef __linux__
+    struct mmsghdr msgs[max_fec_packet_num];
+    struct iovec iovecs[max_fec_packet_num];
+
+    for (int i = 0; i < count; i++) {
+        iovecs[i].iov_base = data_arr[i];
+        iovecs[i].iov_len = len_arr[i];
+        memset(&msgs[i], 0, sizeof(msgs[i]));
+        msgs[i].msg_hdr.msg_iov = &iovecs[i];
+        msgs[i].msg_hdr.msg_iovlen = 1;
+        msgs[i].msg_hdr.msg_name = addr_ptr;
+        msgs[i].msg_hdr.msg_namelen = addr_len;
+    }
+
+    return sendmmsg(fd, msgs, count, 0);
+#else
+    for (int i = 0; i < count; i++) {
+        if (addr_ptr)
+            sendto(fd, data_arr[i], len_arr[i], 0, addr_ptr, addr_len);
+        else
+            send(fd, data_arr[i], len_arr[i], 0);
+    }
+    return count;
+#endif
+}
+
 int my_send(const dest_t &dest, char *data, int len) {
     if (dest.cook) {
         do_cook(&cook_ctx, data, len);

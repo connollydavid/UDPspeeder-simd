@@ -22,6 +22,7 @@ extern int disable_replay_filter;
 extern int random_drop;
 
 int my_send(const dest_t &dest, char *data, int len);
+int my_send_batch(const dest_t &dest, char **data_arr, int *len_arr, int count);
 
 int add_seq(char *data, int &data_len);
 int remove_seq(char *data, int &data_len);

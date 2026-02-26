@@ -62,6 +62,7 @@ int from_normal_to_fec(conn_info_t &conn_info, char *data, int len, int &out_n, 
 int from_fec_to_normal(conn_info_t &conn_info, char *data, int len, int &out_n, char **&out_arr, int *&out_len, my_time_t *&out_delay);
 
 int delay_send(my_time_t delay, const dest_t &dest, char *data, int len);
+int delay_send_batch(int n, my_time_t *delays, const dest_t &dest, char **data_arr, int *len_arr);
 int print_parameter();
 int handle_command(char *s);
 

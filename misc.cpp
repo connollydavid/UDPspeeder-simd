@@ -207,6 +207,25 @@ int from_fec_to_normal(conn_info_t &conn_info, char *data, int len, int &out_n, 
     return 0;
 }
 
+int delay_send_batch(int n, my_time_t *delays, const dest_t &dest, char **data_arr, int *len_arr) {
+    if (n <= 0) return 0;
+
+    /* Fast path: all delays zero and no random_drop → single sendmmsg */
+    if (n > 1 && random_drop == 0) {
+        int all_zero = 1;
+        for (int i = 0; i < n; i++) {
+            if (delays[i] != 0) { all_zero = 0; break; }
+        }
+        if (all_zero)
+            return my_send_batch(dest, data_arr, len_arr, n);
+    }
+
+    /* Slow path: individual sends with per-packet delay/drop */
+    for (int i = 0; i < n; i++)
+        delay_send(delays[i], dest, data_arr[i], len_arr[i]);
+    return 0;
+}
+
 int delay_send(my_time_t delay, const dest_t &dest, char *data, int len) {
     // int rand=random()%100;
     // mylog(log_info,"rand = %d\n",rand);

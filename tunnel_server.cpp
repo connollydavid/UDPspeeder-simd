@@ -59,9 +59,7 @@ static void server_process_remote_packet(conn_info_t &conn_info, fd64_t fd64, ch
     from_normal_to_fec(conn_info, data, new_len, out_n, out_arr, out_len, out_delay);
 
     mylog(log_trace, "out_n=%d\n", out_n);
-    for (int i = 0; i < out_n; i++) {
-        delay_send(out_delay[i], dest, out_arr[i], out_len[i]);
-    }
+    delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
 }
 
 void data_from_remote_or_fec_timeout_or_conn_timer(conn_info_t &conn_info, fd64_t fd64, tmp_mode_t mode) {
@@ -135,9 +133,7 @@ void data_from_remote_or_fec_timeout_or_conn_timer(conn_info_t &conn_info, fd64_
     }
 
     mylog(log_trace, "out_n=%d\n", out_n);
-    for (int i = 0; i < out_n; i++) {
-        delay_send(out_delay[i], dest, out_arr[i], out_len[i]);
-    }
+    delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
 }
 
 static void server_process_tunnel_packet(struct ev_loop *loop, int local_listen_fd,

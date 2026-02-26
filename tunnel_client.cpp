@@ -48,9 +48,7 @@ static void client_process_local_packet(conn_info_t &conn_info, char *data, int 
     from_normal_to_fec(conn_info, data, new_len, out_n, out_arr, out_len, out_delay);
 
     mylog(log_trace, "out_n=%d\n", out_n);
-    for (int i = 0; i < out_n; i++) {
-        delay_send(out_delay[i], dest, out_arr[i], out_len[i]);
-    }
+    delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
 }
 
 static void client_process_remote_packet(conn_info_t &conn_info, char *data, int data_len) {
@@ -126,9 +124,7 @@ void data_from_local_or_fec_timeout(conn_info_t &conn_info, int is_time_out) {
         mylog(log_trace, "events[idx].data.u64 == conn_info.fec_encode_manager.get_timer_fd64()\n");
         from_normal_to_fec(conn_info, 0, 0, out_n, out_arr, out_len, out_delay);
         mylog(log_trace, "out_n=%d\n", out_n);
-        for (int i = 0; i < out_n; i++) {
-            delay_send(out_delay[i], dest, out_arr[i], out_len[i]);
-        }
+        delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
     } else {
         /* Single-packet path (fallback) */
         char data[buf_len];
@@ -227,9 +223,7 @@ static void conn_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int re
         dest.inner.fd64 = conn_info.remote_fd64;
         dest.cook = 1;
         from_normal_to_fec(conn_info, 0, 0, out_n, out_arr, out_len, out_delay);
-        for (int i = 0; i < out_n; i++) {
-            delay_send(out_delay[i], dest, out_arr[i], out_len[i]);
-        }
+        delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
     }
 }
 
