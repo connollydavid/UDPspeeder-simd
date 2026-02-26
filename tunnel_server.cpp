@@ -321,11 +321,16 @@ static void conn_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int re
     data_from_remote_or_fec_timeout_or_conn_timer(conn_info, 0, is_conn_timer);
 }
 
+static void server_uring_drain(struct ev_loop *loop);
+
 static void prepare_cb(struct ev_loop *loop, struct ev_prepare *watcher, int revents) {
     assert(!(revents & EV_ERROR));
 
     delay_manager.check();
 }
+
+#ifdef __linux__
+#endif
 
 static void global_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int revents) {
     assert(!(revents & EV_ERROR));
@@ -340,22 +345,64 @@ static void global_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int 
 static uring_ctx_t server_uring_ctx;
 static int server_local_listen_fd;
 
-static void server_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
-    assert(!(revents & EV_ERROR));
-
+static void server_uring_drain(struct ev_loop *loop) {
     uring_ctx_t *ctx = &server_uring_ctx;
     int local_listen_fd = server_local_listen_fd;
 
-    struct io_uring_cqe *cqe;
-    int processed = 0;
-    int need_submit = 0;
+    for (;;) {
+        unsigned ready = uring_cq_ready(ctx);
+        if (ready == 0)
+            break;
 
-    while (processed < 16 && uring_peek_cqe(ctx, &cqe) == 0) {
-        uint8_t type = uring_tag_type(cqe->user_data);
-        int more = cqe->flags & IORING_CQE_F_MORE;
+        int need_submit = 0;
 
-        if (cqe->res < 0) {
-            if (!more && cqe->res != -ECANCELED) {
+        for (unsigned i = 0; i < ready; i++) {
+            struct io_uring_cqe *cqe = uring_cqe_at(ctx, i);
+            uint8_t type = uring_tag_type(cqe->user_data);
+            int more = cqe->flags & IORING_CQE_F_MORE;
+
+            if (cqe->res < 0) {
+                if (!more && cqe->res != -ECANCELED) {
+                    if (type == URING_TAG_SERVER_LOCAL) {
+                        uring_add_multishot_recvmsg(ctx, local_listen_fd, cqe->user_data);
+                        need_submit = 1;
+                    } else if (type == URING_TAG_SERVER_REMOTE) {
+                        fd64_t fd64 = (fd64_t)uring_tag_payload(cqe->user_data);
+                        if (fd_manager.exist(fd64)) {
+                            uring_add_multishot_recv(ctx, fd_manager.to_fd(fd64), cqe->user_data);
+                            need_submit = 1;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            if (type == URING_TAG_SERVER_LOCAL) {
+                uring_recv_buf_t recv_buf;
+                if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
+                    server_process_tunnel_packet(loop, local_listen_fd, recv_buf.data, recv_buf.len,
+                                                  (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
+                    uring_recycle_buf(ctx, recv_buf.buf_id);
+                }
+            } else if (type == URING_TAG_SERVER_REMOTE) {
+                fd64_t fd64 = (fd64_t)uring_tag_payload(cqe->user_data);
+                uring_recv_buf_t recv_buf;
+                if (uring_parse_recv_cqe(ctx, cqe, &recv_buf) == 0) {
+                    if (fd_manager.exist(fd64)) {
+                        address_t &addr = fd_manager.get_info(fd64).addr;
+                        if (conn_manager.exist(addr)) {
+                            conn_info_t &conn_info = conn_manager.find_insert(addr);
+                            char data[buf_len];
+                            int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
+                            memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
+                            server_process_remote_packet(conn_info, fd64, data, copy_len);
+                        }
+                    }
+                    uring_recycle_buf(ctx, recv_buf.buf_id);
+                }
+            }
+
+            if (!more) {
                 if (type == URING_TAG_SERVER_LOCAL) {
                     uring_add_multishot_recvmsg(ctx, local_listen_fd, cqe->user_data);
                     need_submit = 1;
@@ -367,58 +414,23 @@ static void server_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int rev
                     }
                 }
             }
-            uring_cqe_seen(ctx);
-            processed++;
-            continue;
         }
 
-        if (type == URING_TAG_SERVER_LOCAL) {
-            uring_recv_buf_t recv_buf;
-            if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
-                char data[buf_len];
-                int copy_len = recv_buf.len < buf_len ? recv_buf.len : buf_len;
-                memcpy(data, recv_buf.data, copy_len);
-                server_process_tunnel_packet(loop, local_listen_fd, data, copy_len,
-                                              (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
-                uring_recycle_buf(ctx, recv_buf.buf_id);
-            }
-        } else if (type == URING_TAG_SERVER_REMOTE) {
-            fd64_t fd64 = (fd64_t)uring_tag_payload(cqe->user_data);
-            uring_recv_buf_t recv_buf;
-            if (uring_parse_recv_cqe(ctx, cqe, &recv_buf) == 0) {
-                if (fd_manager.exist(fd64)) {
-                    address_t &addr = fd_manager.get_info(fd64).addr;
-                    if (conn_manager.exist(addr)) {
-                        conn_info_t &conn_info = conn_manager.find_insert(addr);
-                        char data[buf_len];
-                        int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
-                        memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
-                        server_process_remote_packet(conn_info, fd64, data, copy_len);
-                    }
-                }
-                uring_recycle_buf(ctx, recv_buf.buf_id);
-            }
-        }
+        /* Single batched advance + buffer commit */
+        uring_cq_advance(ctx, ready);
+        uring_buf_ring_commit(ctx);
 
-        if (!more) {
-            if (type == URING_TAG_SERVER_LOCAL) {
-                uring_add_multishot_recvmsg(ctx, local_listen_fd, cqe->user_data);
-                need_submit = 1;
-            } else if (type == URING_TAG_SERVER_REMOTE) {
-                fd64_t fd64 = (fd64_t)uring_tag_payload(cqe->user_data);
-                if (fd_manager.exist(fd64)) {
-                    uring_add_multishot_recv(ctx, fd_manager.to_fd(fd64), cqe->user_data);
-                    need_submit = 1;
-                }
-            }
-        }
-
-        uring_cqe_seen(ctx);
-        processed++;
+        /* Submit any re-arms and flush deferred completions in one syscall */
+        if (need_submit)
+            uring_submit_and_flush(ctx);
+        else
+            uring_flush(ctx);
     }
+}
 
-    if (need_submit)
-        uring_submit(ctx);
+static void server_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
+    assert(!(revents & EV_ERROR));
+    server_uring_drain(loop);
 }
 #endif
 

@@ -233,77 +233,90 @@ static void conn_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int re
     }
 }
 
+#ifdef __linux__
+static uring_ctx_t client_uring_ctx;
+static conn_info_t *client_uring_conn_info;
+static void client_uring_drain(struct ev_loop *loop);
+#endif
+
 static void prepare_cb(struct ev_loop *loop, struct ev_prepare *watcher, int revents) {
     assert(!(revents & EV_ERROR));
 
     delay_manager.check();
 }
 
+
 #ifdef __linux__
-static uring_ctx_t client_uring_ctx;
 
-static void client_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
-    assert(!(revents & EV_ERROR));
-
-    conn_info_t &conn_info = *((conn_info_t *)watcher->data);
+static void client_uring_drain(struct ev_loop *loop) {
+    conn_info_t &conn_info = *client_uring_conn_info;
     uring_ctx_t *ctx = &client_uring_ctx;
 
-    struct io_uring_cqe *cqe;
-    int processed = 0;
-    int need_submit = 0;
+    for (;;) {
+        unsigned ready = uring_cq_ready(ctx);
+        if (ready == 0)
+            break;
 
-    while (processed < 16 && uring_peek_cqe(ctx, &cqe) == 0) {
-        uint8_t type = uring_tag_type(cqe->user_data);
-        int more = cqe->flags & IORING_CQE_F_MORE;
+        int need_submit = 0;
 
-        if (cqe->res < 0) {
-            if (!more && cqe->res != -ECANCELED) {
+        for (unsigned i = 0; i < ready; i++) {
+            struct io_uring_cqe *cqe = uring_cqe_at(ctx, i);
+            uint8_t type = uring_tag_type(cqe->user_data);
+            int more = cqe->flags & IORING_CQE_F_MORE;
+
+            if (cqe->res < 0) {
+                if (!more && cqe->res != -ECANCELED) {
+                    if (type == URING_TAG_CLIENT_LOCAL)
+                        uring_add_multishot_recvmsg(ctx, conn_info.local_listen_fd, cqe->user_data);
+                    else if (type == URING_TAG_CLIENT_REMOTE)
+                        uring_add_multishot_recv(ctx, fd_manager.to_fd(conn_info.remote_fd64), cqe->user_data);
+                    need_submit = 1;
+                }
+                continue;
+            }
+
+            if (type == URING_TAG_CLIENT_LOCAL) {
+                uring_recv_buf_t recv_buf;
+                if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
+                    char data[buf_len];
+                    int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
+                    memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
+                    client_process_local_packet(conn_info, data, copy_len,
+                                                 (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
+                    uring_recycle_buf(ctx, recv_buf.buf_id);
+                }
+            } else if (type == URING_TAG_CLIENT_REMOTE) {
+                uring_recv_buf_t recv_buf;
+                if (uring_parse_recv_cqe(ctx, cqe, &recv_buf) == 0) {
+                    client_process_remote_packet(conn_info, recv_buf.data, recv_buf.len);
+                    uring_recycle_buf(ctx, recv_buf.buf_id);
+                }
+            }
+
+            if (!more) {
                 if (type == URING_TAG_CLIENT_LOCAL)
                     uring_add_multishot_recvmsg(ctx, conn_info.local_listen_fd, cqe->user_data);
                 else if (type == URING_TAG_CLIENT_REMOTE)
                     uring_add_multishot_recv(ctx, fd_manager.to_fd(conn_info.remote_fd64), cqe->user_data);
                 need_submit = 1;
             }
-            uring_cqe_seen(ctx);
-            processed++;
-            continue;
         }
 
-        if (type == URING_TAG_CLIENT_LOCAL) {
-            uring_recv_buf_t recv_buf;
-            if (uring_parse_recvmsg_cqe(ctx, cqe, &recv_buf) == 0) {
-                char data[buf_len];
-                int copy_len = recv_buf.len < (int)(buf_len - sizeof(u32_t)) ? recv_buf.len : (int)(buf_len - sizeof(u32_t));
-                memcpy(data + sizeof(u32_t), recv_buf.data, copy_len);
-                client_process_local_packet(conn_info, data, copy_len,
-                                             (struct sockaddr *)&recv_buf.addr, recv_buf.addr_len);
-                uring_recycle_buf(ctx, recv_buf.buf_id);
-            }
-        } else if (type == URING_TAG_CLIENT_REMOTE) {
-            uring_recv_buf_t recv_buf;
-            if (uring_parse_recv_cqe(ctx, cqe, &recv_buf) == 0) {
-                char data[buf_len];
-                int copy_len = recv_buf.len < buf_len ? recv_buf.len : buf_len;
-                memcpy(data, recv_buf.data, copy_len);
-                client_process_remote_packet(conn_info, data, copy_len);
-                uring_recycle_buf(ctx, recv_buf.buf_id);
-            }
-        }
+        /* Single batched advance + buffer commit */
+        uring_cq_advance(ctx, ready);
+        uring_buf_ring_commit(ctx);
 
-        if (!more) {
-            if (type == URING_TAG_CLIENT_LOCAL)
-                uring_add_multishot_recvmsg(ctx, conn_info.local_listen_fd, cqe->user_data);
-            else if (type == URING_TAG_CLIENT_REMOTE)
-                uring_add_multishot_recv(ctx, fd_manager.to_fd(conn_info.remote_fd64), cqe->user_data);
-            need_submit = 1;
-        }
-
-        uring_cqe_seen(ctx);
-        processed++;
+        /* Submit any re-arms and flush deferred completions in one syscall */
+        if (need_submit)
+            uring_submit_and_flush(ctx);
+        else
+            uring_flush(ctx);
     }
+}
 
-    if (need_submit)
-        uring_submit(ctx);
+static void client_uring_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
+    assert(!(revents & EV_ERROR));
+    client_uring_drain(loop);
 }
 #endif
 
@@ -346,8 +359,8 @@ int tunnel_client_event_loop() {
 #ifdef __linux__
     if (uring_init(&client_uring_ctx, 64, 256, buf_len) == 0) {
         g_uring_ctx = &client_uring_ctx;
+        client_uring_conn_info = &conn_info;
         static struct ev_io uring_watcher;
-        uring_watcher.data = &conn_info;
         ev_io_init(&uring_watcher, client_uring_cb, client_uring_ctx.ring_fd, EV_READ);
         ev_io_start(loop, &uring_watcher);
 

@@ -80,7 +80,22 @@ buf_ring_add(uring_ctx_t *ctx, int buf_id)
     buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size);
     buf->len = (__u32)ctx->buf_size;
     buf->bid = (__u16)buf_id;
+    /* For init: publish immediately.  For runtime: use buf_ring_add_deferred + commit. */
     __atomic_store_n(&br->tail, (__u16)(idx + 1), __ATOMIC_RELEASE);
+}
+
+static void
+buf_ring_add_deferred(uring_ctx_t *ctx, int buf_id)
+{
+    /* Add entry without publishing (no atomic store on tail).
+       Caller must call uring_buf_ring_commit() when done. */
+    struct io_uring_buf_ring *br = ctx->buf_ring;
+    unsigned short idx = ctx->buf_ring_pending;
+    struct io_uring_buf *buf = &br->bufs[idx & (ctx->buf_count - 1)];
+    buf->addr = (unsigned long long)(ctx->buf_pool + (long)buf_id * ctx->buf_size);
+    buf->len = (__u32)ctx->buf_size;
+    buf->bid = (__u16)buf_id;
+    ctx->buf_ring_pending = (__u16)(idx + 1);
 }
 
 /* --- Public API ---------------------------------------------------------- */
@@ -88,6 +103,11 @@ buf_ring_add(uring_ctx_t *ctx, int buf_id)
 int
 uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size)
 {
+    if (getenv("UDPSPEEDER_NO_URING")) {
+        mylog(log_info, "io_uring: disabled by UDPSPEEDER_NO_URING\n");
+        ctx->available = 0;
+        return -1;
+    }
     memset(ctx, 0, sizeof(*ctx));
     ctx->ring_fd = -1;
     ctx->available = 0;
@@ -104,8 +124,29 @@ uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size)
     /* 1. io_uring_setup */
     struct io_uring_params params;
     memset(&params, 0, sizeof(params));
+    /* CQ sized 4x buf_count: 2 multishot requests share the CQ, and we need
+       headroom for error/cancel CQEs that don't consume buffers. */
+    params.flags = IORING_SETUP_CQSIZE;
+    params.cq_entries = (unsigned)(buf_count * 4);
 
+    /* Try performance flags.  Fall back if kernel rejects. */
+    unsigned opt_flags = 0;
+#ifdef IORING_SETUP_COOP_TASKRUN
+    opt_flags |= IORING_SETUP_COOP_TASKRUN;
+#endif
+#ifdef IORING_SETUP_SINGLE_ISSUER
+    opt_flags |= IORING_SETUP_SINGLE_ISSUER;
+#endif
+
+    params.flags |= opt_flags;
     int fd = sys_io_uring_setup((unsigned)queue_depth, &params);
+    if (fd < 0 && opt_flags) {
+        /* Retry without optional flags */
+        memset(&params, 0, sizeof(params));
+        params.flags = IORING_SETUP_CQSIZE;
+        params.cq_entries = (unsigned)(buf_count * 4);
+        fd = sys_io_uring_setup((unsigned)queue_depth, &params);
+    }
     if (fd < 0) {
         mylog(log_info, "io_uring: io_uring_setup failed (errno %d), using fallback\n", errno);
         return -1;
@@ -174,6 +215,7 @@ uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size)
         }
         memset(ctx->buf_ring, 0, ring_sz);
         ctx->buf_ring->tail = 0;
+        ctx->buf_ring_pending = 0;
 
         struct io_uring_buf_reg reg;
         memset(&reg, 0, sizeof(reg));
@@ -191,6 +233,7 @@ uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size)
         for (int i = 0; i < buf_count; i++) {
             buf_ring_add(ctx, i);
         }
+        ctx->buf_ring_pending = ctx->buf_ring->tail;
     }
 
     /* 7. Initialize msghdr template for recvmsg */
@@ -200,8 +243,8 @@ uring_init(uring_ctx_t *ctx, int queue_depth, int buf_count, int buf_size)
     ctx->recvmsg_hdr.msg_namelen = sizeof(ctx->recvmsg_name);
 
     ctx->available = 1;
-    mylog(log_info, "io_uring: initialized (ring_fd=%d, %d buffers × %d bytes)\n",
-          fd, buf_count, buf_size);
+    mylog(log_info, "io_uring: initialized (ring_fd=%d, %d buffers × %d bytes, cq=%u)\n",
+          fd, buf_count, buf_size, ctx->cq_entries);
     return 0;
 
 fail:
@@ -304,25 +347,68 @@ uring_submit(uring_ctx_t *ctx)
 }
 
 int
-uring_peek_cqe(uring_ctx_t *ctx, struct io_uring_cqe **out)
+uring_submit_and_flush(uring_ctx_t *ctx)
 {
-    unsigned head = io_uring_smp_load_acquire(ctx->cq_head);
-    unsigned tail = *ctx->cq_tail; /* no acquire needed — kernel only increases */
+    unsigned submitted = *ctx->sq_tail - io_uring_smp_load_acquire(ctx->sq_head);
+    unsigned flags = IORING_ENTER_GETEVENTS;
+    if (submitted > 0)
+        flags |= IORING_ENTER_SQ_WAKEUP;
 
-    if (head == tail) {
-        *out = NULL;
-        return -1; /* empty */
+    int ret = sys_io_uring_enter(ctx->ring_fd, submitted, 0, flags, NULL, 0);
+    if (ret < 0) {
+        mylog(log_warn, "io_uring: io_uring_enter submit+flush failed (errno %d)\n", errno);
+        return -1;
     }
+    return ret;
+}
 
-    *out = &ctx->cqes[head & ctx->cq_mask];
-    return 0;
+/* --- Batched CQ drain API ------------------------------------------------ */
+
+unsigned
+uring_cq_ready(uring_ctx_t *ctx)
+{
+    /* Acquire on tail ensures we see CQE data the kernel wrote before updating tail */
+    unsigned head = *ctx->cq_head;  /* our variable, no barrier needed */
+    unsigned tail = io_uring_smp_load_acquire(ctx->cq_tail);
+    return tail - head;
+}
+
+struct io_uring_cqe *
+uring_cqe_at(uring_ctx_t *ctx, unsigned idx)
+{
+    /* idx is offset from current cq_head */
+    unsigned head = *ctx->cq_head;
+    return &ctx->cqes[(head + idx) & ctx->cq_mask];
 }
 
 void
-uring_cqe_seen(uring_ctx_t *ctx)
+uring_cq_advance(uring_ctx_t *ctx, unsigned n)
 {
+    if (n == 0) return;
     unsigned head = *ctx->cq_head;
-    io_uring_smp_store_release(ctx->cq_head, head + 1);
+    io_uring_smp_store_release(ctx->cq_head, head + n);
+}
+
+/* --- Batched buffer ring API --------------------------------------------- */
+
+void
+uring_recycle_buf(uring_ctx_t *ctx, int buf_id)
+{
+    buf_ring_add_deferred(ctx, buf_id);
+}
+
+void
+uring_buf_ring_commit(uring_ctx_t *ctx)
+{
+    /* Single atomic publish of all deferred buffer additions */
+    __atomic_store_n(&ctx->buf_ring->tail, ctx->buf_ring_pending, __ATOMIC_RELEASE);
+}
+
+void
+uring_flush(uring_ctx_t *ctx)
+{
+    /* Trigger deferred completions by entering with GETEVENTS */
+    sys_io_uring_enter(ctx->ring_fd, 0, 0, IORING_ENTER_GETEVENTS, NULL, 0);
 }
 
 int
@@ -345,7 +431,10 @@ uring_parse_recvmsg_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
     out->buf_id = buf_id;
     out->addr_len = (socklen_t)(hdr->namelen < sizeof(out->addr) ? hdr->namelen : sizeof(out->addr));
     memcpy(&out->addr, buf + sizeof(*hdr), out->addr_len);
-    int header_len = (int)(sizeof(*hdr) + hdr->namelen + hdr->controllen);
+    /* Kernel reserves msg_namelen bytes (from template) for name area,
+       not hdr->namelen (actual). Use template sizes for offset. */
+    int header_len = (int)(sizeof(*hdr) + ctx->recvmsg_hdr.msg_namelen
+                           + ctx->recvmsg_hdr.msg_controllen);
     out->data = buf + header_len;
     int max_payload = ctx->buf_size - header_len;
     out->len = (int)hdr->payloadlen;
@@ -375,12 +464,6 @@ uring_parse_recv_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
     out->addr_len = 0;
 
     return 0;
-}
-
-void
-uring_recycle_buf(uring_ctx_t *ctx, int buf_id)
-{
-    buf_ring_add(ctx, buf_id);
 }
 
 #endif /* __linux__ */

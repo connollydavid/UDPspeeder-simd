@@ -28,6 +28,15 @@ jobs:
       - name: Run benchmarks (JSON)
         run: taskset -c 0 ./bench_udpspeeder --json
 
+      - name: Build production binary
+        run: make all
+
+      - name: Throughput test (io_uring)
+        run: bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5
+
+      - name: Throughput test (recvfrom baseline)
+        run: UDPSPEEDER_NO_URING=1 bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5
+
       - name: Store benchmark results
         if: github.ref == 'refs/heads/branch_libev'
         uses: benchmark-action/github-action-benchmark@v1

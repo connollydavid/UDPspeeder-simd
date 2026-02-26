@@ -70,6 +70,7 @@ struct uring_ctx_t {
 
     /* Provided buffer ring */
     struct io_uring_buf_ring *buf_ring;
+    unsigned short buf_ring_pending; /* shadow tail for deferred recycling */
     char *buf_pool;
     int buf_count;
     int buf_size;       /* size per buffer including header room */
@@ -105,14 +106,20 @@ int  uring_add_multishot_recv(uring_ctx_t *ctx, int fd, uint64_t user_data);
 int  uring_cancel(uring_ctx_t *ctx, uint64_t user_data);
 int  uring_submit(uring_ctx_t *ctx);
 
-int  uring_peek_cqe(uring_ctx_t *ctx, struct io_uring_cqe **out);
-void uring_cqe_seen(uring_ctx_t *ctx);
+/* Batched CQ drain */
+unsigned uring_cq_ready(uring_ctx_t *ctx);
+struct io_uring_cqe *uring_cqe_at(uring_ctx_t *ctx, unsigned idx);
+void uring_cq_advance(uring_ctx_t *ctx, unsigned n);
+
+int  uring_submit_and_flush(uring_ctx_t *ctx);
+void uring_flush(uring_ctx_t *ctx);
 
 int  uring_parse_recvmsg_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
                               uring_recv_buf_t *out);
 int  uring_parse_recv_cqe(uring_ctx_t *ctx, struct io_uring_cqe *cqe,
                            uring_recv_buf_t *out);
 void uring_recycle_buf(uring_ctx_t *ctx, int buf_id);
+void uring_buf_ring_commit(uring_ctx_t *ctx);
 
 /* Global pointer — set in tunnel event loop, used by connection.cpp cleanup */
 extern uring_ctx_t *g_uring_ctx;
