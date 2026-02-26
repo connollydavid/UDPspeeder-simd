@@ -515,14 +515,14 @@ int fec_decode_manager_t::input(char *s, int len) {
         return 0;
     }
 
-    fec_group_t &group = mp[seq];
+    fec_group_t &group = group_find_or_create(seq);
 
     if (group.fec_done != 0) {
         mylog(log_debug, "fec already done, ignore, seq=%u\n", seq);
         return -1;
     }
 
-    if (group.shard_idx[inner_index] != -1) {
+    if (group.has_shard(inner_index)) {
         mylog(log_debug, "dup fec index\n");  // duplicate can happen on  a normal network, so its just log_debug
         return -1;
     }
@@ -555,11 +555,11 @@ int fec_decode_manager_t::input(char *s, int len) {
         u32_t tmp_seq = fec_data[index].seq;
         anti_replay.set_invaild(tmp_seq);
 
-        auto tmp_it = mp.find(tmp_seq);
-        if (tmp_it != mp.end()) {
-            int x = tmp_it->second.data_num;
-            int y = tmp_it->second.redundant_num;
-            int cnt = tmp_it->second.shard_count;
+        fec_group_t *tmp_group = group_find(tmp_seq);
+        if (tmp_group) {
+            int x = tmp_group->data_num;
+            int y = tmp_group->redundant_num;
+            int cnt = tmp_group->shard_count;
 
             if (cnt < x) {
                 if (debug_fec_dec)
@@ -567,7 +567,7 @@ int fec_decode_manager_t::input(char *s, int len) {
                 else
                     mylog(log_trace, "[dec][failed]seq=%08x x=%d y=%d cnt=%d\n", tmp_seq, x, y, cnt);
             }
-            mp.erase(tmp_it);
+            group_erase(tmp_seq);
         }
         if (tmp_seq == seq) {
             mylog(log_warn, "unexpected tmp_seq==seq ,seq=%d\n", seq);
@@ -585,7 +585,7 @@ int fec_decode_manager_t::input(char *s, int len) {
     assert(0 <= index && index < (int)fec_buff_num);
     assert(len + 100 < buf_len);
     memcpy(fec_data[index].buf, s + tmp_idx, len);
-    group.shard_idx[inner_index] = index;
+    group.set_shard(inner_index, index);
     group.shard_count++;
     // index++ at end of function
 
@@ -621,7 +621,7 @@ int fec_decode_manager_t::input(char *s, int len) {
         if (type == 0) {
             char *fec_tmp_arr[max_fec_packet_num + 5] = {0};
             for (int i = 0; i < group_data_num + group_redundant_num; i++) {
-                if (group.shard_idx[i] == -1) continue;
+                if (!group.has_shard(i)) continue;
                 if (i < group_data_num)
                     x_got++;
                 else
@@ -664,7 +664,7 @@ int fec_decode_manager_t::input(char *s, int len) {
                 output_s_arr_buf[i] = 0;
             }
             for (int i = 0; i < group_data_num + group_redundant_num; i++) {
-                if (group.shard_idx[i] == -1) continue;
+                if (!group.has_shard(i)) continue;
                 int di = group.shard_idx[i];
                 if (i < group_data_num)
                     x_got++;
@@ -691,7 +691,7 @@ int fec_decode_manager_t::input(char *s, int len) {
                 goto end;
             }
             for (int i = 0; i < group_data_num + group_redundant_num; i++) {
-                if (group.shard_idx[i] == -1) continue;
+                if (!group.has_shard(i)) continue;
                 int di = group.shard_idx[i];
                 assert(max_len >= fec_data[di].len);  // guarenteed by data_check_ok
                 memset(fec_data[di].buf + fec_data[di].len, 0, max_len - fec_data[di].len);

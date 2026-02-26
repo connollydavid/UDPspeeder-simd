@@ -348,22 +348,45 @@ struct fec_data_t {
     int len;
 };
 struct fec_group_t {
+    u32_t seq;           /* owner seq, 0xFFFFFFFF = empty slot */
     int type;
     int data_num;
     int redundant_num;
     int len;
     int fec_done;
     int shard_count;
-    int shard_idx[max_fec_packet_num + 1];  /* shard_idx[i] = fec_data index, or -1; +1 for full u8 range */
+    u32_t shard_bitmap[8];  /* 256 bits — replaces 1KB memset of shard_idx */
+    int shard_idx[max_fec_packet_num + 1];  /* only valid where bitmap bit is set */
 
-    fec_group_t() : type(-1), data_num(-1), redundant_num(-1), len(-1), fec_done(0), shard_count(0) {
-        memset(shard_idx, -1, sizeof(shard_idx));
+    void init(u32_t new_seq) {
+        seq = new_seq;
+        type = -1;
+        data_num = -1;
+        redundant_num = -1;
+        len = -1;
+        fec_done = 0;
+        shard_count = 0;
+        memset(shard_bitmap, 0, sizeof(shard_bitmap));  /* 32 bytes vs old 1024 */
+    }
+    int has_shard(int i) const {
+        return (shard_bitmap[i >> 5] >> (i & 31)) & 1;
+    }
+    void set_shard(int i, int val) {
+        shard_bitmap[i >> 5] |= (1u << (i & 31));
+        shard_idx[i] = val;
     }
 };
 class fec_decode_manager_t : not_copy_able_t {
     anti_replay_t anti_replay;
     fec_data_t *fec_data = 0;
-    unordered_map<u32_t, fec_group_t> mp;
+
+    /* Direct-mapped group table: slot = seq & group_table_mask.
+     * Monotonically increasing seqs guarantee no two concurrent groups
+     * collide (table_size > max concurrent groups ≈ fec_buff_num). */
+    fec_group_t *group_table = 0;
+    u32_t group_table_size;
+    u32_t group_table_mask;
+
     blob_decode_t blob_decode;
 
     int index;
@@ -376,28 +399,45 @@ class fec_decode_manager_t : not_copy_able_t {
     char *output_s_arr_buf[max_fec_packet_num + 100];  // only for type=1,for type=0 the buf inside blot_t is used
     int output_len_arr_buf[max_fec_packet_num + 100];  // same
 
+    fec_group_t &group_find_or_create(u32_t seq) {
+        fec_group_t &g = group_table[seq & group_table_mask];
+        if (g.seq != seq) g.init(seq);
+        return g;
+    }
+    fec_group_t *group_find(u32_t seq) {
+        fec_group_t &g = group_table[seq & group_table_mask];
+        return (g.seq == seq) ? &g : 0;
+    }
+    void group_erase(u32_t seq) {
+        fec_group_t &g = group_table[seq & group_table_mask];
+        if (g.seq == seq) g.seq = 0xFFFFFFFF;
+    }
+
    public:
     fec_decode_manager_t() {
+        /* Table size: next power of 2 >= fec_buff_num * 2 */
+        group_table_size = 1;
+        while (group_table_size < fec_buff_num * 2) group_table_size <<= 1;
+        group_table_mask = group_table_size - 1;
+
         fec_data = new fec_data_t[fec_buff_num + 5];
+        group_table = new fec_group_t[group_table_size];
         assert(fec_data != 0);
+        assert(group_table != 0);
         clear();
     }
-    /*
-    fec_decode_manager_t(const fec_decode_manager_t &b)
-    {
-            assert(0==1);//not allowed to copy
-    }*/
     ~fec_decode_manager_t() {
         mylog(log_debug, "fec_decode_manager destroyed\n");
         if (fec_data != 0) {
             mylog(log_debug, "fec_data freed\n");
             delete[] fec_data;
         }
+        delete[] group_table;
     }
     int clear() {
         anti_replay.clear();
-        mp.clear();
-        mp.rehash(fec_buff_num * 3);
+        for (u32_t i = 0; i < group_table_size; i++)
+            group_table[i].seq = 0xFFFFFFFF;
 
         for (int i = 0; i < (int)fec_buff_num; i++)
             fec_data[i].used = 0;
