@@ -230,11 +230,12 @@ do_obscure(cook_ctx_t *ctx, char *data, int &len)
 }
 
 static int
-de_obscure(char *data, int &len)
+de_obscure(cook_ctx_t *ctx, char *data, int &len)
 {
     if (len < 1) return -1;
     int iv_len = int((uint8_t)data[len - 1]);
 
+    if (iv_len < ctx->iv_min || iv_len > ctx->iv_max) return -1;
     if (len < 1 + iv_len) return -1;
 
     len = len - 1 - iv_len;
@@ -281,7 +282,7 @@ de_cook(cook_ctx_t *ctx, char *data, int &len)
 {
     if (!ctx->disable_xor) encrypt_0(ctx, data, len);
     if (!ctx->disable_obscure) {
-        if (de_obscure(data, len) != 0)
+        if (de_obscure(ctx, data, len) != 0)
             return -1;
     }
     if (rm_crc32(ctx, data, len) != 0)
