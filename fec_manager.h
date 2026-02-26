@@ -13,7 +13,7 @@
 #include "lib/rs.h"
 
 const int max_blob_packet_num = 30000;      // how many packet can be contain in a blob_t ,can be set very large
-const u32_t anti_replay_buff_size = 30000;  // can be set very large
+const u32_t anti_replay_table_size = 32768;  // power of 2 for fast modulo
 
 const int max_fec_packet_num = 255;  // this is the limitation of the rs lib
 extern u32_t fec_buff_num;
@@ -182,55 +182,29 @@ struct fec_parameter_t {
 extern fec_parameter_t g_fec_par;
 // extern int dynamic_update_fec;
 
-const int anti_replay_timeout = 120 * 1000;  // 120s
-
 struct anti_replay_t {
-    struct info_t {
-        my_time_t my_time;
-        int index;
-    };
+    /* Direct-mapped table: slot = seq & MASK, stores the seq that owns it.
+     * is_vaild: table[slot] != seq → valid (not yet seen).
+     * set_invaild: table[slot] = seq.
+     * Old entries naturally evicted when a new seq maps to the same slot.
+     * With 32K slots and monotonically increasing seqs, effective window
+     * is ~32K groups — comparable to the old 30K ring buffer. */
+    static const u32_t TABLE_MASK = anti_replay_table_size - 1;
 
-    u64_t replay_buffer[anti_replay_buff_size];
-    unordered_map<u32_t, info_t> mp;
-    int index;
+    u32_t table[anti_replay_table_size];
+
     anti_replay_t() {
         clear();
     }
     int clear() {
-        memset(replay_buffer, -1, sizeof(replay_buffer));
-        mp.clear();
-        mp.rehash(anti_replay_buff_size * 3);
-        index = 0;
+        memset(table, 0xFF, sizeof(table));
         return 0;
     }
     void set_invaild(u32_t seq) {
-        if (is_vaild(seq) == 0) {
-            mylog(log_trace, "seq %u exist\n", seq);
-            // assert(mp.find(seq)!=mp.end());
-            // mp[seq].my_time=get_current_time_rough();
-            return;
-        }
-        if (replay_buffer[index] != u64_t(i64_t(-1))) {
-            assert(mp.find(replay_buffer[index]) != mp.end());
-            mp.erase(replay_buffer[index]);
-        }
-        replay_buffer[index] = seq;
-        assert(mp.find(seq) == mp.end());
-        mp[seq].my_time = get_current_time();
-        mp[seq].index = index;
-        index++;
-        if (index == int(anti_replay_buff_size)) index = 0;
+        table[seq & TABLE_MASK] = seq;
     }
     int is_vaild(u32_t seq) {
-        if (mp.find(seq) == mp.end()) return 1;
-
-        if (get_current_time() - mp[seq].my_time > anti_replay_timeout) {
-            replay_buffer[mp[seq].index] = u64_t(i64_t(-1));
-            mp.erase(seq);
-            return 1;
-        }
-
-        return 0;
+        return table[seq & TABLE_MASK] != seq;
     }
 };
 
