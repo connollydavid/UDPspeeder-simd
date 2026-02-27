@@ -180,7 +180,18 @@ Shard tracking uses a 32-byte bitmap (`u32_t[8]`, 256 bits) instead of
 Eliminates ~50K malloc/free pairs per second at line rate (one allocation per
 FEC group for the map node containing the ~1 KB `fec_group_t`).
 
-### 14. PowerPC e500v2 SPE XOR for cook pipeline
+### 14. Final hot-path micro-optimizations
+
+Replaced per-struct `memset(&msgs[i], 0, sizeof(msgs[i]))` (~64 bytes)
+in the sendmmsg loop with targeted field writes (6 fields, ~48 bytes
+skipped per struct × 20-30 packets per FEC batch). Merged two separate
+loops in type==1 FEC decode (pre-init + populate) into one. Added early
+`pad > 0` check to skip shard padding memset when the shard is already
+at max_len.
+
+Each individually below CI noise floor. Combined: 1-3%.
+
+### 15. PowerPC e500v2 SPE XOR for cook pipeline
 
 Added SPE (Signal Processing Extension) assembly for the XOR cook stage on
 PowerPC e500v2 (Freescale P1014, used in TP-Link TL-WDR4900 running OpenWrt).
@@ -238,7 +249,7 @@ Files: `xor_spe.S` (new), `packet_cook.cpp`, `makefile`, `.github/workflows/ci.y
 
 ## Analysis and diminishing returns
 
-After 14 optimizations, the codebase is within 10% of the theoretical
+After 15 optimizations, the codebase is within 10% of the theoretical
 floor (see below). Remaining overhead is irreducible:
 
 **Syscall overhead**: Eliminated. io_uring multishot recv batches receives
@@ -350,6 +361,34 @@ optimization can meaningfully close this gap. On real networks with actual
 packet loss, the wire amplification is the cost of redundancy by design.
 
 ## Not done (deliberately)
+
+**Scatter-gather RS encoder to eliminate blob_encode memcpy**: The
+`blob_encode_t::input()` memcpy (~1400B per packet) packs variable-length
+application packets into a contiguous buffer with interleaved 2-byte length
+headers, then slices the result into k equal-length shards for RS encode.
+This copy exists because shard boundaries depend on total batch size, which
+isn't known until the last packet arrives. Eliminating it would require the
+RS encoder to accept a scatter-gather (iovec-style) input instead of flat
+`char *data[k]` pointers. That means rewriting `fec_encode`'s inner loop
+(`lib/fec.cpp:940-945`) and `addmul1` to iterate over discontiguous chunks,
+adding branch overhead per chunk boundary inside the tightest SIMD loop in
+the system. The alternative — pre-positioning packets into a shard grid as
+they arrive — fails because the grid layout depends on the final batch size.
+Net effect: replaces a 1400B L1-resident memcpy (~35 ns) with scatter-gather
+bookkeeping of comparable cost, while adding complexity to the FEC core.
+
+**Zero-copy RS decode to eliminate fec_data memcpy**: The
+`fec_decode_manager_t::input()` memcpy (~1400B per shard) copies received
+shards into owned `fec_data[].buf` buffers because `fec_decode` modifies
+data in-place — it overwrites redundancy shard buffers with recovered data
+(`lib/fec.cpp:1061-1067`), then copies results back (`lib/fec.cpp:1072-1075`).
+Pointing RS decode directly at io_uring provided buffers would corrupt the
+kernel buffer ring (buffers must be recycled promptly or ring starvation
+occurs). For the recvfrom path, the receive buffer is stack-local and reused
+per callback. Making `fec_decode` write to separate output buffers instead
+of in-place would eliminate the input copy but add an identical output copy
+(the recovered data must still go somewhere). Net: zero gain, additional
+complexity in the 1997-era Vandermonde matrix math.
 
 **Auto-vectorization of scalar GF(2^8) fallback**: The scalar `addmul1`
 uses a 64KB lookup table indexed by runtime byte values. No compiler can
