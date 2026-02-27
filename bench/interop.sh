@@ -107,11 +107,11 @@ RECV_PID=$!
 # Log level 4 (info): captures connection events; dumped on failure
 UDPSPEEDER_NO_URING=1 $SERVER_CMD \
     -s -l 127.0.0.1:$PORT_TUNNEL -r 127.0.0.1:$PORT_APP \
-    $FEC_ARGS $KEY_ARGS --log-level 4 >/dev/null 2>"$SERVER_LOG" &
+    $FEC_ARGS $KEY_ARGS --log-level 4 >"$SERVER_LOG" 2>&1 &
 
 UDPSPEEDER_NO_URING=1 $CLIENT_CMD \
     -c -l 127.0.0.1:$PORT_CLIENT -r 127.0.0.1:$PORT_TUNNEL \
-    $FEC_ARGS $KEY_ARGS --log-level 4 >/dev/null 2>"$CLIENT_LOG" &
+    $FEC_ARGS $KEY_ARGS --log-level 4 >"$CLIENT_LOG" 2>&1 &
 
 sleep 2  # let QEMU-emulated binaries start
 
