@@ -665,10 +665,10 @@ int fec_decode_manager_t::input(char *s, int len) {
             int missed_packet_counter = 0;
 
             for (int i = 0; i < group_data_num + group_redundant_num; i++) {
-                output_s_arr_buf[i] = 0;
-            }
-            for (int i = 0; i < group_data_num + group_redundant_num; i++) {
-                if (!group.has_shard(i)) continue;
+                if (!group.has_shard(i)) {
+                    output_s_arr_buf[i] = 0;
+                    continue;
+                }
                 int di = group.shard_idx[i];
                 if (i < group_data_num)
                     x_got++;
@@ -698,7 +698,9 @@ int fec_decode_manager_t::input(char *s, int len) {
                 if (!group.has_shard(i)) continue;
                 int di = group.shard_idx[i];
                 assert(max_len >= fec_data[di].len);  // guarenteed by data_check_ok
-                memset(fec_data[di].buf + fec_data[di].len, 0, max_len - fec_data[di].len);
+                int pad = max_len - fec_data[di].len;
+                if (pad > 0)
+                    memset(fec_data[di].buf + fec_data[di].len, 0, pad);
             }
 
             for (int i = 0; i < group_data_num; i++) {

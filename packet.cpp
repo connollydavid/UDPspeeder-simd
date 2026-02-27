@@ -107,11 +107,14 @@ int my_send_batch(const dest_t &dest, char **data_arr, int *len_arr, int count) 
     for (int i = 0; i < count; i++) {
         iovecs[i].iov_base = data_arr[i];
         iovecs[i].iov_len = len_arr[i];
-        memset(&msgs[i], 0, sizeof(msgs[i]));
         msgs[i].msg_hdr.msg_iov = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;
         msgs[i].msg_hdr.msg_name = addr_ptr;
         msgs[i].msg_hdr.msg_namelen = addr_len;
+        msgs[i].msg_hdr.msg_control = NULL;
+        msgs[i].msg_hdr.msg_controllen = 0;
+        msgs[i].msg_hdr.msg_flags = 0;
+        msgs[i].msg_len = 0;
     }
 
     int ret = sendmmsg(fd, msgs, count, 0);
