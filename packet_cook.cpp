@@ -173,7 +173,33 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         if (t >= tile_len) t = 0;
     }
 #elif defined(HAVE_PPC_SPE)
-    xor_tile_spe(data, len, tile, tile_len);
+    int t = 0, i = 0;
+    /* Scalar head: align data pointer to 8 bytes for evldd */
+    int head = (8 - ((uintptr_t)data & 7)) & 7;
+    if (head > len) head = len;
+    for (; i < head; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+    int remaining = len - i;
+    if (remaining >= 8 && t != 0) {
+        /* Tile offset not 0 after head — rotate tile so SPE sees offset=0 */
+        char rtile[512 + 8];
+        assert(tile_len <= 512);
+        memcpy(rtile, tile + t, tile_len - t);
+        memcpy(rtile + (tile_len - t), tile, t);
+        memcpy(rtile + tile_len, rtile, 8); /* SPE evldd padding */
+        xor_tile_spe(data + i, remaining, rtile, tile_len);
+    } else if (remaining >= 8) {
+        /* Data aligned and tile offset 0 — call SPE directly */
+        xor_tile_spe(data + i, remaining, tile, tile_len);
+    } else {
+        /* Too short for SPE — scalar tail */
+        for (; i < len; i++) {
+            data[i] ^= tile[t];
+            if (++t >= tile_len) t = 0;
+        }
+    }
 #else
     /* Word-width XOR for generic platforms (MIPS, RISC-V, PPC, i486, ARMv7).
      * sizeof(unsigned long) = 4 on 32-bit, 8 on 64-bit. */

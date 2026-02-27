@@ -121,8 +121,8 @@ static int test_xor_tile_roundtrip() {
     int vec_w = bench_cook_vec_width();
     char label[128];
 
-    int tile_lens[] = {vec_w, vec_w * 2};
-    int num_tiles = 2;
+    int tile_lens[] = {vec_w, vec_w * 2, vec_w * 5};
+    int num_tiles = 3;
     int data_lens[] = {1, 7, 8, 15, 16, 31, 32, 63, 64, 1500};
     int num_datas = 10;
     int offsets[] = {0, 1, 3, 7};
@@ -211,6 +211,45 @@ static int test_cook_all_combos() {
     return failures;
 }
 
+static int test_cook_unaligned() {
+    int failures = 0;
+    char label[128];
+    int offsets[] = {0, 1, 3, 5, 7};
+    int num_offsets = 5;
+    int sizes[] = {64, 256, 1500};
+    int nsizes = 3;
+
+    for (int ol = 0; ol < num_offsets; ol++) {
+        int offset = offsets[ol];
+        for (int s = 0; s < nsizes; s++) {
+            int sz = sizes[s];
+            /* +offset for misalignment, +200 for cook overhead */
+            char backing[4096];
+            char orig[4096];
+            char *buf = backing + offset;
+
+            cook_ctx_t ctx = {};
+            strcpy(ctx.key, "testkey123");
+            cook_ctx_prepare_key(&ctx);
+            ctx.iv_min = 4;
+            ctx.iv_max = 32;
+
+            for (int i = 0; i < sz; i++)
+                buf[i] = (char)((i * 37 + 11) & 0xFF);
+            memcpy(orig, buf, sz);
+
+            int len = sz;
+            do_cook(&ctx, buf, len);
+            int rc = de_cook(&ctx, buf, len);
+
+            snprintf(label, sizeof(label),
+                "cook unaligned off=%d sz=%d: round-trip", offset, sz);
+            TEST(label, rc == 0 && len == sz && memcmp(buf, orig, sz) == 0);
+        }
+    }
+    return failures;
+}
+
 int run_packet_tests() {
     int failures = 0;
 
@@ -228,6 +267,9 @@ int run_packet_tests() {
 
     printf("[cook all 8 enable/disable combos]\n");
     failures += test_cook_all_combos();
+
+    printf("[cook unaligned buffers]\n");
+    failures += test_cook_unaligned();
 
     return failures;
 }

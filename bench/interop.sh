@@ -21,6 +21,7 @@ FEC_ARGS="--disable-fec"
 KEY_ARGS=""
 PACKETS=200
 LABEL="interop"
+LOG_LEVEL=4
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -31,6 +32,7 @@ while [[ $# -gt 0 ]]; do
         --key) KEY_ARGS="-k $2"; shift 2 ;;
         --packets) PACKETS="$2"; shift 2 ;;
         --label) LABEL="$2"; shift 2 ;;
+        --log-level) LOG_LEVEL="$2"; shift 2 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
@@ -104,14 +106,13 @@ print('%d %d' % (valid, invalid))
 RECV_PID=$!
 
 # Start tunnel (io_uring disabled — QEMU can't translate those syscalls)
-# Log level 4 (info): captures connection events; dumped on failure
 UDPSPEEDER_NO_URING=1 $SERVER_CMD \
     -s -l 127.0.0.1:$PORT_TUNNEL -r 127.0.0.1:$PORT_APP \
-    $FEC_ARGS $KEY_ARGS --log-level 4 >"$SERVER_LOG" 2>&1 &
+    $FEC_ARGS $KEY_ARGS --log-level $LOG_LEVEL >"$SERVER_LOG" 2>&1 &
 
 UDPSPEEDER_NO_URING=1 $CLIENT_CMD \
     -c -l 127.0.0.1:$PORT_CLIENT -r 127.0.0.1:$PORT_TUNNEL \
-    $FEC_ARGS $KEY_ARGS --log-level 4 >"$CLIENT_LOG" 2>&1 &
+    $FEC_ARGS $KEY_ARGS --log-level $LOG_LEVEL >"$CLIENT_LOG" 2>&1 &
 
 sleep 2  # let QEMU-emulated binaries start
 

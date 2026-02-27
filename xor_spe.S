@@ -25,13 +25,18 @@
  * void xor_tile_spe(char *data, int len, const char *tile, int tile_len)
  *
  * XOR data[0..len-1] with tile[0..tile_len-1] repeating.
- * tile_len MUST be a multiple of 8 (COOK_VEC_WIDTH).
+ *
+ * REQUIREMENTS (enforced by C caller in packet_cook.cpp):
+ *   - data MUST be 8-byte aligned
+ *   - tile MUST be 8-byte aligned
+ *   - tile_len MUST be a multiple of 8 (COOK_VEC_WIDTH)
+ *   - Tile offset always starts at 0 (caller pre-rotates if needed)
  *
  * PPC calling convention:
- *   r3 = data pointer
+ *   r3 = data pointer (8-byte aligned)
  *   r4 = len
- *   r5 = tile pointer
- *   r6 = tile_len
+ *   r5 = tile pointer (8-byte aligned)
+ *   r6 = tile_len (multiple of 8)
  *
  * Clobbers: r0, r7, r8, r9, r10, r11, r12, ctr
  * Uses SPE: upper halves of r7, r8, r9, r10, r11, r12
@@ -42,45 +47,16 @@ xor_tile_spe:
 	cmpwi	%r4, 0
 	blelr
 
-	/* r0 = tile offset (starts at 0) */
+	/* r0 = tile offset (always starts at 0) */
 	li	%r0, 0
 
-	/* Handle unaligned head: process bytes until data is 8-byte aligned */
-	andi.	%r7, %r3, 7
-	beq	.Laligned
-
-	/* r7 = bytes to skip (8 - (data & 7)) */
-	subfic	%r7, %r7, 8
-	/* Don't process more head bytes than len */
-	cmpw	%r7, %r4
-	ble	.Lhead_ok
-	mr	%r7, %r4
-.Lhead_ok:
-	mtctr	%r7
-	sub	%r4, %r4, %r7	/* len -= head bytes */
-
-.Lhead_loop:
-	lbz	%r8, 0(%r3)
-	lbzx	%r9, %r5, %r0
-	xor	%r8, %r8, %r9
-	stb	%r8, 0(%r3)
-	addi	%r3, %r3, 1
-	addic	%r0, %r0, 1	/* addic: r0 as source is not special (unlike addi) */
-	cmpw	%r0, %r6
-	blt	.Lhead_nowrap
-	li	%r0, 0
-.Lhead_nowrap:
-	bdnz	.Lhead_loop
-
-.Laligned:
-	/* Now data is 8-byte aligned. Process 32 bytes per iteration (4x evldd). */
-	/* Tile is always aligned (COOK_VEC_WIDTH=8, tile_len multiple of 8). */
+	/* Process 32 bytes per iteration (4x evldd). */
 	srwi.	%r7, %r4, 5	/* r7 = len / 32 = iteration count */
 	beq	.Ltail8		/* < 32 bytes remaining */
 	mtctr	%r7
 
 .Lmain_loop:
-	/* Compute tile pointers: r8 = tile + offset for each of 4 doublewords */
+	/* Compute tile pointer: r8 = tile + offset */
 	add	%r8, %r5, %r0
 
 	/* Load 4 doublewords from data */
@@ -88,7 +64,7 @@ xor_tile_spe:
 	evldd	%r9, 8(%r3)
 	evldd	%r11, 16(%r3)
 
-	/* Load and XOR first 3 tile doublewords */
+	/* Load and XOR first tile doubleword */
 	evldd	%r10, 0(%r8)
 	evxor	%r7, %r7, %r10
 

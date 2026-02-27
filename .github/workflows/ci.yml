@@ -259,6 +259,7 @@ jobs:
 
           CONFIGS=(
             "--disable-fec|no-fec"
+            "--disable-fec --key testkey123|no-fec-key"
             "--fec 20:10|fec-20-10"
             "--fec 20:10 --key testkey123|fec-20-10-key"
           )
@@ -269,6 +270,12 @@ jobs:
               IFS='|' read -r cfg_args cfg_label <<< "$cfg"
               label="${pair_name}/${cfg_label}"
 
+              # Use trace logging for PPC-client pairs to diagnose failures
+              log_args=""
+              if [[ "$pair_name" == *"ppc-client"* ]]; then
+                log_args="--log-level 6"
+              fi
+
               echo ""
               echo "=========================================="
               echo "  TESTING: $label"
@@ -277,7 +284,7 @@ jobs:
               if bash bench/interop.sh \
                 --server-cmd "$server_cmd" \
                 --client-cmd "$client_cmd" \
-                $cfg_args \
+                $cfg_args $log_args \
                 --label "$label" \
                 --packets 200; then
                 PASS=$((PASS + 1))
