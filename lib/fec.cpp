@@ -528,6 +528,7 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
      * omp simd, __restrict__, and -ftree-vectorize don't help — they grant
      * permission to vectorize but can't transform the lookup. Deliberate choice.
      */
+    if (sz <= 0) return;
     USE_GF_MULC ;
     gf *dst = dst1, *src = src1 ;
     gf *lim = &dst[sz - UNROLL + 1] ;

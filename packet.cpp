@@ -114,15 +114,24 @@ int my_send_batch(const dest_t &dest, char **data_arr, int *len_arr, int count) 
         msgs[i].msg_hdr.msg_namelen = addr_len;
     }
 
-    return sendmmsg(fd, msgs, count, 0);
-#else
-    for (int i = 0; i < count; i++) {
-        if (addr_ptr)
-            sendto(fd, data_arr[i], len_arr[i], 0, addr_ptr, addr_len);
-        else
-            send(fd, data_arr[i], len_arr[i], 0);
+    int ret = sendmmsg(fd, msgs, count, 0);
+    if (ret < 0) {
+        mylog(log_warn, "sendmmsg failed: %s\n", strerror(errno));
+    } else if (ret < count) {
+        mylog(log_debug, "sendmmsg partial: %d/%d sent\n", ret, count);
     }
-    return count;
+    return ret;
+#else
+    int sent = 0;
+    for (int i = 0; i < count; i++) {
+        int ret;
+        if (addr_ptr)
+            ret = sendto(fd, data_arr[i], len_arr[i], 0, addr_ptr, addr_len);
+        else
+            ret = send(fd, data_arr[i], len_arr[i], 0);
+        if (ret >= 0) sent++;
+    }
+    return sent;
 #endif
 }
 

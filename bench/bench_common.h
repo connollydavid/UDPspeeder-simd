@@ -9,6 +9,10 @@ typedef unsigned char gf;
 /* Exposed by lib/fec.cpp when compiled with -DBENCH_EXPOSE_INTERNALS */
 extern "C++" void bench_addmul1(gf *dst, gf *src, gf c, int sz);
 
+/* Exposed by packet_cook.cpp when compiled with -DBENCH_EXPOSE_INTERNALS */
+extern "C++" void bench_xor_tile(char *data, int len, const char *tile, int tile_len);
+extern "C++" int bench_cook_vec_width();
+
 /* Packet sizes representative of real traffic */
 static const size_t bench_sizes[] = { 64, 256, 1024, 1500 };
 static const int bench_sizes_count = sizeof(bench_sizes) / sizeof(bench_sizes[0]);

@@ -140,6 +140,60 @@ cleanup:
     return failures;
 }
 
+/*
+ * RS round-trip losing specific shard indices (instead of always the first r).
+ * lose_idx[0..lose_count-1] lists which of the n shards to NULL before decode.
+ */
+static int test_rs_roundtrip_pattern(int k, int n, int pkt_sz,
+                                     const int *lose_idx, int lose_count,
+                                     const char *pattern_name) {
+    int failures = 0;
+    int redundant = n - k;
+    char label[128];
+
+    if (lose_count > redundant) {
+        snprintf(label, sizeof(label), "rs k=%d n=%d %s: lose_count(%d) > redundant(%d)",
+                 k, n, pattern_name, lose_count, redundant);
+        TEST(label, 0);
+        return failures;
+    }
+
+    char **data = (char **)calloc(n, sizeof(char *));
+    char **orig = (char **)calloc(k, sizeof(char *));
+    for (int i = 0; i < n; i++)
+        data[i] = (char *)calloc(1, pkt_sz);
+    for (int i = 0; i < k; i++) {
+        fill_pattern(data[i], pkt_sz, i * 31);
+        orig[i] = (char *)calloc(1, pkt_sz);
+        memcpy(orig[i], data[i], pkt_sz);
+    }
+
+    rs_encode2(k, n, data, pkt_sz);
+
+    for (int i = 0; i < lose_count; i++)
+        data[lose_idx[i]] = NULL;
+
+    int rc = rs_decode2(k, n, data, pkt_sz);
+    snprintf(label, sizeof(label), "rs k=%d n=%d %s: decode ok", k, n, pattern_name);
+    if (rc != 0) {
+        TEST(label, 0);
+        goto cleanup;
+    }
+    TEST(label, 1);
+
+    for (int i = 0; i < k; i++) {
+        snprintf(label, sizeof(label), "rs k=%d n=%d %s: data[%d] matches",
+                 k, n, pattern_name, i);
+        TEST(label, data[i] != NULL && memcmp(data[i], orig[i], pkt_sz) == 0);
+    }
+
+cleanup:
+    for (int i = 0; i < k; i++) free(orig[i]);
+    free(orig);
+    free(data);
+    return failures;
+}
+
 int run_fec_tests() {
     int failures = 0;
 
@@ -156,10 +210,54 @@ int run_fec_tests() {
     printf("[addmul1 sizes]\n");
     failures += test_addmul1_sizes();
 
-    printf("[rs round-trip]\n");
+    printf("[rs round-trip: lose first r]\n");
     failures += test_rs_roundtrip(2, 4, 1500);
     failures += test_rs_roundtrip(5, 8, 1500);
     failures += test_rs_roundtrip(10, 15, 1024);
+
+    /* Additional k/n combos */
+    printf("[rs round-trip: more k/n combos]\n");
+    failures += test_rs_roundtrip(1, 2, 1500);
+    failures += test_rs_roundtrip(1, 3, 1500);
+    failures += test_rs_roundtrip(20, 30, 1024);
+    failures += test_rs_roundtrip(50, 75, 512);
+
+    /* Diverse loss patterns */
+    printf("[rs round-trip: lose last r]\n");
+    {
+        /* k=5 n=8: lose shards 5,6,7 (last 3) */
+        int lose[] = {5, 6, 7};
+        failures += test_rs_roundtrip_pattern(5, 8, 1500, lose, 3, "lose-last");
+    }
+    {
+        /* k=10 n=15: lose shards 10,11,12,13,14 */
+        int lose[] = {10, 11, 12, 13, 14};
+        failures += test_rs_roundtrip_pattern(10, 15, 1024, lose, 5, "lose-last");
+    }
+
+    printf("[rs round-trip: lose every-other]\n");
+    {
+        /* k=5 n=8: lose shards 0,2,4 (every other, 3 lost = r) */
+        int lose[] = {0, 2, 4};
+        failures += test_rs_roundtrip_pattern(5, 8, 1500, lose, 3, "lose-evens");
+    }
+    {
+        /* k=10 n=15: lose shards 1,3,5,7,9 (odd indices, 5 lost = r) */
+        int lose[] = {1, 3, 5, 7, 9};
+        failures += test_rs_roundtrip_pattern(10, 15, 1024, lose, 5, "lose-odds");
+    }
+
+    printf("[rs round-trip: lose middle]\n");
+    {
+        /* k=5 n=8: lose shards 2,3,4 (middle) */
+        int lose[] = {2, 3, 4};
+        failures += test_rs_roundtrip_pattern(5, 8, 1500, lose, 3, "lose-middle");
+    }
+    {
+        /* k=20 n=30: lose shards 5,10,15,20,25,6,11,16,21,26 (scattered) */
+        int lose[] = {5, 6, 10, 11, 15, 16, 20, 21, 25, 26};
+        failures += test_rs_roundtrip_pattern(20, 30, 512, lose, 10, "lose-scattered");
+    }
 
     return failures;
 }

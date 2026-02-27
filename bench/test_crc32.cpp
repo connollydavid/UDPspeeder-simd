@@ -128,6 +128,46 @@ static int test_crc32c_chaining() {
     return failures;
 }
 
+static int test_crc32c_unaligned() {
+    int failures = 0;
+    char msg[128];
+
+    int sizes[] = {64, 256, 1500};
+    int offsets[] = {1, 3};
+
+    for (int si = 0; si < 3; si++) {
+        int sz = sizes[si];
+        /* Allocate with extra headroom for offsets */
+        char *raw = (char *)malloc(sz + 8);
+        for (int i = 0; i < sz + 8; i++)
+            raw[i] = (char)((i * 41 + 3) & 0xFF);
+
+        for (int oi = 0; oi < 2; oi++) {
+            int off = offsets[oi];
+            int len = sz - off;
+
+            uint32_t sw = crc32c_sw(raw + off, len);
+            uint32_t dispatched = crc32c(raw + off, len);
+
+            snprintf(msg, sizeof(msg),
+                     "crc32c unaligned off=%d len=%d: dispatched==sw (0x%08X)",
+                     off, len, sw);
+            TEST(msg, dispatched == sw);
+
+            if (crc32c_has_hw()) {
+                uint32_t hw = crc32c_hw(raw + off, len);
+                snprintf(msg, sizeof(msg),
+                         "crc32c unaligned off=%d len=%d: hw==sw (0x%08X)",
+                         off, len, sw);
+                TEST(msg, hw == sw);
+            }
+        }
+        free(raw);
+    }
+
+    return failures;
+}
+
 int run_crc32_tests() {
     int failures = 0;
 
@@ -142,6 +182,9 @@ int run_crc32_tests() {
 
     printf("[CRC32C incremental chaining]\n");
     failures += test_crc32c_chaining();
+
+    printf("[CRC32C unaligned input]\n");
+    failures += test_crc32c_unaligned();
 
     return failures;
 }

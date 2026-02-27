@@ -313,3 +313,12 @@ de_cook(cook_ctx_t *ctx, char *data, int &len)
         return -2;
     return 0;
 }
+
+#ifdef BENCH_EXPOSE_INTERNALS
+void bench_xor_tile(char *data, int len, const char *tile, int tile_len) {
+    xor_tile(data, len, tile, tile_len);
+}
+int bench_cook_vec_width() {
+    return COOK_VEC_WIDTH;
+}
+#endif

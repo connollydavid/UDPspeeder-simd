@@ -510,8 +510,12 @@ int fec_decode_manager_t::input(char *s, int len) {
         mylog(log_warn, "data_num+redundant_num>=max_fec_packet_num\n");
         return -1;
     }
-    if (!anti_replay.is_vaild(seq)) {
-        mylog(log_trace, "!anti_replay.is_vaild(seq) ,seq =%u\n", seq);
+    if (inner_index >= data_num + redundant_num) {
+        mylog(log_warn, "inner_index(%d) >= data_num+redundant_num(%d+%d)\n", inner_index, data_num, redundant_num);
+        return -1;
+    }
+    if (!anti_replay.is_valid(seq)) {
+        mylog(log_trace, "!anti_replay.is_valid(seq) ,seq =%u\n", seq);
         return 0;
     }
 

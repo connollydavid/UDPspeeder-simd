@@ -184,7 +184,7 @@ extern fec_parameter_t g_fec_par;
 
 struct anti_replay_t {
     /* Direct-mapped table: slot = seq & MASK, stores the seq that owns it.
-     * is_vaild: table[slot] != seq → valid (not yet seen).
+     * is_valid: table[slot] != seq → valid (not yet seen).
      * set_invaild: table[slot] = seq.
      * Old entries naturally evicted when a new seq maps to the same slot.
      * With 32K slots and monotonically increasing seqs, effective window
@@ -203,7 +203,7 @@ struct anti_replay_t {
     void set_invaild(u32_t seq) {
         table[seq & TABLE_MASK] = seq;
     }
-    int is_vaild(u32_t seq) {
+    int is_valid(u32_t seq) {
         return table[seq & TABLE_MASK] != seq;
     }
 };

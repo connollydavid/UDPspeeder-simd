@@ -116,6 +116,101 @@ static int test_cook_disabled() {
     return failures;
 }
 
+static int test_xor_tile_roundtrip() {
+    int failures = 0;
+    int vec_w = bench_cook_vec_width();
+    char label[128];
+
+    int tile_lens[] = {vec_w, vec_w * 2};
+    int num_tiles = 2;
+    int data_lens[] = {1, 7, 8, 15, 16, 31, 32, 63, 64, 1500};
+    int num_datas = 10;
+    int offsets[] = {0, 1, 3, 7};
+    int num_offsets = 4;
+
+    for (int tl = 0; tl < num_tiles; tl++) {
+        int tile_len = tile_lens[tl];
+        char tile[256];
+        for (int i = 0; i < tile_len; i++)
+            tile[i] = (char)((i * 37 + 11) & 0xFF);
+
+        for (int dl = 0; dl < num_datas; dl++) {
+            int data_len = data_lens[dl];
+            for (int ol = 0; ol < num_offsets; ol++) {
+                int offset = offsets[ol];
+                char backing[2048];
+                char orig[2048];
+                char *data = backing + offset;
+                for (int i = 0; i < data_len; i++)
+                    data[i] = (char)((i * 13 + 7) & 0xFF);
+                memcpy(orig, data, data_len);
+
+                /* XOR once should change data (tile is non-zero) */
+                bench_xor_tile(data, data_len, tile, tile_len);
+                int changed = (memcmp(data, orig, data_len) != 0);
+
+                /* XOR again should restore original */
+                bench_xor_tile(data, data_len, tile, tile_len);
+
+                snprintf(label, sizeof(label),
+                    "xor_tile tile=%d data=%d off=%d", tile_len, data_len, offset);
+                TEST(label, changed && memcmp(data, orig, data_len) == 0);
+            }
+        }
+    }
+    return failures;
+}
+
+static int test_cook_combo(int disable_checksum, int disable_obscure, int disable_xor,
+                           int sz) {
+    int failures = 0;
+    char label[128];
+    const char *cs = disable_checksum ? "off" : "on";
+    const char *ob = disable_obscure ? "off" : "on";
+    const char *xr = disable_xor ? "off" : "on";
+
+    cook_ctx_t ctx = {};
+    strcpy(ctx.key, "testkey123");
+    cook_ctx_prepare_key(&ctx);
+    ctx.iv_min = 4;
+    ctx.iv_max = 32;
+    ctx.disable_checksum = disable_checksum;
+    ctx.disable_obscure = disable_obscure;
+    ctx.disable_xor = disable_xor;
+
+    char orig[4096], buf[4096];
+    for (int i = 0; i < sz; i++)
+        orig[i] = (char)((i * 37 + 11) & 0xFF);
+    memcpy(buf, orig, sz);
+
+    int len = sz;
+    int rc = do_cook(&ctx, buf, len);
+
+    snprintf(label, sizeof(label), "cook cs=%s ob=%s xr=%s sz=%d: encode ok", cs, ob, xr, sz);
+    TEST(label, rc == 0);
+
+    rc = de_cook(&ctx, buf, len);
+    snprintf(label, sizeof(label), "cook cs=%s ob=%s xr=%s sz=%d: decode ok", cs, ob, xr, sz);
+    TEST(label, rc == 0 && len == sz);
+
+    snprintf(label, sizeof(label), "cook cs=%s ob=%s xr=%s sz=%d: data matches", cs, ob, xr, sz);
+    TEST(label, memcmp(buf, orig, sz) == 0);
+
+    return failures;
+}
+
+static int test_cook_all_combos() {
+    int failures = 0;
+    int sizes[] = {64, 1500};
+    for (int s = 0; s < 2; s++) {
+        for (int cs = 0; cs <= 1; cs++)
+            for (int ob = 0; ob <= 1; ob++)
+                for (int xr = 0; xr <= 1; xr++)
+                    failures += test_cook_combo(cs, ob, xr, sizes[s]);
+    }
+    return failures;
+}
+
 int run_packet_tests() {
     int failures = 0;
 
@@ -127,6 +222,12 @@ int run_packet_tests() {
 
     printf("[cook all disabled]\n");
     failures += test_cook_disabled();
+
+    printf("[xor_tile round-trip]\n");
+    failures += test_xor_tile_roundtrip();
+
+    printf("[cook all 8 enable/disable combos]\n");
+    failures += test_cook_all_combos();
 
     return failures;
 }
