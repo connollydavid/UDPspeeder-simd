@@ -44,6 +44,10 @@ PORT_TUNNEL=20010
 PORT_APP=20011
 PORT_CLIENT=20012
 
+RECV_RESULT=$(mktemp)
+SERVER_LOG=$(mktemp)
+CLIENT_LOG=$(mktemp)
+
 cleanup() {
     local pids
     pids=$(jobs -p 2>/dev/null) || true
@@ -51,10 +55,17 @@ cleanup() {
         kill $pids 2>/dev/null || true
         wait $pids 2>/dev/null || true
     fi
+    rm -f "$RECV_RESULT" "$SERVER_LOG" "$CLIENT_LOG"
 }
 trap cleanup EXIT
 
-RECV_RESULT=$(mktemp)
+dump_logs() {
+    echo "  --- SERVER LOG (last 80 lines) ---" >&2
+    tail -80 "$SERVER_LOG" >&2 2>/dev/null || true
+    echo "  --- CLIENT LOG (last 80 lines) ---" >&2
+    tail -80 "$CLIENT_LOG" >&2 2>/dev/null || true
+    echo "  --- END LOGS ---" >&2
+}
 
 # Receiver: validate each packet's content
 # Packet format: 4-byte big-endian seq + 1396 bytes of (seq & 0xFF)
@@ -93,13 +104,14 @@ print('%d %d' % (valid, invalid))
 RECV_PID=$!
 
 # Start tunnel (io_uring disabled — QEMU can't translate those syscalls)
+# Log level 4 (info): captures connection events; dumped on failure
 UDPSPEEDER_NO_URING=1 $SERVER_CMD \
     -s -l 127.0.0.1:$PORT_TUNNEL -r 127.0.0.1:$PORT_APP \
-    $FEC_ARGS $KEY_ARGS --log-level 0 >/dev/null 2>&1 &
+    $FEC_ARGS $KEY_ARGS --log-level 4 >/dev/null 2>"$SERVER_LOG" &
 
 UDPSPEEDER_NO_URING=1 $CLIENT_CMD \
     -c -l 127.0.0.1:$PORT_CLIENT -r 127.0.0.1:$PORT_TUNNEL \
-    $FEC_ARGS $KEY_ARGS --log-level 0 >/dev/null 2>&1 &
+    $FEC_ARGS $KEY_ARGS --log-level 4 >/dev/null 2>"$CLIENT_LOG" &
 
 sleep 2  # let QEMU-emulated binaries start
 
@@ -121,7 +133,6 @@ wait $RECV_PID 2>/dev/null || true
 
 # Parse results
 RESULT=$(cat "$RECV_RESULT")
-rm -f "$RECV_RESULT"
 
 VALID=$(echo "$RESULT" | tail -1 | awk '{print $1}')
 INVALID=$(echo "$RESULT" | tail -1 | awk '{print $2}')
@@ -132,17 +143,20 @@ echo "  [$LABEL] valid=$VALID invalid=$INVALID sent=$PACKETS" >&2
 
 if [[ "$INVALID" -ne 0 ]]; then
     echo "FAIL [$LABEL]: $INVALID corrupted packets" >&2
+    dump_logs
     exit 1
 fi
 
 if [[ "$VALID" -eq 0 ]]; then
     echo "FAIL [$LABEL]: no packets received" >&2
+    dump_logs
     exit 1
 fi
 
 MIN_EXPECTED=$(( PACKETS / 2 ))
 if [[ "$VALID" -lt "$MIN_EXPECTED" ]]; then
     echo "FAIL [$LABEL]: only $VALID/$PACKETS packets (expected >=$MIN_EXPECTED)" >&2
+    dump_logs
     exit 1
 fi
 
