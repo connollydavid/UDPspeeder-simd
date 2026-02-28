@@ -1,6 +1,7 @@
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include "nanobench.h"
 #include "bench_common.h"
+#include "lib/rs.h"
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -12,6 +13,12 @@ int main(int argc, char *argv[]) {
         if (strcmp(argv[i], "--json") == 0)
             json_output = true;
     }
+
+    /* Force FEC init so addmul1 dispatch is resolved */
+    { void *d = fec_new(2, 3); fec_free(d); }
+
+    printf("SIMD: addmul1=%s  xor_cook=%s  vec_width=%d\n",
+        bench_addmul1_impl(), bench_xor_tile_impl(), bench_cook_vec_width());
 
     ankerl::nanobench::Bench bench;
     bench.title("UDPspeeder").warmup(3).epochs(21).relative(false);

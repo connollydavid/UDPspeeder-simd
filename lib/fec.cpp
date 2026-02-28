@@ -1220,4 +1220,15 @@ test_gf()
 void bench_addmul1(gf *dst, gf *src, gf c, int sz) {
     addmul1(dst, src, c, sz);
 }
+const char *bench_addmul1_impl() {
+#if defined(__x86_64__)
+    if (addmul1_x86_fn == addmul1_avx512) return "avx512bw";
+    if (addmul1_x86_fn == addmul1_avx2) return "avx2";
+    return "ssse3";
+#elif defined(__aarch64__)
+    return "neon";
+#else
+    return "scalar";
+#endif
+}
 #endif

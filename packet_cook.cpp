@@ -190,21 +190,24 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 }
 #endif
 
+#if defined(__x86_64__) || defined(_M_X64)
+/* Runtime SIMD tier: 0=SSE2, 1=AVX2, 2=AVX-512BW */
+static int xor_simd_tier = -1;
+#endif
+
 static void
 xor_tile(char *data, int len, const char *tile, int tile_len)
 {
 #if defined(__x86_64__) || defined(_M_X64)
-    /* Runtime SIMD tier: 0=SSE2, 1=AVX2, 2=AVX-512BW */
-    static int simd_tier = -1;
-    if (simd_tier < 0) {
+    if (xor_simd_tier < 0) {
         unsigned int eax, ebx, ecx, edx;
-        simd_tier = 0;
+        xor_simd_tier = 0;
         /* Check AVX2: CPUID leaf 7, EBX bit 5 */
         __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
         if ((ebx >> 5) & 1)
-            simd_tier = 1;
+            xor_simd_tier = 1;
         /* Check AVX-512BW: OSXSAVE + XCR0 + CPUID leaf 7, EBX bit 30 */
-        if (simd_tier >= 1) {
+        if (xor_simd_tier >= 1) {
             __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1), "c"(0));
             if (ecx & (1u << 27)) { /* OSXSAVE */
                 unsigned int xcr0;
@@ -212,16 +215,16 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
                 if ((xcr0 & 0xE6) == 0xE6) { /* SSE+AVX+opmask+ZMM */
                     __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
                     if ((ebx >> 30) & 1)
-                        simd_tier = 2;
+                        xor_simd_tier = 2;
                 }
             }
         }
     }
-    if (simd_tier >= 2) {
+    if (xor_simd_tier >= 2) {
         xor_tile_avx512(data, len, tile, tile_len);
         return;
     }
-    if (simd_tier >= 1) {
+    if (xor_simd_tier >= 1) {
         xor_tile_avx2(data, len, tile, tile_len);
         return;
     }
@@ -426,5 +429,21 @@ void bench_xor_tile(char *data, int len, const char *tile, int tile_len) {
 }
 int bench_cook_vec_width() {
     return COOK_VEC_WIDTH;
+}
+const char *bench_xor_tile_impl() {
+    /* Trigger detection if not yet run */
+    char dummy[16] = {}, tile[16] = {};
+    xor_tile(dummy, 1, tile, 16);
+#if defined(__x86_64__) || defined(_M_X64)
+    if (xor_simd_tier >= 2) return "avx512bw";
+    if (xor_simd_tier >= 1) return "avx2";
+    return "sse2";
+#elif defined(__aarch64__)
+    return "neon";
+#elif defined(HAVE_PPC_SPE)
+    return "spe";
+#else
+    return "scalar";
+#endif
 }
 #endif
