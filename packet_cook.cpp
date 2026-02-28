@@ -128,20 +128,100 @@ xor_tile_avx2(char *data, int len, const char *tile, int tile_len)
         if (++t >= tile_len) t = 0;
     }
 }
+
+__attribute__((target("avx512bw")))
+static void
+xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
+{
+    int t = 0, i = 0;
+    if (tile_len == 16) {
+        /* Common case: broadcast 16-byte tile to 512-bit, no wrap logic */
+        __m512i tile512 = _mm512_broadcast_i32x4(
+            _mm_loadu_si128((const __m128i *)tile));
+        for (; i + 64 <= len; i += 64) {
+            __m512i d = _mm512_loadu_si512(data + i);
+            _mm512_storeu_si512(data + i, _mm512_xor_si512(d, tile512));
+        }
+        /* t stays 0: i is multiple of 64, tile_len=16, so (i % 16) == 0 */
+    } else {
+        /* General case: tile_len is a multiple of 16 */
+        for (; i + 64 <= len; i += 64) {
+            __m128i k1 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16; if (t >= tile_len) t -= tile_len;
+            __m128i k2 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16; if (t >= tile_len) t -= tile_len;
+            __m128i k3 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16; if (t >= tile_len) t -= tile_len;
+            __m128i k4 = _mm_loadu_si128((const __m128i *)(tile + t));
+            t += 16; if (t >= tile_len) t -= tile_len;
+            __m512i key = _mm512_castsi128_si512(k1);
+            key = _mm512_inserti32x4(key, k2, 1);
+            key = _mm512_inserti32x4(key, k3, 2);
+            key = _mm512_inserti32x4(key, k4, 3);
+            __m512i d = _mm512_loadu_si512(data + i);
+            _mm512_storeu_si512(data + i, _mm512_xor_si512(d, key));
+        }
+    }
+    /* AVX2 tail */
+    if (i + 32 <= len) {
+        __m128i k1 = _mm_loadu_si128((const __m128i *)(tile + t));
+        t += 16; if (t >= tile_len) t -= tile_len;
+        __m128i k2 = _mm_loadu_si128((const __m128i *)(tile + t));
+        t += 16; if (t >= tile_len) t -= tile_len;
+        __m256i key = _mm256_set_m128i(k2, k1);
+        __m256i d = _mm256_loadu_si256((const __m256i *)(data + i));
+        _mm256_storeu_si256((__m256i *)(data + i),
+            _mm256_xor_si256(d, key));
+        i += 32;
+    }
+    /* SSE2 tail */
+    if (i + 16 <= len) {
+        __m128i d = _mm_loadu_si128((const __m128i *)(data + i));
+        __m128i k = _mm_loadu_si128((const __m128i *)(tile + t));
+        _mm_storeu_si128((__m128i *)(data + i), _mm_xor_si128(d, k));
+        t += 16; if (t >= tile_len) t -= tile_len;
+        i += 16;
+    }
+    /* scalar tail */
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+}
 #endif
 
 static void
 xor_tile(char *data, int len, const char *tile, int tile_len)
 {
 #if defined(__x86_64__) || defined(_M_X64)
-    static int has_avx2 = -1;
-    if (has_avx2 < 0) {
-        /* Check AVX2: CPUID leaf 7, EBX bit 5 */
+    /* Runtime SIMD tier: 0=SSE2, 1=AVX2, 2=AVX-512BW */
+    static int simd_tier = -1;
+    if (simd_tier < 0) {
         unsigned int eax, ebx, ecx, edx;
+        simd_tier = 0;
+        /* Check AVX2: CPUID leaf 7, EBX bit 5 */
         __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
-        has_avx2 = (ebx >> 5) & 1;
+        if ((ebx >> 5) & 1)
+            simd_tier = 1;
+        /* Check AVX-512BW: OSXSAVE + XCR0 + CPUID leaf 7, EBX bit 30 */
+        if (simd_tier >= 1) {
+            __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1), "c"(0));
+            if (ecx & (1u << 27)) { /* OSXSAVE */
+                unsigned int xcr0;
+                __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
+                if ((xcr0 & 0xE6) == 0xE6) { /* SSE+AVX+opmask+ZMM */
+                    __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
+                    if ((ebx >> 30) & 1)
+                        simd_tier = 2;
+                }
+            }
+        }
     }
-    if (has_avx2) {
+    if (simd_tier >= 2) {
+        xor_tile_avx512(data, len, tile, tile_len);
+        return;
+    }
+    if (simd_tier >= 1) {
         xor_tile_avx2(data, len, tile, tile_len);
         return;
     }

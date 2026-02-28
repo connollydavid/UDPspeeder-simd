@@ -381,6 +381,28 @@ static int cpu_has_avx2(void)
     return (ebx >> 5) & 1;
 }
 
+static int cpu_has_avx512bw(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+
+    /* OSXSAVE — OS supports XSAVE */
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+	return 0;
+    if (!(ecx & (1u << 27)))
+	return 0;
+
+    /* XCR0 bits 1,2 (SSE+AVX) + 5,6,7 (opmask, ZMM_Hi256, Hi16_ZMM) */
+    unsigned int xcr0;
+    __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
+    if ((xcr0 & 0xE6) != 0xE6)
+	return 0;
+
+    /* AVX-512BW: leaf 7, sub-leaf 0, EBX bit 30 */
+    if (!__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx))
+	return 0;
+    return (ebx >> 30) & 1;
+}
+
 __attribute__((target("ssse3")))
 static void
 addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
@@ -466,6 +488,85 @@ addmul1_avx2(gf *dst, gf *src, gf c, int sz)
 	__m128i x  = _mm_loadu_si128((const __m128i *)(src + i));
 	__m128i lo = _mm_shuffle_epi8(tbl128_lo, _mm_and_si128(x, mx));
 	__m128i hi = _mm_shuffle_epi8(tbl128_hi,
+		_mm_and_si128(_mm_srli_epi64(x, 4), mx));
+	__m128i d  = _mm_loadu_si128((const __m128i *)(dst + i));
+	_mm_storeu_si128((__m128i *)(dst + i),
+		_mm_xor_si128(d, _mm_xor_si128(lo, hi)));
+	i += 16;
+    }
+
+    /* scalar tail */
+    USE_GF_MULC ;
+    GF_MULC0(c) ;
+    for (; i < sz; i++)
+	GF_ADDMULC(dst[i], src[i]);
+}
+
+__attribute__((target("avx512bw")))
+static void
+addmul1_avx512(gf *dst, gf *src, gf c, int sz)
+{
+    __m512i tbl_lo = _mm512_broadcast_i32x4(
+	_mm_load_si128((const __m128i *)gf_lo_table[c]));
+    __m512i tbl_hi = _mm512_broadcast_i32x4(
+	_mm_load_si128((const __m128i *)gf_hi_table[c]));
+    __m512i mask   = _mm512_set1_epi8(0x0F);
+
+    int i = 0;
+    /* 2x unrolled: process 128 bytes per iteration for better ILP */
+    for (; i + 128 <= sz; i += 128) {
+	__m512i x1  = _mm512_loadu_si512(src + i);
+	__m512i x2  = _mm512_loadu_si512(src + i + 64);
+	__m512i lo1 = _mm512_shuffle_epi8(tbl_lo, _mm512_and_si512(x1, mask));
+	__m512i hi1 = _mm512_shuffle_epi8(tbl_hi,
+		_mm512_and_si512(_mm512_srli_epi64(x1, 4), mask));
+	__m512i lo2 = _mm512_shuffle_epi8(tbl_lo, _mm512_and_si512(x2, mask));
+	__m512i hi2 = _mm512_shuffle_epi8(tbl_hi,
+		_mm512_and_si512(_mm512_srli_epi64(x2, 4), mask));
+	__m512i d1  = _mm512_loadu_si512(dst + i);
+	__m512i d2  = _mm512_loadu_si512(dst + i + 64);
+	_mm512_storeu_si512(dst + i,
+		_mm512_ternarylogic_epi64(d1, lo1, hi1, 0x96));
+	_mm512_storeu_si512(dst + i + 64,
+		_mm512_ternarylogic_epi64(d2, lo2, hi2, 0x96));
+    }
+    /* 64-byte tail */
+    for (; i + 64 <= sz; i += 64) {
+	__m512i x  = _mm512_loadu_si512(src + i);
+	__m512i lo = _mm512_shuffle_epi8(tbl_lo, _mm512_and_si512(x, mask));
+	__m512i hi = _mm512_shuffle_epi8(tbl_hi,
+		_mm512_and_si512(_mm512_srli_epi64(x, 4), mask));
+	__m512i d  = _mm512_loadu_si512(dst + i);
+	_mm512_storeu_si512(dst + i,
+		_mm512_ternarylogic_epi64(d, lo, hi, 0x96));
+    }
+
+    /* AVX2 tail: at most one 32-byte chunk */
+    if (i + 32 <= sz) {
+	__m256i tbl256_lo = _mm256_broadcastsi128_si256(
+		_mm_load_si128((const __m128i *)gf_lo_table[c]));
+	__m256i tbl256_hi = _mm256_broadcastsi128_si256(
+		_mm_load_si128((const __m128i *)gf_hi_table[c]));
+	__m256i m256 = _mm256_set1_epi8(0x0F);
+	__m256i x  = _mm256_loadu_si256((const __m256i *)(src + i));
+	__m256i lo = _mm256_shuffle_epi8(tbl256_lo, _mm256_and_si256(x, m256));
+	__m256i hi = _mm256_shuffle_epi8(tbl256_hi,
+		_mm256_and_si256(_mm256_srli_epi64(x, 4), m256));
+	__m256i d  = _mm256_loadu_si256((const __m256i *)(dst + i));
+	_mm256_storeu_si256((__m256i *)(dst + i),
+		_mm256_xor_si256(d, _mm256_xor_si256(lo, hi)));
+	i += 32;
+    }
+
+    /* SSE tail: at most one 16-byte chunk */
+    if (i + 16 <= sz) {
+	__m128i mx = _mm_set1_epi8(0x0F);
+	__m128i x  = _mm_loadu_si128((const __m128i *)(src + i));
+	__m128i lo = _mm_shuffle_epi8(
+		_mm_load_si128((const __m128i *)gf_lo_table[c]),
+		_mm_and_si128(x, mx));
+	__m128i hi = _mm_shuffle_epi8(
+		_mm_load_si128((const __m128i *)gf_hi_table[c]),
 		_mm_and_si128(_mm_srli_epi64(x, 4), mx));
 	__m128i d  = _mm_loadu_si128((const __m128i *)(dst + i));
 	_mm_storeu_si128((__m128i *)(dst + i),
@@ -816,7 +917,9 @@ init_fec()
     init_simd_tables();
 #endif
 #if defined(__x86_64__)
-    if (cpu_has_avx2())
+    if (cpu_has_avx512bw())
+	addmul1_x86_fn = addmul1_avx512;
+    else if (cpu_has_avx2())
 	addmul1_x86_fn = addmul1_avx2;
 #endif
     fec_initialized = 1 ;
