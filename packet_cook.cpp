@@ -243,6 +243,16 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
     }
 #elif defined(__aarch64__)
     int t = 0, i = 0;
+    for (; i + 32 <= len; i += 32) {
+        uint8x16_t d1 = vld1q_u8((const uint8_t *)(data + i));
+        uint8x16_t k1 = vld1q_u8((const uint8_t *)(tile + t));
+        t += 16; if (t >= tile_len) t = 0;
+        uint8x16_t d2 = vld1q_u8((const uint8_t *)(data + i + 16));
+        uint8x16_t k2 = vld1q_u8((const uint8_t *)(tile + t));
+        t += 16; if (t >= tile_len) t = 0;
+        vst1q_u8((uint8_t *)(data + i),      veorq_u8(d1, k1));
+        vst1q_u8((uint8_t *)(data + i + 16), veorq_u8(d2, k2));
+    }
     for (; i + 16 <= len; i += 16) {
         uint8x16_t d = vld1q_u8((const uint8_t *)(data + i));
         uint8x16_t k = vld1q_u8((const uint8_t *)(tile + t));

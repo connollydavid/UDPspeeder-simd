@@ -595,6 +595,18 @@ addmul1_neon(gf *dst, gf *src, gf c, int sz)
     uint8x16_t mask   = vdupq_n_u8(0x0F);
 
     int i = 0;
+    for (; i + 32 <= sz; i += 32) {
+	uint8x16_t x1 = vld1q_u8(src + i);
+	uint8x16_t x2 = vld1q_u8(src + i + 16);
+	uint8x16_t lo1 = vqtbl1q_u8(tbl_lo, vandq_u8(x1, mask));
+	uint8x16_t hi1 = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x1, 4));
+	uint8x16_t lo2 = vqtbl1q_u8(tbl_lo, vandq_u8(x2, mask));
+	uint8x16_t hi2 = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x2, 4));
+	uint8x16_t d1 = vld1q_u8(dst + i);
+	uint8x16_t d2 = vld1q_u8(dst + i + 16);
+	vst1q_u8(dst + i,      veorq_u8(d1, veorq_u8(lo1, hi1)));
+	vst1q_u8(dst + i + 16, veorq_u8(d2, veorq_u8(lo2, hi2)));
+    }
     for (; i + 16 <= sz; i += 16) {
 	uint8x16_t x = vld1q_u8(src + i);
 	uint8x16_t lo = vqtbl1q_u8(tbl_lo, vandq_u8(x, mask));
