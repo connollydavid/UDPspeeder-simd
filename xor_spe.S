@@ -12,8 +12,10 @@
  * upper 32 bits of GPRs.
  */
 
-/* Mark stack as non-executable (suppresses ld warning) */
-.section .note.GNU-stack,"",@progbits
+/* Mark stack as non-executable (suppresses ld warning). Use '%progbits'
+ * rather than '@progbits': on 32-bit ARM '@' begins a line comment, and
+ * gas accepts '%' for the ELF section type on every target. */
+.section .note.GNU-stack,"",%progbits
 
 #ifdef HAVE_PPC_SPE
 
