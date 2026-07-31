@@ -52,6 +52,9 @@ cross2:git_version
 cross3:git_version
 	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} -lrt -static -O2
 
+cross_cxx:git_version
+	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} -O2 ${CXXFLAGS} ${LDFLAGS} ${LDLIBS}
+
 #targets only for debug purpose
 fast: git_version
 	rm -f ${NAME}
