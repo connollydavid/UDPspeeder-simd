@@ -360,7 +360,56 @@ information-theoretic floor (33% wire amplification). No further software
 optimization can meaningfully close this gap. On real networks with actual
 packet loss, the wire amplification is the cost of redundancy by design.
 
+### 12. SSSE3 probed rather than assumed, with an SSE2 addmul1 beneath it
+
+`addmul1_x86_fn` started at `addmul1_ssse3` and was only ever raised to AVX2 or
+AVX-512. Nothing checked whether the CPU had SSSE3, and x86_64 does not imply
+it: AMD K8 and K10 (Athlon 64, Opteron, Phenom, Phenom II, Athlon II) lack it,
+as do the early 64-bit Intel parts, and AMD only added it with Bulldozer in
+2011. On those CPUs the first `PSHUFB` in the Reed-Solomon inner loop raised
+SIGILL, so the tunnel died on the first FEC batch.
+
+Found by running the OpenWrt package under `qemu-x86_64 -cpu qemu64`, the
+conservative baseline model. CI never caught it because the runners, and every
+developer machine, have SSSE3.
+
+The pointer now starts at the scalar path and is raised only by what CPUID
+proves, through `cpu_has_ssse3()` (leaf 1, ECX bit 9) and `cpu_has_sse2()`.
+Beneath SSSE3 sits a new SSE2 path, so a CPU without `PSHUFB` still vectorizes.
+
+SSE2 has no byte shuffle, so it cannot do the nibble lookup. It multiplies by
+repeated doubling instead: for each set bit of `c`, accumulate, then double in
+the field, where doubling is `_mm_add_epi8(x, x)` with a conditional reduction
+selected by `_mm_cmpgt_epi8(0, x)`. No tables, no memory traffic. The reduction
+constant is read from `gf_mul_table[2][0x80]` rather than hardcoded, so it
+follows the field.
+
+| tier | ns/call at 1500B | throughput | vs scalar |
+|---|---|---|---|
+| scalar | 1578.8 | 0.95 GB/s | 1.0x |
+| sse2 | 913.3 | 1.64 GB/s | **1.73x** |
+| ssse3 | 161.3 | 9.30 GB/s | 9.8x |
+
+The same commit hardens the cook pipeline's AVX2 gate, which set its tier from
+CPUID leaf 7 alone: it now checks OSXSAVE and XCR0 for YMM state, and reaches
+leaf 7 via `__get_cpuid_count` so a CPU without that leaf reports nothing
+instead of whatever the highest leaf happened to return.
+
+`bench_addmul1_force()` pins one implementation, so `test_fec` holds every path
+the host supports against the scalar reference across all 256 multipliers and
+sizes covering each loop and tail. Verified under `qemu64` (SSE2 only),
+`Nehalem` (SSSE3), and `Haswell` (AVX2); AVX-512BW stays unverified here because
+qemu-user does not enable the opmask and ZMM state in XCR0, so the OS-support
+check correctly declines it.
+
 ## Not done (deliberately)
+
+**MMX addmul1**: On x86_64, SSE2 is architecturally guaranteed, so MMX adds
+nothing above the floor. On i386 the only parts without SSE2 are pre-2001
+(Pentium III, Athlon XP, Geode LX), where an 8-byte doubling loop would land
+between the scalar table and the 1.73x that SSE2 gives at 16 bytes, in exchange
+for MMX/x87 state handling (`emms`) around every call. The dispatch covers
+i386, so those CPUs take the scalar path.
 
 **Scatter-gather RS encoder to eliminate blob_encode memcpy**: The
 `blob_encode_t::input()` memcpy (~1400B per packet) packs variable-length

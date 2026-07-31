@@ -219,6 +219,15 @@ init_mul_table()
 static gf gf_lo_table[GF_SIZE + 1][16] __attribute__((aligned(16)));
 static gf gf_hi_table[GF_SIZE + 1][16] __attribute__((aligned(16)));
 
+#if defined(__x86_64__) || defined(__i386__)
+/*
+ * The x^8 reduction constant for this field, filled in by init_simd_tables()
+ * from the field's own multiplication table rather than hardcoded. Used by the
+ * SSE2 path, which doubles in the field instead of looking up nibbles.
+ */
+static gf gf_reduce_poly = 0x1d;
+#endif
+
 static void
 init_simd_tables()
 {
@@ -229,6 +238,11 @@ init_simd_tables()
 	    gf_hi_table[c][i] = gf_mul_table[c][i << 4];
 	}
     }
+#if defined(__x86_64__) || defined(__i386__)
+    /* 0x80 doubled is 0x100, which reduces to the low byte of the primitive
+     * polynomial. Read it from the field rather than assuming a constant. */
+    gf_reduce_poly = gf_mul_table[2][0x80];
+#endif
 }
 
 #else	/* GF_BITS > 8 */
@@ -355,10 +369,43 @@ generate_gf(void)
 #define addmul(dst, src, c, sz) \
     if (c != 0) addmul1(dst, src, c, sz)
 
-#if defined(__x86_64__)
+/* Defined below, once UNROLL is in scope. Every dispatch table starts here, so
+ * a CPU that lacks every vector path still runs. */
+static void addmul1_scalar(gf *dst1, gf *src1, gf c, int sz);
+
+#if defined(__x86_64__) || defined(__i386__)
 #include <immintrin.h>
 #include <cpuid.h>
 
+/* SSE2: guaranteed on every x86_64, optional on i386. Leaf 1, EDX bit 26. */
+static int cpu_has_sse2(void)
+{
+#if defined(__x86_64__)
+    return 1;
+#else
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+	return 0;
+    return (edx >> 26) & 1;
+#endif
+}
+
+/*
+ * SSSE3 gives PSHUFB, which the nibble-decomposition path needs. It is NOT
+ * implied by x86_64: AMD K8 and K10 (Athlon 64, Phenom, Phenom II, Athlon II)
+ * and the early 64-bit Intel parts lack it, and AMD only added it with
+ * Bulldozer in 2011. Leaf 1, ECX bit 9.
+ */
+static int cpu_has_ssse3(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+	return 0;
+    return (ecx >> 9) & 1;
+}
+#endif
+
+#if defined(__x86_64__)
 static int cpu_has_avx2(void)
 {
     unsigned int eax, ebx, ecx, edx;
@@ -403,6 +450,59 @@ static int cpu_has_avx512bw(void)
     return (ebx >> 30) & 1;
 }
 
+#endif /* __x86_64__ : AVX feature probes */
+
+#if defined(__x86_64__) || defined(__i386__)
+/*
+ * SSE2 addmul1. SSE2 is part of the AMD64 baseline, so on x86_64 this path
+ * always exists and the scalar table is never needed at runtime; on i386 it is
+ * gated by CPUID.
+ *
+ * PSHUFB is SSSE3, so the nibble-lookup trick is unavailable here. Instead
+ * multiply by repeated doubling: for each set bit of c, accumulate the running
+ * value, then double it in the field. Doubling is a byte-wise shift with a
+ * conditional reduction, which SSE2 expresses without any table:
+ *
+ *   x << 1   is  _mm_add_epi8(x, x)
+ *   "was bit 7 set" is _mm_cmpgt_epi8(0, x), a signed compare
+ *
+ * That is about two operations per byte with no memory traffic, against a
+ * dependent 64KB table load per byte in the scalar path.
+ */
+__attribute__((target("sse2")))
+static void
+addmul1_sse2(gf *dst, gf *src, gf c, int sz)
+{
+    if (sz <= 0) return;
+
+    const __m128i zero = _mm_setzero_si128();
+    const __m128i poly = _mm_set1_epi8((char)gf_reduce_poly);
+
+    int i = 0;
+    for (; i + 16 <= sz; i += 16) {
+	__m128i x = _mm_loadu_si128((const __m128i *)(src + i));
+	__m128i acc = zero;
+	unsigned int cc = c;
+
+	while (cc) {
+	    if (cc & 1)
+		acc = _mm_xor_si128(acc, x);
+	    cc >>= 1;
+	    if (!cc)
+		break;
+	    /* x = xtime(x) */
+	    __m128i msb = _mm_cmpgt_epi8(zero, x);
+	    x = _mm_xor_si128(_mm_add_epi8(x, x), _mm_and_si128(msb, poly));
+	}
+
+	__m128i d = _mm_loadu_si128((const __m128i *)(dst + i));
+	_mm_storeu_si128((__m128i *)(dst + i), _mm_xor_si128(d, acc));
+    }
+
+    if (i < sz)
+	addmul1_scalar(dst + i, src + i, c, sz - i);
+}
+
 __attribute__((target("ssse3")))
 static void
 addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
@@ -445,6 +545,9 @@ addmul1_ssse3(gf *dst, gf *src, gf c, int sz)
 	GF_ADDMULC(dst[i], src[i]);
 }
 
+#endif /* x86: SSE2 and SSSE3 paths */
+
+#if defined(__x86_64__)
 __attribute__((target("avx2")))
 static void
 addmul1_avx2(gf *dst, gf *src, gf c, int sz)
@@ -581,8 +684,16 @@ addmul1_avx512(gf *dst, gf *src, gf c, int sz)
 	GF_ADDMULC(dst[i], src[i]);
 }
 
-static void (*addmul1_x86_fn)(gf *, gf *, gf, int) = addmul1_ssse3;
-#endif /* __x86_64__ */
+#endif /* __x86_64__ : AVX paths */
+
+#if defined(__x86_64__) || defined(__i386__)
+/*
+ * Starts at the scalar path and is raised in init_fec() to whatever the CPU
+ * proves it can run. Starting at a vector path would fault before the probe
+ * ever ran, and would keep faulting on a CPU that lacks it.
+ */
+static void (*addmul1_x86_fn)(gf *, gf *, gf, int) = addmul1_scalar;
+#endif /* x86 dispatch */
 
 #if defined(__aarch64__)
 #include <arm_neon.h>
@@ -624,23 +735,18 @@ addmul1_neon(gf *dst, gf *src, gf c, int sz)
 #endif /* __aarch64__ */
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
+/*
+ * Scalar fallback for MIPS, i486, ARMv7, and for any x86_64 without SSSE3.
+ *
+ * NOT auto-vectorizable: the 256-entry table lookup (gf_mulc_table[c][src[i]])
+ * is a data-dependent gather. The nibble decomposition that makes PSHUFB/TBL
+ * work requires GF(2^8) algebraic insight no compiler performs. Pragmas like
+ * omp simd, __restrict__, and -ftree-vectorize don't help — they grant
+ * permission to vectorize but can't transform the lookup. Deliberate choice.
+ */
 static void
-addmul1(gf *dst1, gf *src1, gf c, int sz)
+addmul1_scalar(gf *dst1, gf *src1, gf c, int sz)
 {
-#if defined(__x86_64__)
-    addmul1_x86_fn(dst1, src1, c, sz);
-#elif defined(__aarch64__)
-    addmul1_neon(dst1, src1, c, sz);
-#else
-    /*
-     * Scalar fallback for MIPS, i486, ARMv7, etc.
-     *
-     * NOT auto-vectorizable: the 256-entry table lookup (gf_mulc_table[c][src[i]])
-     * is a data-dependent gather. The nibble decomposition that makes PSHUFB/TBL
-     * work requires GF(2^8) algebraic insight no compiler performs. Pragmas like
-     * omp simd, __restrict__, and -ftree-vectorize don't help — they grant
-     * permission to vectorize but can't transform the lookup. Deliberate choice.
-     */
     if (sz <= 0) return;
     USE_GF_MULC ;
     gf *dst = dst1, *src = src1 ;
@@ -675,7 +781,18 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
     lim += UNROLL - 1 ;
     for (; dst < lim; dst++, src++ )
 	GF_ADDMULC( *dst , *src );
-#endif /* architecture dispatch */
+}
+
+static void
+addmul1(gf *dst1, gf *src1, gf c, int sz)
+{
+#if defined(__x86_64__) || defined(__i386__)
+    addmul1_x86_fn(dst1, src1, c, sz);
+#elif defined(__aarch64__)
+    addmul1_neon(dst1, src1, c, sz);
+#else
+    addmul1_scalar(dst1, src1, c, sz);
+#endif
 }
 
 /*
@@ -928,11 +1045,23 @@ init_fec()
 #if (GF_BITS <= 8)
     init_simd_tables();
 #endif
+#if defined(__x86_64__) || defined(__i386__)
+    /*
+     * Take the highest path the CPU actually proves it can run. SSSE3 is not
+     * implied by x86_64, so it must be probed like the rest; without this a
+     * K8 or K10 part takes SIGILL on the first PSHUFB.
+     */
 #if defined(__x86_64__)
     if (cpu_has_avx512bw())
 	addmul1_x86_fn = addmul1_avx512;
     else if (cpu_has_avx2())
 	addmul1_x86_fn = addmul1_avx2;
+    else
+#endif
+    if (cpu_has_ssse3())
+	addmul1_x86_fn = addmul1_ssse3;
+    else if (cpu_has_sse2())
+	addmul1_x86_fn = addmul1_sse2;
 #endif
     fec_initialized = 1 ;
 }
@@ -1233,14 +1362,51 @@ void bench_addmul1(gf *dst, gf *src, gf c, int sz) {
     addmul1(dst, src, c, sz);
 }
 const char *bench_addmul1_impl() {
+#if defined(__x86_64__) || defined(__i386__)
 #if defined(__x86_64__)
     if (addmul1_x86_fn == addmul1_avx512) return "avx512bw";
     if (addmul1_x86_fn == addmul1_avx2) return "avx2";
-    return "ssse3";
+#endif
+    if (addmul1_x86_fn == addmul1_ssse3) return "ssse3";
+    if (addmul1_x86_fn == addmul1_sse2) return "sse2";
+    return "scalar";
 #elif defined(__aarch64__)
     return "neon";
 #else
     return "scalar";
+#endif
+}
+
+/*
+ * Pin a specific implementation, so the tests can hold every path the host
+ * supports against the scalar reference rather than only the dispatched one.
+ * Returns 0 when this CPU cannot run the named path, so callers skip it.
+ */
+int bench_addmul1_force(const char *name) {
+#if defined(__x86_64__) || defined(__i386__)
+    if (!strcmp(name, "scalar")) { addmul1_x86_fn = addmul1_scalar; return 1; }
+    if (!strcmp(name, "sse2")) {
+	if (!cpu_has_sse2()) return 0;
+	addmul1_x86_fn = addmul1_sse2; return 1;
+    }
+    if (!strcmp(name, "ssse3")) {
+	if (!cpu_has_ssse3()) return 0;
+	addmul1_x86_fn = addmul1_ssse3; return 1;
+    }
+#if defined(__x86_64__)
+    if (!strcmp(name, "avx2")) {
+	if (!cpu_has_avx2()) return 0;
+	addmul1_x86_fn = addmul1_avx2; return 1;
+    }
+    if (!strcmp(name, "avx512bw")) {
+	if (!cpu_has_avx512bw()) return 0;
+	addmul1_x86_fn = addmul1_avx512; return 1;
+    }
+#endif
+    return 0;
+#else
+    (void)name;
+    return 0;
 #endif
 }
 #endif

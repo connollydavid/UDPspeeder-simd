@@ -7,6 +7,7 @@
 #if defined(__x86_64__) || defined(_M_X64)
 #include <emmintrin.h>  /* SSE2 — baseline on all x86_64 */
 #include <immintrin.h>  /* AVX2 — for xor_tile_avx2 (guarded by target attr) */
+#include <cpuid.h>      /* __get_cpuid, __get_cpuid_count — feature probes */
 #define COOK_VEC_WIDTH 16
 #elif defined(__aarch64__)
 #include <arm_neon.h>
@@ -193,6 +194,50 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 #if defined(__x86_64__) || defined(_M_X64)
 /* Runtime SIMD tier: 0=SSE2, 1=AVX2, 2=AVX-512BW */
 static int xor_simd_tier = -1;
+
+/*
+ * Using AVX2 takes more than the feature bit: the OS must also have enabled
+ * YMM state, or the first VEX instruction faults. Check OSXSAVE and XCR0 as
+ * well, and reach leaf 7 through __get_cpuid_count so an old CPU that lacks
+ * that leaf reports nothing rather than whatever the highest leaf returned.
+ */
+static int xor_cpu_has_avx2(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+        return 0;
+    if (!(ecx & (1u << 27)))            /* OSXSAVE */
+        return 0;
+
+    unsigned int xcr0;
+    __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
+    if ((xcr0 & 0x6) != 0x6)            /* XMM and YMM state saved by the OS */
+        return 0;
+
+    if (!__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (ebx >> 5) & 1;              /* AVX2 */
+}
+
+static int xor_cpu_has_avx512bw(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+        return 0;
+    if (!(ecx & (1u << 27)))            /* OSXSAVE */
+        return 0;
+
+    unsigned int xcr0;
+    __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
+    if ((xcr0 & 0xE6) != 0xE6)          /* + opmask, ZMM_Hi256, Hi16_ZMM */
+        return 0;
+
+    if (!__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (ebx >> 30) & 1;             /* AVX-512BW */
+}
 #endif
 
 static void
@@ -200,25 +245,12 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
 {
 #if defined(__x86_64__) || defined(_M_X64)
     if (xor_simd_tier < 0) {
-        unsigned int eax, ebx, ecx, edx;
+        /* SSE2 is the floor here: it is part of the AMD64 baseline. */
         xor_simd_tier = 0;
-        /* Check AVX2: CPUID leaf 7, EBX bit 5 */
-        __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
-        if ((ebx >> 5) & 1)
+        if (xor_cpu_has_avx2())
             xor_simd_tier = 1;
-        /* Check AVX-512BW: OSXSAVE + XCR0 + CPUID leaf 7, EBX bit 30 */
-        if (xor_simd_tier >= 1) {
-            __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1), "c"(0));
-            if (ecx & (1u << 27)) { /* OSXSAVE */
-                unsigned int xcr0;
-                __asm__ __volatile__("xgetbv" : "=a"(xcr0) : "c"(0) : "edx");
-                if ((xcr0 & 0xE6) == 0xE6) { /* SSE+AVX+opmask+ZMM */
-                    __asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(7), "c"(0));
-                    if ((ebx >> 30) & 1)
-                        xor_simd_tier = 2;
-                }
-            }
-        }
+        if (xor_simd_tier >= 1 && xor_cpu_has_avx512bw())
+            xor_simd_tier = 2;
     }
     if (xor_simd_tier >= 2) {
         xor_tile_avx512(data, len, tile, tile_len);

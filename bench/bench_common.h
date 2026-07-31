@@ -17,6 +17,10 @@ extern "C++" const char *bench_xor_tile_impl();
 /* Exposed by lib/fec.cpp when compiled with -DBENCH_EXPOSE_INTERNALS */
 extern "C++" const char *bench_addmul1_impl();
 
+/* Pin one addmul1 implementation. Returns 0 when the host CPU cannot run it,
+ * so a caller can walk every path and skip the ones this machine lacks. */
+extern "C++" int bench_addmul1_force(const char *name);
+
 /* Packet sizes representative of real traffic */
 static const size_t bench_sizes[] = { 64, 256, 1024, 1500 };
 static const int bench_sizes_count = sizeof(bench_sizes) / sizeof(bench_sizes[0]);

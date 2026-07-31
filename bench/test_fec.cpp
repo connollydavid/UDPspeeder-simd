@@ -38,6 +38,55 @@ static int test_addmul1_identity() {
     return failures;
 }
 
+/*
+ * Every vector path the host can run must agree with the scalar reference, for
+ * every multiplier and across sizes that exercise each loop and its tail.
+ *
+ * This is the test that would have caught the SSSE3 path being selected without
+ * a CPUID check: a path the CPU cannot run is skipped here rather than faulting,
+ * and a path that computes the wrong field arithmetic shows up as a mismatch.
+ */
+static int test_addmul1_impls_match_scalar() {
+    int failures = 0;
+    static const char *tiers[] = { "sse2", "ssse3", "avx2", "avx512bw" };
+    static const int sizes[] = { 1, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 1500 };
+    static gf src[1500], base[1500], ref[1500], got[1500];
+
+    for (int i = 0; i < 1500; i++) {
+        src[i]  = (gf)((i * 131 + 7) & 0xFF);
+        base[i] = (gf)((i * 17 + 3) & 0xFF);
+    }
+
+    for (unsigned t = 0; t < sizeof(tiers) / sizeof(tiers[0]); t++) {
+        if (!bench_addmul1_force(tiers[t])) {
+            printf("  skip: %s (not supported by this CPU)\n", tiers[t]);
+            continue;
+        }
+        int mismatches = 0;
+        for (unsigned s = 0; s < sizeof(sizes) / sizeof(sizes[0]); s++) {
+            int sz = sizes[s];
+            for (int c = 0; c < 256; c++) {
+                bench_addmul1_force("scalar");
+                memcpy(ref, base, sz);
+                bench_addmul1(ref, src, (gf)c, sz);
+
+                bench_addmul1_force(tiers[t]);
+                memcpy(got, base, sz);
+                bench_addmul1(got, src, (gf)c, sz);
+
+                if (memcmp(ref, got, sz) != 0) mismatches++;
+            }
+        }
+        char msg[128];
+        snprintf(msg, sizeof(msg),
+                 "%s agrees with scalar over every multiplier and size", tiers[t]);
+        TEST(msg, mismatches == 0);
+    }
+
+    bench_addmul1_force("scalar");
+    return failures;
+}
+
 static int test_addmul1_linearity() {
     int failures = 0;
     const int sz = 256;
@@ -203,6 +252,9 @@ int run_fec_tests() {
 
     printf("[addmul1 identity]\n");
     failures += test_addmul1_identity();
+
+    printf("[addmul1 implementations against scalar]\n");
+    failures += test_addmul1_impls_match_scalar();
 
     printf("[addmul1 linearity]\n");
     failures += test_addmul1_linearity();
