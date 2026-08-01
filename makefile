@@ -10,6 +10,18 @@ NAME=speederv2
 
 FLAGS= -std=c++11   -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -MMD -MP ${OPT}
 
+# Take the SPE XOR when the caller is building for a core that has it. GCC 9
+# removed SPE support, so no predefined macro names the core and only the
+# caller can say; the -mcpu it passes is that statement. The e500v1 (8540) and
+# the e500v2 (8548) both carry the integer SPE opcodes this uses, and no other
+# PowerPC core does. OpenWrt passes the flag in CXXFLAGS, the cross targets
+# below take it inside CC or CXX, so all four are searched. filter matches
+# whole words, so a longer name that merely contains one of these cannot match.
+# Passing SPE=1 by hand still works and overrides nothing.
+ifneq ($(filter -mcpu=8540 -mcpu=8548,$(CC) $(CXX) $(CFLAGS) $(CXXFLAGS)),)
+SPE := 1
+endif
+
 ifdef SPE
 FLAGS += -DHAVE_PPC_SPE -Wa,-mspe
 endif

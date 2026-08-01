@@ -271,6 +271,16 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 }
 #endif
 
+#if defined(HAVE_PPC_SPE)
+/*
+ * Send the XOR down the word path instead of the SPE one. The build makes this
+ * choice at compile time, so there is no tier to pin; this exists so the tests
+ * can hold the SPE path against the word reference, which the cook round-trip
+ * cannot do because XOR is its own inverse and a wrong path cancels itself.
+ */
+static int xor_spe_pin_word = 0;
+#endif
+
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
 /* Runtime SIMD tier: 0=word, 1=MMX, 2=SSE2, 3=AVX2, 4=AVX-512BW */
 static int xor_simd_tier = -1;
@@ -409,6 +419,10 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         if (t >= tile_len) t = 0;
     }
 #elif defined(HAVE_PPC_SPE)
+    if (xor_spe_pin_word) {
+        xor_tile_word(data, len, tile, tile_len);
+        return;
+    }
     int t = 0, i = 0;
     /* Scalar head: align data pointer to 8 bytes for evldd */
     int head = (8 - ((uintptr_t)data & 7)) & 7;
@@ -594,6 +608,10 @@ int bench_xor_tile_force(const char *name) {
         xor_simd_tier = 4; return 1;
     }
     return 0;
+#elif defined(HAVE_PPC_SPE)
+    if (!strcmp(name, "word")) { xor_spe_pin_word = 1; return 1; }
+    if (!strcmp(name, "spe")) { xor_spe_pin_word = 0; return 1; }
+    return 0;
 #else
     return !strcmp(name, "scalar");
 #endif
@@ -611,19 +629,21 @@ const char *bench_xor_tile_impl() {
 #elif defined(__aarch64__)
     return "neon";
 #elif defined(HAVE_PPC_SPE)
-    return "spe";
+    return xor_spe_pin_word ? "word" : "spe";
 #else
     return "word";
 #endif
 }
 /*
- * Re-derive the choice and name what it picked. Clearing the tier sends the next
- * call back through the detection block in xor_tile(), so this reports the real
- * selection even after a test has pinned a tier.
+ * Re-derive the choice and name what it picked. Releasing whatever a test pinned
+ * sends the next call back through the selection in xor_tile(), so this reports
+ * what the build and the CPU really settle on rather than the last pin.
  */
 const char *bench_xor_tile_auto() {
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
     xor_simd_tier = -1;
+#elif defined(HAVE_PPC_SPE)
+    xor_spe_pin_word = 0;
 #endif
     return bench_xor_tile_impl();
 }

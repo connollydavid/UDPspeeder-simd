@@ -126,7 +126,7 @@ static int test_cook_disabled() {
  */
 static int test_xor_tile_impls_match_word() {
     int failures = 0;
-    static const char *tiers[] = { "mmx", "sse2", "avx2", "avx512bw" };
+    static const char *tiers[] = { "mmx", "sse2", "avx2", "avx512bw", "spe" };
     static const int tile_lens[] = { 16, 32, 80 };
     static const int data_lens[] = { 1, 7, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 1500 };
     static const int offsets[] = { 0, 1, 7 };

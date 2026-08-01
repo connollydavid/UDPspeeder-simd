@@ -68,6 +68,7 @@ jobs:
             test_bin: test_udpspeeder_static
             prod_bin: speederv2
             qemu_cmd: ""
+            expect_xor: ""
           - name: aarch64
             packages: g++-aarch64-linux-gnu qemu-user-static
             toolchain_url: ""
@@ -79,6 +80,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-aarch64-static
+            expect_xor: ""
           - name: mips
             packages: g++-mips-linux-gnu qemu-user-static
             toolchain_url: ""
@@ -90,6 +92,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-mips-static
+            expect_xor: ""
           - name: powerpc
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mpc85xx/p1010/openwrt-toolchain-25.12.0-rc5-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
@@ -101,6 +104,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: "qemu-ppc-static -cpu e500v2"
+            expect_xor: spe
           - name: riscv64
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sifiveu/generic/openwrt-toolchain-24.10.0-sifiveu-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
@@ -112,6 +116,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-riscv64-static
+            expect_xor: ""
     steps:
       - uses: actions/checkout@v4
 
@@ -157,8 +162,43 @@ jobs:
       - name: Verify binaries
         run: file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
 
+      # OpenWrt passes no SPE=1: it names the core with -mcpu in CXXFLAGS and
+      # leaves the makefile to read it. The job above builds with an explicit
+      # SPE=1, so it proves the path works but not that a package build reaches
+      # it. Build the way the feed does instead, and require the SPE opcodes to
+      # appear for an e500 and to stay absent for a PowerPC core without one.
+      - name: Take the SPE flag from the target (${{ matrix.name }})
+        if: matrix.name == 'powerpc'
+        run: |
+          objdump=$(find /tmp/openwrt-toolchain -name '*-objdump' -path '*/bin/*' | sort | head -1)
+          rc=0
+          check() { # cpu wanted
+            # NAME keeps this off speederv2_cross, which the artifact step wants
+            make cross_cxx NAME=spe_probe CXX="${OPENWRT_GXX}" \
+              CXXFLAGS="-Os -mcpu=$1" > /dev/null
+            n=$("$objdump" -d spe_probe_cross | grep -cE '\bev(ldd|stdd|xor)\b' || true)
+            if [ "$2" = yes ] && [ "$n" -eq 0 ]; then
+              echo "FAIL  -mcpu=$1 built no SPE opcodes"
+              rc=1
+            elif [ "$2" = no ] && [ "$n" -ne 0 ]; then
+              echo "FAIL  -mcpu=$1 built $n SPE opcodes"
+              rc=1
+            else
+              echo "ok    -mcpu=$1 built $n SPE opcodes"
+            fi
+          }
+          check 8548 yes
+          check 464fp no
+          rm -f spe_probe_cross
+          exit $rc
+
+      # A compile-time selection is still a selection, so name what this build
+      # must have chosen. An empty expectation leaves the dispatch reported and
+      # unchecked, which is what an architecture with one path wants.
       - name: Run tests (QEMU)
         if: matrix.qemu_cmd != ''
+        env:
+          EXPECT_XOR_TILE: ${{ matrix.expect_xor }}
         run: ${{ matrix.qemu_cmd }} ./${{ matrix.test_bin }}
 
       - name: Run benchmarks (QEMU)
