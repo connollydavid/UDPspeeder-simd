@@ -30,7 +30,7 @@ const int decode_fast_send = 1;
 int short_packet_optimize = 1;
 int header_overhead = 40;
 
-u32_t fec_buff_num = 2000;  // how many packet can fec_decode_manager hold. shouldnt be very large,or it will cost huge memory
+u32_t fec_buff_num = 2000;  // how many packet can fec_decode_manager hold. shouldn't be very large,or it will cost huge memory
 
 blob_encode_t::blob_encode_t() {
     clear();
@@ -468,7 +468,7 @@ int fec_decode_manager_t::re_init()
 
 int fec_decode_manager_t::input(char *s, int len) {
     assert(s != 0);
-    assert(len + 100 < buf_len);  // guarenteed by upper level
+    assert(len + 100 < buf_len);  // guaranteed by upper level
 
     int tmp_idx = 0;
     int tmp_header_len = sizeof(u32_t) + sizeof(char) * 4;
@@ -557,7 +557,7 @@ int fec_decode_manager_t::input(char *s, int len) {
 
     if (fec_data[index].used != 0) {
         u32_t tmp_seq = fec_data[index].seq;
-        anti_replay.set_invaild(tmp_seq);
+        anti_replay.set_invalid(tmp_seq);
 
         fec_group_t *tmp_group = group_find(tmp_seq);
         if (tmp_group) {
@@ -597,7 +597,7 @@ int fec_decode_manager_t::input(char *s, int len) {
     if (type == 0) {
         if (group.shard_count > data_num) {
             mylog(log_warn, "shard_count>data_num\n");
-            anti_replay.set_invaild(seq);
+            anti_replay.set_invalid(seq);
             goto end;
         }
         if (group.shard_count == data_num)
@@ -606,7 +606,7 @@ int fec_decode_manager_t::input(char *s, int len) {
         if (group.data_num != -1) {
             if (group.shard_count > group.data_num + 1) {
                 mylog(log_warn, "shard_count>data_num+1\n");
-                anti_replay.set_invaild(seq);
+                anti_replay.set_invalid(seq);
                 goto end;
             }
             if (group.shard_count >= group.data_num) {
@@ -648,12 +648,12 @@ int fec_decode_manager_t::input(char *s, int len) {
             if (blob_decode.output(output_n, output_s_arr, output_len_arr) != 0) {
                 mylog(log_warn, "blob_decode failed\n");
                 // ready_for_output=0;
-                anti_replay.set_invaild(seq);
+                anti_replay.set_invalid(seq);
                 goto end;
             }
             assert(ready_for_output == 0);
             ready_for_output = 1;
-            anti_replay.set_invaild(seq);
+            anti_replay.set_invalid(seq);
         } else  // type==1
         {
             int max_len = -1;
@@ -691,13 +691,13 @@ int fec_decode_manager_t::input(char *s, int len) {
             if (data_check_ok == 0) {
                 // ready_for_output=0;
                 mylog(log_warn, "data_check_ok==0\n");
-                anti_replay.set_invaild(seq);
+                anti_replay.set_invalid(seq);
                 goto end;
             }
             for (int i = 0; i < group_data_num + group_redundant_num; i++) {
                 if (!group.has_shard(i)) continue;
                 int di = group.shard_idx[i];
-                assert(max_len >= fec_data[di].len);  // guarenteed by data_check_ok
+                assert(max_len >= fec_data[di].len);  // guaranteed by data_check_ok
                 int pad = max_len - fec_data[di].len;
                 if (pad > 0)
                     memset(fec_data[di].buf + fec_data[di].len, 0, pad);
@@ -721,7 +721,7 @@ int fec_decode_manager_t::input(char *s, int len) {
                 sum_ori += output_len_arr_buf[i];
                 output_s_arr_buf[i] += sizeof(u16_t);
                 if (output_len_arr_buf[i] > max_data_len) {
-                    mylog(log_warn, "invaild len %d,seq= %u,data_num= %d r_num= %d,i= %d\n", output_len_arr_buf[i], seq, group_data_num, group_redundant_num, i);
+                    mylog(log_warn, "invalid len %d,seq= %u,data_num= %d r_num= %d,i= %d\n", output_len_arr_buf[i], seq, group_data_num, group_redundant_num, i);
                     fec_result_ok = 0;
                     for (int i = 0; i < missed_packet_counter; i++) {
                         log_bare(log_warn, "%d ", missed_packet[i]);
@@ -757,7 +757,7 @@ int fec_decode_manager_t::input(char *s, int len) {
                 // fec_not_ok:
                 ready_for_output = 0;
             }
-            anti_replay.set_invaild(seq);
+            anti_replay.set_invalid(seq);
         }   // end of type==1
     } else  // not about_to_fec
     {

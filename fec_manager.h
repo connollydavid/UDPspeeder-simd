@@ -54,7 +54,7 @@ struct fec_parameter_t {
                 return -1;
             }
             if (x < 1 || y < 0 || x + y > max_fec_packet_num) {
-                mylog(log_warn, "invaild value x=%d y=%d, x should >=1, y should >=0, x +y should <%d\n", x, y, max_fec_packet_num);
+                mylog(log_warn, "invalid value x=%d y=%d, x should >=1, y should >=0, x +y should <%d\n", x, y, max_fec_packet_num);
                 return -1;
             }
             tmp_par.x = x;
@@ -185,7 +185,7 @@ extern fec_parameter_t g_fec_par;
 struct anti_replay_t {
     /* Direct-mapped table: slot = seq & MASK, stores the seq that owns it.
      * is_valid: table[slot] != seq → valid (not yet seen).
-     * set_invaild: table[slot] = seq.
+     * set_invalid: table[slot] = seq.
      * Old entries naturally evicted when a new seq maps to the same slot.
      * With 32K slots and monotonically increasing seqs, effective window
      * is ~32K groups — comparable to the old 30K ring buffer. */
@@ -200,7 +200,7 @@ struct anti_replay_t {
         memset(table, 0xFF, sizeof(table));
         return 0;
     }
-    void set_invaild(u32_t seq) {
+    void set_invalid(u32_t seq) {
         table[seq & TABLE_MASK] = seq;
     }
     int is_valid(u32_t seq) {
