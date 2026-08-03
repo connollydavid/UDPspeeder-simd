@@ -578,3 +578,29 @@ no emulated run reaches that path, and a GitHub runner has the instructions only
 when the job lands on an Intel host. The `Skylake-Server` row covers the next
 best thing. TCG clears the feature bit and leaves the ZMM state out of `XCR0` on
 a model whose name says otherwise, and the gate declines and falls to AVX2.
+
+### Outside x86, where the build makes the choice
+
+No other architecture dispatches at runtime. NEON is mandatory on aarch64, the
+e500 SPE XOR is reached through a build flag the makefile derives from `-mcpu`,
+and the ARM hardware checksum is compiled in when the target names a core and
+GCC therefore defines `__ARM_FEATURE_CRC32`. A compile-time choice is still a
+choice, so the `build-static` rows name the path each build must land on and
+compare it against the same references:
+
+| build | CPU model | addmul1 | xor_tile | crc32c |
+|-------|-----------|---------|----------|--------|
+| `-mcpu=cortex-a53` | `cortex-a53` | neon | neon | hw |
+| `aarch64-linux-gnu-g++` | default | neon | neon | sw |
+| `-mcpu=8548` | `e500v2` | scalar | spe | sw |
+| `mips-linux-gnu-g++` | default | scalar | word | sw |
+| `riscv64` | default | scalar | word | sw |
+
+The named-core aarch64 row exists because the plain cross compiler defaults to
+no core, which compiles the hardware checksum out and skips its agreement test.
+OpenWrt names a core on every aarch64 target bar the generic one, so the path
+ships and has to be checked. That row requires the comparison to have run, since
+a skip must not read as a pass.
+
+Some architectures have one path and nothing to compare it against. That is not
+a gap in the checking; it is the whole of what those builds contain.

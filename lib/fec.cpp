@@ -370,7 +370,12 @@ generate_gf(void)
     if (c != 0) addmul1(dst, src, c, sz)
 
 /* Defined below, once UNROLL is in scope. Every dispatch table starts here, so
- * a CPU that lacks every vector path still runs. */
+ * a CPU that lacks every vector path still runs. On aarch64 no such CPU exists,
+ * NEON is mandatory and the dispatch cannot reach this, so a production build
+ * there leaves it with no caller; the tests still hold NEON against it. Marked
+ * unused so that target compiles clean rather than warning about the reference
+ * only the bench build makes. */
+__attribute__((unused))
 static void addmul1_scalar(gf *dst1, gf *src1, gf c, int sz);
 
 #if defined(__x86_64__) || defined(__i386__)
@@ -756,6 +761,21 @@ addmul1_neon(gf *dst, gf *src, gf c, int sz)
     for (; i < sz; i++)
 	GF_ADDMULC(dst[i], src[i]);
 }
+
+#ifdef BENCH_EXPOSE_INTERNALS
+/*
+ * Send the multiply down the scalar path instead of the NEON one. NEON is
+ * mandatory on this architecture, so the build settles the choice and there is
+ * no tier to pin; this exists so the tests can hold NEON against the scalar
+ * reference, the comparison that caught the SSSE3 fault on the other side.
+ *
+ * It is confined to the bench build. A production build has no writer for it,
+ * so the compiler does fold the test away, but leaving a switch in the inner
+ * loop that only a test can throw makes the cost a matter of what the optimiser
+ * happens to do. Compiling it out settles that in the source instead.
+ */
+static int addmul1_neon_pin_scalar = 0;
+#endif
 #endif /* __aarch64__ */
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
@@ -813,6 +833,12 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
 #if defined(__x86_64__) || defined(__i386__)
     addmul1_x86_fn(dst1, src1, c, sz);
 #elif defined(__aarch64__)
+#ifdef BENCH_EXPOSE_INTERNALS
+    if (addmul1_neon_pin_scalar) {
+	addmul1_scalar(dst1, src1, c, sz);
+	return;
+    }
+#endif
     addmul1_neon(dst1, src1, c, sz);
 #else
     addmul1_scalar(dst1, src1, c, sz);
@@ -1380,7 +1406,7 @@ const char *bench_addmul1_impl() {
     if (addmul1_x86_fn == addmul1_sse2) return "sse2";
     return "scalar";
 #elif defined(__aarch64__)
-    return "neon";
+    return addmul1_neon_pin_scalar ? "scalar" : "neon";
 #else
     return "scalar";
 #endif
@@ -1395,6 +1421,8 @@ const char *bench_addmul1_impl() {
 const char *bench_addmul1_auto() {
 #if defined(__x86_64__) || defined(__i386__)
     addmul1_select();
+#elif defined(__aarch64__)
+    addmul1_neon_pin_scalar = 0;
 #endif
     return bench_addmul1_impl();
 }
@@ -1425,6 +1453,10 @@ int bench_addmul1_force(const char *name) {
 	addmul1_x86_fn = addmul1_avx512; return 1;
     }
 #endif
+    return 0;
+#elif defined(__aarch64__)
+    if (!strcmp(name, "scalar")) { addmul1_neon_pin_scalar = 1; return 1; }
+    if (!strcmp(name, "neon")) { addmul1_neon_pin_scalar = 0; return 1; }
     return 0;
 #else
     (void)name;

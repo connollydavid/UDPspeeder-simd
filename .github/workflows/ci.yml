@@ -80,7 +80,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-aarch64-static
-            expect_xor: ""
+            expect_xor: neon
           - name: mips
             packages: g++-mips-linux-gnu qemu-user-static
             toolchain_url: ""
@@ -123,6 +123,28 @@ jobs:
       - name: Install packages
         if: matrix.packages != ''
         run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+
+      # OpenWrt names a core for its aarch64 targets, so GCC defines
+      # __ARM_FEATURE_CRC32 and the hardware checksum is compiled in on every
+      # one of them bar the generic build. The plain cross compiler used below
+      # names no core, so that path is absent and its agreement test quietly
+      # skips. Build for a core that carries it, and require the comparison to
+      # have run: a skip must not read as a pass. The binary is rebuilt without
+      # the core by the steps that follow, so the artifact is unaffected.
+      - name: Take the checksum a named core carries (${{ matrix.name }})
+        if: matrix.name == 'aarch64'
+        run: |
+          set -o pipefail
+          make test-cross CC="aarch64-linux-gnu-g++ -mcpu=cortex-a53"
+          EXPECT_CRC32C=hw EXPECT_XOR_TILE=neon EXPECT_ADDMUL1=neon \
+            qemu-aarch64-static -cpu cortex-a53 ./test_udpspeeder_cross | tee a53.log
+          n=$(grep -c 'crc32c hw==sw' a53.log || true)
+          if [ "$n" -eq 0 ]; then
+            echo "FAIL  the hardware checksum never ran, only the software one"
+            exit 1
+          fi
+          echo "ok    hardware and software checksums compared over $n cases"
+          rm -f a53.log
 
       - name: Download OpenWrt toolchain
         if: matrix.toolchain_url != ''

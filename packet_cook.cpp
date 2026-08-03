@@ -89,7 +89,12 @@ expand_tile(char *tile, int tile_len, const char *pat, int pat_len)
  * Word-at-a-time XOR: the floor for every platform, and the path taken on x86
  * only by a CPU too old to have MMX. Four bytes on a 32-bit machine, eight on
  * a 64-bit one.
+ *
+ * aarch64 and the e500 SPE always have their vector path, so a production build
+ * for either leaves this with no caller. Marked unused so those targets compile
+ * clean; the tests still reach it, as the reference the vector path is held to.
  */
+__attribute__((unused))
 static void
 xor_tile_word(char *data, int len, const char *tile, int tile_len)
 {
@@ -271,14 +276,21 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 }
 #endif
 
-#if defined(HAVE_PPC_SPE)
+#if (defined(__aarch64__) || defined(HAVE_PPC_SPE)) && defined(BENCH_EXPOSE_INTERNALS)
 /*
- * Send the XOR down the word path instead of the SPE one. The build makes this
- * choice at compile time, so there is no tier to pin; this exists so the tests
- * can hold the SPE path against the word reference, which the cook round-trip
- * cannot do because XOR is its own inverse and a wrong path cancels itself.
+ * Send the XOR down the word path instead of the vector one. The build makes
+ * this choice at compile time, so there is no tier to pin; this exists so the
+ * tests can hold the vector path against the word reference, which the cook
+ * round-trip cannot do because XOR is its own inverse: a wrong path cancels
+ * itself, and only a path that does nothing at all shows up there.
+ *
+ * It is confined to the bench build, so the production XOR carries no switch
+ * that only a test can throw. The compiler would fold it away in any case, with
+ * no writer for it, but that leaves the cost resting on the optimiser rather
+ * than on the source.
  */
-static int xor_spe_pin_word = 0;
+static int xor_pin_word = 0;
+#define XOR_PIN_WORD_ACTIVE 1
 #endif
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
@@ -395,6 +407,12 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
     }
     xor_tile_word(data, len, tile, tile_len);
 #elif defined(__aarch64__)
+#ifdef XOR_PIN_WORD_ACTIVE
+    if (xor_pin_word) {
+        xor_tile_word(data, len, tile, tile_len);
+        return;
+    }
+#endif
     int t = 0, i = 0;
     for (; i + 32 <= len; i += 32) {
         uint8x16_t d1 = vld1q_u8((const uint8_t *)(data + i));
@@ -419,10 +437,12 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         if (t >= tile_len) t = 0;
     }
 #elif defined(HAVE_PPC_SPE)
-    if (xor_spe_pin_word) {
+#ifdef XOR_PIN_WORD_ACTIVE
+    if (xor_pin_word) {
         xor_tile_word(data, len, tile, tile_len);
         return;
     }
+#endif
     int t = 0, i = 0;
     /* Scalar head: align data pointer to 8 bytes for evldd */
     int head = (8 - ((uintptr_t)data & 7)) & 7;
@@ -608,9 +628,13 @@ int bench_xor_tile_force(const char *name) {
         xor_simd_tier = 4; return 1;
     }
     return 0;
+#elif defined(__aarch64__)
+    if (!strcmp(name, "word")) { xor_pin_word = 1; return 1; }
+    if (!strcmp(name, "neon")) { xor_pin_word = 0; return 1; }
+    return 0;
 #elif defined(HAVE_PPC_SPE)
-    if (!strcmp(name, "word")) { xor_spe_pin_word = 1; return 1; }
-    if (!strcmp(name, "spe")) { xor_spe_pin_word = 0; return 1; }
+    if (!strcmp(name, "word")) { xor_pin_word = 1; return 1; }
+    if (!strcmp(name, "spe")) { xor_pin_word = 0; return 1; }
     return 0;
 #else
     return !strcmp(name, "scalar");
@@ -627,9 +651,9 @@ const char *bench_xor_tile_impl() {
     if (xor_simd_tier >= 1) return "mmx";
     return "word";
 #elif defined(__aarch64__)
-    return "neon";
+    return xor_pin_word ? "word" : "neon";
 #elif defined(HAVE_PPC_SPE)
-    return xor_spe_pin_word ? "word" : "spe";
+    return xor_pin_word ? "word" : "spe";
 #else
     return "word";
 #endif
@@ -642,8 +666,8 @@ const char *bench_xor_tile_impl() {
 const char *bench_xor_tile_auto() {
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
     xor_simd_tier = -1;
-#elif defined(HAVE_PPC_SPE)
-    xor_spe_pin_word = 0;
+#elif defined(__aarch64__) || defined(HAVE_PPC_SPE)
+    xor_pin_word = 0;
 #endif
     return bench_xor_tile_impl();
 }

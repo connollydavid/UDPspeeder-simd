@@ -48,7 +48,7 @@ static int test_addmul1_identity() {
  */
 static int test_addmul1_impls_match_scalar() {
     int failures = 0;
-    static const char *tiers[] = { "sse2", "ssse3", "avx2", "avx512bw" };
+    static const char *tiers[] = { "sse2", "ssse3", "avx2", "avx512bw", "neon" };
     static const int sizes[] = { 1, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 1500 };
     static gf src[1500], base[1500], ref[1500], got[1500];
 
@@ -83,7 +83,7 @@ static int test_addmul1_impls_match_scalar() {
         TEST(msg, mismatches == 0);
     }
 
-    bench_addmul1_force("scalar");
+    bench_addmul1_auto();
     return failures;
 }
 
