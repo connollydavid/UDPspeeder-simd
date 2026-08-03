@@ -41,6 +41,18 @@ jobs:
       - name: Build production binary
         run: make all
 
+      # Read the emitted code, which the running tests cannot do. An instruction
+      # the CPU cannot decode faults whether or not the dispatcher meant to reach
+      # it, and that is exactly how the SSSE3 crash worked. The selftest runs
+      # first and builds a binary breaking every rule the screen holds: a screen
+      # that reports clean because its patterns match nothing looks identical to
+      # a clean binary, which is how the first version of this passed a file
+      # stuffed with violations.
+      - name: Screen the emitted x86 code
+        run: |
+          bash bench/isa-screen-selftest.sh
+          bash bench/isa-screen.sh speederv2
+
       - name: Throughput test (io_uring)
         run: bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5
 
@@ -127,9 +139,13 @@ jobs:
             expect_xor: spe
             expect_crc32c: sw
           # Three of OpenWrt's fourteen 32-bit ARM architectures name NEON, and
-          # the same core is published both with and without it, so the flag is
-          # the only thing that can decide. Both are built: the a15 must reach
-          # the vector paths, the a9 must stay on scalar and word.
+          # the same core is published both with and without it, so something has
+          # to decide. It is not a flag: OpenWrt defines no CPU_CFLAGS for arm and
+          # passes no -mfpu anywhere in its tree. It configures a per-target
+          # toolchain instead, and the compiler default carries the FPU, which is
+          # why these two rows pass no cpu_flags. Adding any would test our flag
+          # rather than the feed's toolchain. Verified: the a15 toolchain defines
+          # __ARM_NEON with an empty command line and the a9 toolchain does not.
           - name: armv7-neon
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/armsr/armv7/openwrt-toolchain-25.12.0-rc5-armsr-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
@@ -141,7 +157,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: "qemu-arm-static -cpu cortex-a15"
-            cpu_flags: "-mcpu=cortex-a15 -mfpu=neon-vfpv4"
+            cpu_flags: ""
             expect_addmul1: neon
             expect_xor: neon
             expect_crc32c: sw
@@ -156,7 +172,7 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: "qemu-arm-static -cpu cortex-a9"
-            cpu_flags: "-mcpu=cortex-a9 -mfpu=vfpv3-d16"
+            cpu_flags: ""
             expect_addmul1: scalar
             expect_xor: word
             expect_crc32c: sw
