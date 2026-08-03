@@ -1,2 +1,10 @@
 .claude/
 .gitmodules
+
+# build outputs
+speederv2
+speederv2_cross
+test_udpspeeder*
+bench_udpspeeder*
+git_version.h
+*.d

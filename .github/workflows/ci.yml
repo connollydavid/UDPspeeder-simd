@@ -20,6 +20,15 @@ jobs:
       - name: Run correctness tests
         run: make test
 
+      # The same suite under AddressSanitizer and UndefinedBehaviorSanitizer.
+      # Nearly everything this fork added is what these two catch: lane-width
+      # arithmetic in the vector kernels, the tails that finish a loop a few
+      # bytes at a time, and the direct-mapped tables that replaced std::map in
+      # the FEC decode. Leak detection is on, and the harness frees exactly what
+      # it allocated, so anything left is the library's.
+      - name: Run correctness tests (ASan, UBSan)
+        run: make test-sanitize
+
       - name: Build benchmarks
         run: make bench
 

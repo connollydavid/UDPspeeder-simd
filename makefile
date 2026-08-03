@@ -108,6 +108,7 @@ git_version:
 BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp bench/bench_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
 TEST_SOURCES=bench/test_main.cpp bench/test_dispatch.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
 BENCH_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O2 -DBENCH_EXPOSE_INTERNALS -MMD -MP
+SAN_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O1 -g -fno-omit-frame-pointer -DBENCH_EXPOSE_INTERNALS
 
 ifdef SPE
 BENCH_FLAGS += -DHAVE_PPC_SPE -Wa,-mspe
@@ -119,6 +120,18 @@ bench: git_version
 test: git_version
 	${cc_local} -o test_udpspeeder -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS}
 	./test_udpspeeder
+
+# The suite again under AddressSanitizer and UndefinedBehaviorSanitizer. Most of
+# what this code does by hand is what these two catch: lane-width arithmetic in
+# the vector kernels, the tails that finish a loop a few bytes at a time, and the
+# direct-mapped tables that replaced std::map in the FEC decode. -O1 keeps the
+# stack traces readable, and the recover options are off so the first fault ends
+# the run rather than being counted and passed over.
+test-sanitize: git_version
+	${cc_local} -o test_udpspeeder_asan -I. -Ibench ${TEST_SOURCES} \
+	    ${SAN_FLAGS} -fsanitize=address,undefined
+	ASAN_OPTIONS=abort_on_error=1:detect_leaks=1 \
+	  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ./test_udpspeeder_asan
 
 bench-static: git_version
 	${cc_local} -o bench_udpspeeder_static -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static

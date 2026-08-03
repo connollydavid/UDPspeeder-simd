@@ -145,8 +145,13 @@ static int test_rs_roundtrip(int k, int n, int pkt_sz) {
     /* Allocate and fill original data */
     char **data = (char **)calloc(n, sizeof(char *));
     char **orig = (char **)calloc(k, sizeof(char *));
+    /* rs_decode2 rearranges data[], so it cannot be used to free what we
+     * allocated. owned[] keeps our own pointers. Freeing exactly these leaves
+     * any remaining leak attributable to the library, which is the point of
+     * running this under LeakSanitizer. */
+    char **owned = (char **)calloc(n, sizeof(char *));
     for (int i = 0; i < n; i++)
-        data[i] = (char *)calloc(1, pkt_sz);
+        data[i] = owned[i] = (char *)calloc(1, pkt_sz);
     for (int i = 0; i < k; i++) {
         fill_pattern(data[i], pkt_sz, i * 31);
         orig[i] = (char *)calloc(1, pkt_sz);
@@ -180,10 +185,8 @@ cleanup:
     /* Simple approach: free orig separately, free remaining data bufs */
     for (int i = 0; i < k; i++) free(orig[i]);
     free(orig);
-    /* data[] pointers may alias the original allocations; the calloc'd buffers
-     * that weren't NULLed are still valid. We allocated n buffers initially,
-     * NULLed 'redundant' of them. The decode reused the non-null ones.
-     * Since we can't easily track which are unique, just leak here — it's a test. */
+    for (int i = 0; i < n; i++) free(owned[i]);
+    free(owned);
     free(data);
 
     return failures;
@@ -209,8 +212,13 @@ static int test_rs_roundtrip_pattern(int k, int n, int pkt_sz,
 
     char **data = (char **)calloc(n, sizeof(char *));
     char **orig = (char **)calloc(k, sizeof(char *));
+    /* rs_decode2 rearranges data[], so it cannot be used to free what we
+     * allocated. owned[] keeps our own pointers. Freeing exactly these leaves
+     * any remaining leak attributable to the library, which is the point of
+     * running this under LeakSanitizer. */
+    char **owned = (char **)calloc(n, sizeof(char *));
     for (int i = 0; i < n; i++)
-        data[i] = (char *)calloc(1, pkt_sz);
+        data[i] = owned[i] = (char *)calloc(1, pkt_sz);
     for (int i = 0; i < k; i++) {
         fill_pattern(data[i], pkt_sz, i * 31);
         orig[i] = (char *)calloc(1, pkt_sz);
@@ -239,6 +247,8 @@ static int test_rs_roundtrip_pattern(int k, int n, int pkt_sz,
 cleanup:
     for (int i = 0; i < k; i++) free(orig[i]);
     free(orig);
+    for (int i = 0; i < n; i++) free(owned[i]);
+    free(owned);
     free(data);
     return failures;
 }
