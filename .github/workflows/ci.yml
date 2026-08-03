@@ -193,6 +193,87 @@ jobs:
             ${{ matrix.prod_bin }}
             bench/profile.sh
 
+  # Every job above runs on whatever CPU the runner happens to be, which has each
+  # feature a dispatcher looks for, so it always takes the top path. What broke in
+  # practice was the choice rather than the paths: an SSSE3 multiply selected on a
+  # CPU without SSSE3. So build the three x86 targets OpenWrt ships and run the
+  # test binary under CPU models that lack each feature in turn, naming the path
+  # the multiply, the XOR and the checksum must each yield. The AVX2 rows need
+  # QEMU 7.2 or newer; no model reaches AVX-512, because TCG does not implement
+  # it, and Skylake-Server is there to prove the gate declines rather than
+  # trusting the model name.
+  cpu-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update && sudo apt-get install -y qemu-user-static zstd
+          qemu-x86_64-static --version | head -1
+
+      - name: Download OpenWrt x86 toolchains
+        run: |
+          set -e
+          rel=25.12.0-rc5
+          base="https://downloads.openwrt.org/releases/$rel/targets/x86"
+          for entry in geode:x86-geode generic:x86-generic 64:x86-64; do
+            sub=${entry%%:*}
+            name=${entry##*:}
+            mkdir -p "/tmp/tc/$name"
+            curl -fSL "$base/$sub/openwrt-toolchain-$rel-${name}_gcc-14.3.0_musl.Linux-x86_64.tar.zst" \
+              | tar --zstd -x -C "/tmp/tc/$name" --strip-components=1
+          done
+
+      - name: Build one test and one tunnel binary per x86 target
+        run: |
+          set -e
+          # The toolchains default to -march=i486, so name the architecture
+          # OpenWrt builds each target for.
+          build() {
+            gxx=$(find "/tmp/tc/$1" -name '*-g++' -path '*/bin/*' | sort | head -1)
+            make test-cross CC="$gxx -march=$2"
+            mv test_udpspeeder_cross "test.$3"
+            make all-cross CC="$gxx -march=$2"
+            mv speederv2_cross "speederv2.$3"
+            file "test.$3" "speederv2.$3"
+          }
+          build x86-geode   pentium-mmx pentium-mmx
+          build x86-generic pentium4    pentium4
+          build x86-64      x86-64      x86_64
+
+      - name: Hold dispatch to each CPU model
+        run: |
+          set -u
+          pass=0
+          fail=0
+          run() {
+            log="run.$1.$(echo "$3" | tr -c 'A-Za-z0-9' '_').log"
+            if EXPECT_ADDMUL1="$4" EXPECT_XOR_TILE="$5" EXPECT_CRC32C="$6" \
+               "$2" -cpu "$3" "./test.$1" > "$log" 2>&1; then
+              pass=$((pass + 1))
+              printf 'ok    %-12s %-17s %s / %s / %s\n' "$1" "$3" "$4" "$5" "$6"
+            else
+              fail=$((fail + 1))
+              printf 'FAIL  %-12s %-17s wanted %s / %s / %s\n' "$1" "$3" "$4" "$5" "$6"
+              grep -E 'dispatches to|FAIL:' "$log" || true
+            fi
+          }
+
+          run pentium-mmx qemu-i386-static   486                scalar word sw
+          run pentium-mmx qemu-i386-static   pentium,+mmx       scalar mmx  sw
+          run pentium-mmx qemu-i386-static   pentium3,+sse2     sse2   sse2 sw
+          run pentium4    qemu-i386-static   pentium3,+sse2     sse2   sse2 sw
+          run pentium4    qemu-i386-static   n270               ssse3  sse2 sw
+          run pentium4    qemu-i386-static   Haswell            ssse3  avx2 hw
+          run x86_64      qemu-x86_64-static Opteron_G1,-sse3   sse2   sse2 sw
+          run x86_64      qemu-x86_64-static Nehalem            ssse3  sse2 hw
+          run x86_64      qemu-x86_64-static Haswell            avx2   avx2 hw
+          run x86_64      qemu-x86_64-static Skylake-Server     avx2   avx2 hw
+
+          echo "$pass passed, $fail failed"
+          [ "$fail" -eq 0 ]
+
   interop:
     runs-on: ubuntu-latest
     needs: [build-static]

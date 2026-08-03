@@ -616,4 +616,26 @@ const char *bench_xor_tile_impl() {
     return "word";
 #endif
 }
+/*
+ * Re-derive the choice and name what it picked. Clearing the tier sends the next
+ * call back through the detection block in xor_tile(), so this reports the real
+ * selection even after a test has pinned a tier.
+ */
+const char *bench_xor_tile_auto() {
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+    xor_simd_tier = -1;
+#endif
+    return bench_xor_tile_impl();
+}
+/*
+ * The checksum picks hardware or software the same way, on its own probe, so it
+ * is named here too. Restoring the resolver sends the next call back through
+ * that probe. This is the copy the cook path uses, not a second instantiation.
+ */
+const char *bench_crc32c_auto() {
+    char probe[8] = {};
+    crc32c_impl = crc32c_resolve;
+    crc32c(probe, sizeof(probe));
+    return crc32c_impl == crc32c_hw ? "hw" : "sw";
+}
 #endif

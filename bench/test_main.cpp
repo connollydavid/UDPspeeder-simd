@@ -4,7 +4,10 @@
 int main() {
     int failures = 0;
 
-    printf("=== FEC Tests ===\n");
+    printf("=== Dispatch Tests ===\n");
+    failures += run_dispatch_tests();
+
+    printf("\n=== FEC Tests ===\n");
     failures += run_fec_tests();
 
     printf("\n=== CRC32 Tests ===\n");

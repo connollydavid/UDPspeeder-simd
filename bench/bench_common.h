@@ -18,12 +18,21 @@ extern "C++" const char *bench_xor_tile_impl();
  * walk every path and skip the ones this machine lacks. */
 extern "C++" int bench_xor_tile_force(const char *name);
 
+/* Re-derive the dispatched tier and name it, whatever a test pinned last. */
+extern "C++" const char *bench_xor_tile_auto();
+
+/* Re-derive the checksum choice and name it, "hw" or "sw". */
+extern "C++" const char *bench_crc32c_auto();
+
 /* Exposed by lib/fec.cpp when compiled with -DBENCH_EXPOSE_INTERNALS */
 extern "C++" const char *bench_addmul1_impl();
 
 /* Pin one addmul1 implementation. Returns 0 when the host CPU cannot run it,
  * so a caller can walk every path and skip the ones this machine lacks. */
 extern "C++" int bench_addmul1_force(const char *name);
+
+/* Re-derive the dispatched path and name it, whatever a test pinned last. */
+extern "C++" const char *bench_addmul1_auto();
 
 /* Packet sizes representative of real traffic */
 static const size_t bench_sizes[] = { 64, 256, 1024, 1500 };
@@ -38,5 +47,6 @@ void register_packet_benchmarks(void *bench_ptr);
 int run_fec_tests();
 int run_crc32_tests();
 int run_packet_tests();
+int run_dispatch_tests();
 
 #endif

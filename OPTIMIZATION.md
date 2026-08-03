@@ -538,3 +538,43 @@ untested with current optimization work.
 `vrgather` which can implement GF(2^8) nibble-decomposition lookup
 (equivalent to PSHUFB/TBL), potentially vectorizing addmul1. This
 is the only other ISA besides x86/ARM that could accelerate FEC.
+
+## What CI verifies about the SIMD paths
+
+Two claims here are separate, and both are checked.
+
+**Each path against a reference.** The test binary can pin any tier, so it walks
+every path the host CPU supports and holds it against the scalar `addmul1` or the
+word-at-a-time XOR, over every multiplier, size, tile length and offset.
+
+**The choice each dispatcher makes.** A runner carries every feature, so it always
+selects the top path and never shows what an older part would pick. That is the
+claim the SSSE3 fault broke: the path was right and the choice was wrong. Three
+choices are made at runtime, the multiply, the XOR and the checksum, so the
+`cpu-dispatch` job builds the three x86 targets OpenWrt ships and runs the test
+binary under QEMU CPU models that withhold each feature in turn, naming the path
+each model must yield:
+
+| build | CPU model | addmul1 | xor_tile | crc32c |
+|-------|-----------|---------|----------|--------|
+| `-march=pentium-mmx` | `486` | scalar | word | sw |
+| `-march=pentium-mmx` | `pentium,+mmx` | scalar | mmx | sw |
+| `-march=pentium-mmx` | `pentium3,+sse2` | sse2 | sse2 | sw |
+| `-march=pentium4` | `pentium3,+sse2` | sse2 | sse2 | sw |
+| `-march=pentium4` | `n270` | ssse3 | sse2 | sw |
+| `-march=pentium4` | `Haswell` | ssse3 | avx2 | hw |
+| `-march=x86-64` | `Opteron_G1,-sse3` | sse2 | sse2 | sw |
+| `-march=x86-64` | `Nehalem` | ssse3 | sse2 | hw |
+| `-march=x86-64` | `Haswell` | avx2 | avx2 | hw |
+| `-march=x86-64` | `Skylake-Server` | avx2 | avx2 | hw |
+
+Because each run also walks the tiers that model supports, between them these
+rows compare every implementation against its reference except AVX-512BW. The
+MMX XOR is compared on a 32-bit part that has MMX and nothing above it, which an
+x86_64 build cannot do: GCC's `TARGET_MMX_WITH_SSE` turns `__m64` work into SSE.
+
+**AVX-512BW is the gap.** QEMU's TCG implements no AVX-512 at any CPU model, so
+no emulated run reaches that path, and a GitHub runner has the instructions only
+when the job lands on an Intel host. The `Skylake-Server` row covers the next
+best thing. TCG clears the feature bit and leaves the ZMM state out of `XCR0` on
+a model whose name says otherwise, and the gate declines and falls to AVX2.

@@ -688,11 +688,35 @@ addmul1_avx512(gf *dst, gf *src, gf c, int sz)
 
 #if defined(__x86_64__) || defined(__i386__)
 /*
- * Starts at the scalar path and is raised in init_fec() to whatever the CPU
+ * Starts at the scalar path and is raised in addmul1_select() to whatever the CPU
  * proves it can run. Starting at a vector path would fault before the probe
  * ever ran, and would keep faulting on a CPU that lacks it.
  */
 static void (*addmul1_x86_fn)(gf *, gf *, gf, int) = addmul1_scalar;
+
+/*
+ * Take the highest path the CPU actually proves it can run. SSSE3 is not
+ * implied by x86_64, so it must be probed like the rest; without this a
+ * K8 or K10 part takes SIGILL on the first PSHUFB. Starting from the scalar
+ * path each time keeps this a fresh derivation rather than a raise, so the
+ * tests can ask what this CPU selects after having pinned another tier.
+ */
+static void
+addmul1_select(void)
+{
+    addmul1_x86_fn = addmul1_scalar;
+#if defined(__x86_64__)
+    if (cpu_has_avx512bw())
+	addmul1_x86_fn = addmul1_avx512;
+    else if (cpu_has_avx2())
+	addmul1_x86_fn = addmul1_avx2;
+    else
+#endif
+    if (cpu_has_ssse3())
+	addmul1_x86_fn = addmul1_ssse3;
+    else if (cpu_has_sse2())
+	addmul1_x86_fn = addmul1_sse2;
+}
 #endif /* x86 dispatch */
 
 #if defined(__aarch64__)
@@ -1046,22 +1070,7 @@ init_fec()
     init_simd_tables();
 #endif
 #if defined(__x86_64__) || defined(__i386__)
-    /*
-     * Take the highest path the CPU actually proves it can run. SSSE3 is not
-     * implied by x86_64, so it must be probed like the rest; without this a
-     * K8 or K10 part takes SIGILL on the first PSHUFB.
-     */
-#if defined(__x86_64__)
-    if (cpu_has_avx512bw())
-	addmul1_x86_fn = addmul1_avx512;
-    else if (cpu_has_avx2())
-	addmul1_x86_fn = addmul1_avx2;
-    else
-#endif
-    if (cpu_has_ssse3())
-	addmul1_x86_fn = addmul1_ssse3;
-    else if (cpu_has_sse2())
-	addmul1_x86_fn = addmul1_sse2;
+    addmul1_select();
 #endif
     fec_initialized = 1 ;
 }
@@ -1375,6 +1384,19 @@ const char *bench_addmul1_impl() {
 #else
     return "scalar";
 #endif
+}
+
+/*
+ * Re-derive the choice and name what it picked. Which path the dispatcher
+ * selects is a separate claim from whether each path is correct, and the pinning
+ * hook below deliberately overrides it, so the answer is taken from a fresh run
+ * of the real selection rather than read back from whatever a test pinned last.
+ */
+const char *bench_addmul1_auto() {
+#if defined(__x86_64__) || defined(__i386__)
+    addmul1_select();
+#endif
+    return bench_addmul1_impl();
 }
 
 /*
