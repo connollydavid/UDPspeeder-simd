@@ -68,7 +68,10 @@ jobs:
             test_bin: test_udpspeeder_static
             prod_bin: speederv2
             qemu_cmd: ""
-            expect_xor: ""
+            cpu_flags: ""
+            expect_addmul1: any
+            expect_xor: any
+            expect_crc32c: any
           - name: aarch64
             packages: g++-aarch64-linux-gnu qemu-user-static
             toolchain_url: ""
@@ -80,7 +83,10 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-aarch64-static
+            cpu_flags: ""
+            expect_addmul1: neon
             expect_xor: neon
+            expect_crc32c: sw
           - name: mips
             packages: g++-mips-linux-gnu qemu-user-static
             toolchain_url: ""
@@ -92,19 +98,25 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-mips-static
-            expect_xor: ""
+            cpu_flags: ""
+            expect_addmul1: scalar
+            expect_xor: word
+            expect_crc32c: sw
           - name: powerpc
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mpc85xx/p1010/openwrt-toolchain-25.12.0-rc5-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
             bench_target: bench-cross
             test_target: test-cross
             prod_target: all-cross
-            make_args: "SPE=1"
+            make_args: ""
             bench_bin: bench_udpspeeder_cross
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: "qemu-ppc-static -cpu e500v2"
+            cpu_flags: "-mcpu=8548"
+            expect_addmul1: scalar
             expect_xor: spe
+            expect_crc32c: sw
           - name: riscv64
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sifiveu/generic/openwrt-toolchain-24.10.0-sifiveu-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
@@ -116,7 +128,10 @@ jobs:
             test_bin: test_udpspeeder_cross
             prod_bin: speederv2_cross
             qemu_cmd: qemu-riscv64-static
-            expect_xor: ""
+            cpu_flags: ""
+            expect_addmul1: scalar
+            expect_xor: word
+            expect_crc32c: sw
     steps:
       - uses: actions/checkout@v4
 
@@ -136,6 +151,7 @@ jobs:
         run: |
           set -o pipefail
           make test-cross CC="aarch64-linux-gnu-g++ -mcpu=cortex-a53"
+          EXPECT_DISPATCH_HELD=1 \
           EXPECT_CRC32C=hw EXPECT_XOR_TILE=neon EXPECT_ADDMUL1=neon \
             qemu-aarch64-static -cpu cortex-a53 ./test_udpspeeder_cross | tee a53.log
           n=$(grep -c 'crc32c hw==sw' a53.log || true)
@@ -159,36 +175,40 @@ jobs:
 
       - name: Build bench (${{ matrix.name }})
         run: |
-          ARGS="${{ matrix.make_args }}"
           if [ -n "${OPENWRT_GXX:-}" ]; then
-            ARGS="CC=${OPENWRT_GXX} ${ARGS}"
+            make ${{ matrix.bench_target }} \
+              CC="${OPENWRT_GXX} ${{ matrix.cpu_flags }}" ${{ matrix.make_args }}
+          else
+            make ${{ matrix.bench_target }} ${{ matrix.make_args }}
           fi
-          make ${{ matrix.bench_target }} ${ARGS}
 
       - name: Build test (${{ matrix.name }})
         run: |
-          ARGS="${{ matrix.make_args }}"
           if [ -n "${OPENWRT_GXX:-}" ]; then
-            ARGS="CC=${OPENWRT_GXX} ${ARGS}"
+            make ${{ matrix.test_target }} \
+              CC="${OPENWRT_GXX} ${{ matrix.cpu_flags }}" ${{ matrix.make_args }}
+          else
+            make ${{ matrix.test_target }} ${{ matrix.make_args }}
           fi
-          make ${{ matrix.test_target }} ${ARGS}
 
       - name: Build production (${{ matrix.name }})
         run: |
-          ARGS="${{ matrix.make_args }}"
           if [ -n "${OPENWRT_GXX:-}" ]; then
-            ARGS="CC=${OPENWRT_GXX} ${ARGS}"
+            make ${{ matrix.prod_target }} \
+              CC="${OPENWRT_GXX} ${{ matrix.cpu_flags }}" ${{ matrix.make_args }}
+          else
+            make ${{ matrix.prod_target }} ${{ matrix.make_args }}
           fi
-          make ${{ matrix.prod_target }} ${ARGS}
 
       - name: Verify binaries
         run: file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
 
-      # OpenWrt passes no SPE=1: it names the core with -mcpu in CXXFLAGS and
-      # leaves the makefile to read it. The job above builds with an explicit
-      # SPE=1, so it proves the path works but not that a package build reaches
-      # it. Build the way the feed does instead, and require the SPE opcodes to
-      # appear for an e500 and to stay absent for a PowerPC core without one.
+      # The job above now builds the way the feed does, with -mcpu=8548 and no
+      # SPE=1, so its green already depends on the makefile reading the flag.
+      # What it cannot show is the other half: that a PowerPC core without SPE
+      # stays clear of these opcodes. Without that, a detection matching every
+      # target would pass too. So require the opcodes for an e500 and require
+      # their absence for a core that has none.
       - name: Take the SPE flag from the target (${{ matrix.name }})
         if: matrix.name == 'powerpc'
         run: |
@@ -214,13 +234,19 @@ jobs:
           rm -f spe_probe_cross
           exit $rc
 
-      # A compile-time selection is still a selection, so name what this build
-      # must have chosen. An empty expectation leaves the dispatch reported and
-      # unchecked, which is what an architecture with one path wants.
+      # A compile-time selection is still a selection, so name every path this
+      # build must have chosen. EXPECT_DISPATCH_HELD makes a missing expectation
+      # a failure rather than a silent skip, so a variable renamed here and not
+      # in the test cannot quietly stop checking. Only x86_64 declines all three,
+      # with "any": its dispatch follows whatever chip the runner has, and the
+      # cpu-dispatch job below pins that down against named CPU models instead.
       - name: Run tests (QEMU)
         if: matrix.qemu_cmd != ''
         env:
+          EXPECT_DISPATCH_HELD: 1
+          EXPECT_ADDMUL1: ${{ matrix.expect_addmul1 }}
           EXPECT_XOR_TILE: ${{ matrix.expect_xor }}
+          EXPECT_CRC32C: ${{ matrix.expect_crc32c }}
         run: ${{ matrix.qemu_cmd }} ./${{ matrix.test_bin }}
 
       - name: Run benchmarks (QEMU)
@@ -311,7 +337,8 @@ jobs:
           fail=0
           run() {
             log="run.$1.$(echo "$3" | tr -c 'A-Za-z0-9' '_').log"
-            if EXPECT_ADDMUL1="$4" EXPECT_XOR_TILE="$5" EXPECT_CRC32C="$6" \
+            if EXPECT_DISPATCH_HELD=1 \
+               EXPECT_ADDMUL1="$4" EXPECT_XOR_TILE="$5" EXPECT_CRC32C="$6" \
                "$2" -cpu "$3" "./test.$1" > "$log" 2>&1; then
               pass=$((pass + 1))
               printf 'ok    %-12s %-17s %s / %s / %s\n' "$1" "$3" "$4" "$5" "$6"
