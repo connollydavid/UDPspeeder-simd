@@ -14,6 +14,10 @@ extern "C++" void bench_xor_tile(char *data, int len, const char *tile, int tile
 extern "C++" int bench_cook_vec_width();
 extern "C++" const char *bench_xor_tile_impl();
 
+/* Pin one XOR tier. Returns 0 when the host CPU cannot run it, so a caller can
+ * walk every path and skip the ones this machine lacks. */
+extern "C++" int bench_xor_tile_force(const char *name);
+
 /* Exposed by lib/fec.cpp when compiled with -DBENCH_EXPOSE_INTERNALS */
 extern "C++" const char *bench_addmul1_impl();
 

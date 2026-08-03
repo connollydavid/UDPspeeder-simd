@@ -116,6 +116,61 @@ static int test_cook_disabled() {
     return failures;
 }
 
+/*
+ * Every XOR tier the host can run must agree with the word-at-a-time reference,
+ * over tile lengths, data lengths and offsets that exercise each loop and tail.
+ *
+ * The addmul1 side of this caught a path being dispatched without a CPUID check
+ * only because the tiers were compared against a reference; the XOR side had no
+ * such comparison, so it gets the same treatment.
+ */
+static int test_xor_tile_impls_match_word() {
+    int failures = 0;
+    static const char *tiers[] = { "mmx", "sse2", "avx2", "avx512bw" };
+    static const int tile_lens[] = { 16, 32, 80 };
+    static const int data_lens[] = { 1, 7, 8, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 1500 };
+    static const int offsets[] = { 0, 1, 7 };
+
+    for (unsigned t = 0; t < sizeof(tiers) / sizeof(tiers[0]); t++) {
+        if (!bench_xor_tile_force(tiers[t])) {
+            printf("  skip: %s (not supported by this CPU)\n", tiers[t]);
+            continue;
+        }
+        int mismatches = 0;
+        for (unsigned tl = 0; tl < sizeof(tile_lens) / sizeof(tile_lens[0]); tl++) {
+            int tile_len = tile_lens[tl];
+            char tile[128];
+            for (int i = 0; i < tile_len; i++)
+                tile[i] = (char)((i * 37 + 11) & 0xFF);
+
+            for (unsigned dl = 0; dl < sizeof(data_lens) / sizeof(data_lens[0]); dl++) {
+                for (unsigned ol = 0; ol < sizeof(offsets) / sizeof(offsets[0]); ol++) {
+                    int data_len = data_lens[dl], offset = offsets[ol];
+                    char ref_backing[2048], got_backing[2048];
+                    char *ref = ref_backing + offset, *got = got_backing + offset;
+                    for (int i = 0; i < data_len; i++)
+                        ref[i] = got[i] = (char)((i * 13 + 7) & 0xFF);
+
+                    bench_xor_tile_force("word");
+                    bench_xor_tile(ref, data_len, tile, tile_len);
+
+                    bench_xor_tile_force(tiers[t]);
+                    bench_xor_tile(got, data_len, tile, tile_len);
+
+                    if (memcmp(ref, got, data_len) != 0) mismatches++;
+                }
+            }
+        }
+        char msg[128];
+        snprintf(msg, sizeof(msg),
+                 "%s agrees with the word path over every tile, length and offset", tiers[t]);
+        TEST(msg, mismatches == 0);
+    }
+
+    bench_xor_tile_force("word");
+    return failures;
+}
+
 static int test_xor_tile_roundtrip() {
     int failures = 0;
     int vec_w = bench_cook_vec_width();
@@ -264,6 +319,9 @@ int run_packet_tests() {
 
     printf("[xor_tile round-trip]\n");
     failures += test_xor_tile_roundtrip();
+
+    printf("[xor_tile implementations against the word path]\n");
+    failures += test_xor_tile_impls_match_word();
 
     printf("[cook all 8 enable/disable combos]\n");
     failures += test_cook_all_combos();

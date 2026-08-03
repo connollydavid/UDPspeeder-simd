@@ -4,8 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-#if defined(__x86_64__) || defined(_M_X64)
-#include <emmintrin.h>  /* SSE2 — baseline on all x86_64 */
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+#include <emmintrin.h>  /* SSE2 — baseline on x86_64, probed on i386 */
 #include <immintrin.h>  /* AVX2 — for xor_tile_avx2 (guarded by target attr) */
 #include <cpuid.h>      /* __get_cpuid, __get_cpuid_count — feature probes */
 #define COOK_VEC_WIDTH 16
@@ -84,7 +84,87 @@ expand_tile(char *tile, int tile_len, const char *pat, int pat_len)
  * XOR data[0..len-1] with tile[0..tile_len-1] repeating.
  * tile_len MUST be a multiple of COOK_VEC_WIDTH.
  */
-#if defined(__x86_64__) || defined(_M_X64)
+
+/*
+ * Word-at-a-time XOR: the floor for every platform, and the path taken on x86
+ * only by a CPU too old to have MMX. Four bytes on a 32-bit machine, eight on
+ * a 64-bit one.
+ */
+static void
+xor_tile_word(char *data, int len, const char *tile, int tile_len)
+{
+    const int w = (int)sizeof(unsigned long);
+    int t = 0, i = 0;
+    for (; i + w <= len; i += w) {
+        unsigned long d, k;
+        memcpy(&d, data + i, sizeof(d));
+        memcpy(&k, tile + t, sizeof(k));
+        d ^= k;
+        memcpy(data + i, &d, sizeof(d));
+        t += w;
+        if (t >= tile_len) t = 0;
+    }
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+}
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+/*
+ * MMX is the widest XOR available on the floor OpenWrt still ships for x86:
+ * its geode and legacy subtargets set CONFIG_X86_MINIMUM_CPU_FAMILY=5 and
+ * build for -march=pentium-mmx, where SSE2 does not exist and a plain word is
+ * four bytes. Eight bytes per op is twice that, and XOR is one op per width,
+ * so unlike the field multiply this is a straight win.
+ *
+ * MMX registers alias the x87 stack, so this ends with EMMS: the tunnel does
+ * floating-point work in its timers, and leaving the tags set corrupts the
+ * first x87 op that follows.
+ */
+__attribute__((target("mmx")))
+static void
+xor_tile_mmx(char *data, int len, const char *tile, int tile_len)
+{
+    int t = 0, i = 0;
+    for (; i + 8 <= len; i += 8) {
+        __m64 d, k;
+        __builtin_memcpy(&d, data + i, 8);
+        __builtin_memcpy(&k, tile + t, 8);
+        d = _mm_xor_si64(d, k);
+        __builtin_memcpy(data + i, &d, 8);
+        t += 8;
+        if (t >= tile_len) t = 0;
+    }
+    _mm_empty();
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+}
+
+/*
+ * SSE2 XOR. On x86_64 this is the baseline and always available; on i386 it is
+ * gated by CPUID, which is why it carries a target attribute and lives in its
+ * own function rather than inline in the dispatcher.
+ */
+__attribute__((target("sse2")))
+static void
+xor_tile_sse2(char *data, int len, const char *tile, int tile_len)
+{
+    int t = 0, i = 0;
+    for (; i + 16 <= len; i += 16) {
+        __m128i d = _mm_loadu_si128((const __m128i *)(data + i));
+        __m128i k = _mm_loadu_si128((const __m128i *)(tile + t));
+        _mm_storeu_si128((__m128i *)(data + i), _mm_xor_si128(d, k));
+        t += 16;
+        if (t >= tile_len) t = 0;
+    }
+    for (; i < len; i++) {
+        data[i] ^= tile[t];
+        if (++t >= tile_len) t = 0;
+    }
+}
+
 __attribute__((target("avx2")))
 static void
 xor_tile_avx2(char *data, int len, const char *tile, int tile_len)
@@ -191,9 +271,34 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 }
 #endif
 
-#if defined(__x86_64__) || defined(_M_X64)
-/* Runtime SIMD tier: 0=SSE2, 1=AVX2, 2=AVX-512BW */
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+/* Runtime SIMD tier: 0=word, 1=MMX, 2=SSE2, 3=AVX2, 4=AVX-512BW */
 static int xor_simd_tier = -1;
+
+/* MMX and SSE2 are guaranteed on x86_64 and optional on i386. Leaf 1, EDX. */
+static int xor_cpu_has_mmx(void)
+{
+#if defined(__i386__)
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (edx >> 23) & 1;
+#else
+    return 1;
+#endif
+}
+
+static int xor_cpu_has_sse2(void)
+{
+#if defined(__i386__)
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid(1, &eax, &ebx, &ecx, &edx))
+        return 0;
+    return (edx >> 26) & 1;
+#else
+    return 1;
+#endif
+}
 
 /*
  * Using AVX2 takes more than the feature bit: the OS must also have enabled
@@ -243,36 +348,42 @@ static int xor_cpu_has_avx512bw(void)
 static void
 xor_tile(char *data, int len, const char *tile, int tile_len)
 {
-#if defined(__x86_64__) || defined(_M_X64)
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
     if (xor_simd_tier < 0) {
-        /* SSE2 is the floor here: it is part of the AMD64 baseline. */
+        /*
+         * On x86_64 SSE2 is part of the baseline, so the probes below are
+         * constant-true and the tier starts there. On i386 nothing above a
+         * plain word is implied: the geode and legacy targets have MMX and no
+         * SSE2, and even the pentium4 target may be running on a CPU with
+         * AVX2, so each step is earned from CPUID.
+         */
         xor_simd_tier = 0;
-        if (xor_cpu_has_avx2())
+        if (xor_cpu_has_mmx())
             xor_simd_tier = 1;
-        if (xor_simd_tier >= 1 && xor_cpu_has_avx512bw())
+        if (xor_cpu_has_sse2())
             xor_simd_tier = 2;
+        if (xor_simd_tier >= 2 && xor_cpu_has_avx2())
+            xor_simd_tier = 3;
+        if (xor_simd_tier >= 3 && xor_cpu_has_avx512bw())
+            xor_simd_tier = 4;
     }
-    if (xor_simd_tier >= 2) {
+    if (xor_simd_tier >= 4) {
         xor_tile_avx512(data, len, tile, tile_len);
         return;
     }
-    if (xor_simd_tier >= 1) {
+    if (xor_simd_tier >= 3) {
         xor_tile_avx2(data, len, tile, tile_len);
         return;
     }
-    int t = 0, i = 0;
-    for (; i + 16 <= len; i += 16) {
-        __m128i d = _mm_loadu_si128((const __m128i *)(data + i));
-        __m128i k = _mm_loadu_si128((const __m128i *)(tile + t));
-        _mm_storeu_si128((__m128i *)(data + i), _mm_xor_si128(d, k));
-        t += 16;
-        if (t >= tile_len) t = 0;
+    if (xor_simd_tier >= 2) {
+        xor_tile_sse2(data, len, tile, tile_len);
+        return;
     }
-    for (; i < len; i++) {
-        data[i] ^= tile[t];
-        t++;
-        if (t >= tile_len) t = 0;
+    if (xor_simd_tier >= 1) {
+        xor_tile_mmx(data, len, tile, tile_len);
+        return;
     }
+    xor_tile_word(data, len, tile, tile_len);
 #elif defined(__aarch64__)
     int t = 0, i = 0;
     for (; i + 32 <= len; i += 32) {
@@ -326,22 +437,8 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         }
     }
 #else
-    /* Word-width XOR for generic platforms (MIPS, RISC-V, PPC, i486, ARMv7).
-     * sizeof(unsigned long) = 4 on 32-bit, 8 on 64-bit. */
-    int t = 0, i = 0;
-    for (; i + COOK_VEC_WIDTH <= len; i += COOK_VEC_WIDTH) {
-        unsigned long d, k;
-        memcpy(&d, data + i, sizeof(d));
-        memcpy(&k, tile + t, sizeof(k));
-        d ^= k;
-        memcpy(data + i, &d, sizeof(d));
-        t += COOK_VEC_WIDTH;
-        if (t >= tile_len) t = 0;
-    }
-    for (; i < len; i++) {
-        data[i] ^= tile[t];
-        if (++t >= tile_len) t = 0;
-    }
+    /* Word-width XOR for generic platforms (MIPS, RISC-V, PPC, ARMv7). */
+    xor_tile_word(data, len, tile, tile_len);
 #endif
 }
 
@@ -472,20 +569,51 @@ void bench_xor_tile(char *data, int len, const char *tile, int tile_len) {
 int bench_cook_vec_width() {
     return COOK_VEC_WIDTH;
 }
+/*
+ * Pin one XOR tier, so the tests can hold every path this CPU supports against
+ * the byte-at-a-time reference rather than only the dispatched one. Returns 0
+ * when the CPU cannot run the named path, so callers skip it.
+ */
+int bench_xor_tile_force(const char *name) {
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+    if (!strcmp(name, "word")) { xor_simd_tier = 0; return 1; }
+    if (!strcmp(name, "mmx")) {
+        if (!xor_cpu_has_mmx()) return 0;
+        xor_simd_tier = 1; return 1;
+    }
+    if (!strcmp(name, "sse2")) {
+        if (!xor_cpu_has_sse2()) return 0;
+        xor_simd_tier = 2; return 1;
+    }
+    if (!strcmp(name, "avx2")) {
+        if (!xor_cpu_has_avx2()) return 0;
+        xor_simd_tier = 3; return 1;
+    }
+    if (!strcmp(name, "avx512bw")) {
+        if (!xor_cpu_has_avx512bw()) return 0;
+        xor_simd_tier = 4; return 1;
+    }
+    return 0;
+#else
+    return !strcmp(name, "scalar");
+#endif
+}
 const char *bench_xor_tile_impl() {
     /* Trigger detection if not yet run */
     char dummy[16] = {}, tile[16] = {};
     xor_tile(dummy, 1, tile, 16);
-#if defined(__x86_64__) || defined(_M_X64)
-    if (xor_simd_tier >= 2) return "avx512bw";
-    if (xor_simd_tier >= 1) return "avx2";
-    return "sse2";
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
+    if (xor_simd_tier >= 4) return "avx512bw";
+    if (xor_simd_tier >= 3) return "avx2";
+    if (xor_simd_tier >= 2) return "sse2";
+    if (xor_simd_tier >= 1) return "mmx";
+    return "word";
 #elif defined(__aarch64__)
     return "neon";
 #elif defined(HAVE_PPC_SPE)
     return "spe";
 #else
-    return "scalar";
+    return "word";
 #endif
 }
 #endif

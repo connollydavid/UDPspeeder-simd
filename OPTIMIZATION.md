@@ -247,9 +247,95 @@ Cook pipeline numbers (current only, no baseline cook tests):
 
 Files: `xor_spe.S` (new), `packet_cook.cpp`, `makefile`, `.github/workflows/ci.yml`
 
+### 16. SSSE3 probed rather than assumed, with an SSE2 addmul1 beneath it
+
+`addmul1_x86_fn` started at `addmul1_ssse3` and was only ever raised to AVX2 or
+AVX-512. Nothing checked whether the CPU had SSSE3, and x86_64 does not imply
+it: AMD K8 and K10 (Athlon 64, Opteron, Phenom, Phenom II, Athlon II) lack it,
+as do the early 64-bit Intel parts, and AMD only added it with Bulldozer in
+2011. On those CPUs the first `PSHUFB` in the Reed-Solomon inner loop raised
+SIGILL, so the tunnel died on the first FEC batch.
+
+Found by running the OpenWrt package under `qemu-x86_64 -cpu qemu64`, the
+conservative baseline model. CI never caught it because the runners, and every
+developer machine, have SSSE3.
+
+The pointer now starts at the scalar path and is raised only by what CPUID
+proves, through `cpu_has_ssse3()` (leaf 1, ECX bit 9) and `cpu_has_sse2()`.
+Beneath SSSE3 sits a new SSE2 path, so a CPU without `PSHUFB` still vectorizes.
+
+SSE2 has no byte shuffle, so it cannot do the nibble lookup. It multiplies by
+repeated doubling instead: for each set bit of `c`, accumulate, then double in
+the field, where doubling is `_mm_add_epi8(x, x)` with a conditional reduction
+selected by `_mm_cmpgt_epi8(0, x)`. No tables, no memory traffic. The reduction
+constant is read from `gf_mul_table[2][0x80]` rather than hardcoded, so it
+follows the field.
+
+| tier | ns/call at 1500B | throughput | vs scalar |
+|---|---|---|---|
+| scalar | 1578.8 | 0.95 GB/s | 1.0x |
+| sse2 | 913.3 | 1.64 GB/s | **1.73x** |
+| ssse3 | 161.3 | 9.30 GB/s | 9.8x |
+
+The same commit hardens the cook pipeline's AVX2 gate, which set its tier from
+CPUID leaf 7 alone: it now checks OSXSAVE and XCR0 for YMM state, and reaches
+leaf 7 via `__get_cpuid_count` so a CPU without that leaf reports nothing
+instead of whatever the highest leaf happened to return.
+
+`bench_addmul1_force()` pins one implementation, so `test_fec` holds every path
+the host supports against the scalar reference across all 256 multipliers and
+sizes covering each loop and tail. Verified under `qemu64` (SSE2 only),
+`Nehalem` (SSSE3), and `Haswell` (AVX2); AVX-512BW stays unverified here because
+qemu-user does not enable the opmask and ZMM state in XCR0, so the OS-support
+check correctly declines it.
+
+Files: `lib/fec.cpp`, `packet_cook.cpp`, `bench/bench_common.h`,
+`bench/test_fec.cpp`
+
+### 17. Cook XOR reaches i386, down to the family 5 floor
+
+The cook pipeline's whole x86 SIMD block was guarded on `__x86_64__`, so every
+32-bit x86 build fell through to the word-at-a-time path: four bytes at a time,
+even on a Pentium 4 that has SSE2. That is not a hypothetical target. OpenWrt
+ships `x86/generic` as `i386_pentium4`, and `x86/geode` and `x86/legacy` as
+`i386_pentium-mmx`, whose kernels set `CONFIG_X86_MINIMUM_CPU_FAMILY=5` and
+build for `-march=pentium-mmx`. Family 5 with MMX and no CMOV is the lowest
+hardware anything OpenWrt ships for x86 will run on.
+
+XOR is the opposite case to the field multiply: one op per width, no arithmetic
+that grows with the vector, so width translates directly into throughput. MMX's
+eight bytes beat a 32-bit word's four, which is why it earns a tier here and
+loses one in `addmul1`.
+
+The block now compiles for i386 as well, with every step earned from CPUID
+rather than assumed: word, then MMX, then SSE2, then AVX2, then AVX-512BW. On
+x86_64 the MMX and SSE2 probes are constant-true, so that dispatch is unchanged.
+
+Measured on a real 32-bit build, run natively, against the word path i386 had:
+
+| tier | ns/call at 1500B | throughput | vs word |
+|---|---|---|---|
+| word | 621.8 | 2.41 GB/s | 1.0x |
+| mmx | 426.9 | 3.51 GB/s | **1.46x** |
+| sse2 | 202.2 | 7.42 GB/s | **3.08x** |
+
+On x86_64 a word is already eight bytes, so MMX measures 0.98x there and is
+never dispatched. The gain is 1.46x for geode and legacy, and 3.08x for the far
+more common `x86/generic`.
+
+`bench_xor_tile_force()` mirrors `bench_addmul1_force()`, so `test_packet` holds
+every XOR tier the host supports against the word reference across tile lengths,
+data lengths and offsets. That comparison did not exist before: the SSSE3 crash
+was caught on the `addmul1` side precisely because the tiers were checked against
+a reference, and the XOR side had no such check. Verified under `pentium,+mmx`
+(MMX only), `pentium3,+sse2`, `n270`, and on x86_64 under `Opteron_G1,-sse3`
+through `Haswell`.
+
+Files: `packet_cook.cpp`, `bench/bench_common.h`, `bench/test_packet.cpp`
+
 ## Analysis and diminishing returns
 
-After 15 optimizations, the codebase is within 10% of the theoretical
+After 17 optimizations, the codebase is within 10% of the theoretical
 floor (see below). Remaining overhead is irreducible:
 
 **Syscall overhead**: Eliminated. io_uring multishot recv batches receives
@@ -360,56 +446,28 @@ information-theoretic floor (33% wire amplification). No further software
 optimization can meaningfully close this gap. On real networks with actual
 packet loss, the wire amplification is the cost of redundancy by design.
 
-### 12. SSSE3 probed rather than assumed, with an SSE2 addmul1 beneath it
-
-`addmul1_x86_fn` started at `addmul1_ssse3` and was only ever raised to AVX2 or
-AVX-512. Nothing checked whether the CPU had SSSE3, and x86_64 does not imply
-it: AMD K8 and K10 (Athlon 64, Opteron, Phenom, Phenom II, Athlon II) lack it,
-as do the early 64-bit Intel parts, and AMD only added it with Bulldozer in
-2011. On those CPUs the first `PSHUFB` in the Reed-Solomon inner loop raised
-SIGILL, so the tunnel died on the first FEC batch.
-
-Found by running the OpenWrt package under `qemu-x86_64 -cpu qemu64`, the
-conservative baseline model. CI never caught it because the runners, and every
-developer machine, have SSSE3.
-
-The pointer now starts at the scalar path and is raised only by what CPUID
-proves, through `cpu_has_ssse3()` (leaf 1, ECX bit 9) and `cpu_has_sse2()`.
-Beneath SSSE3 sits a new SSE2 path, so a CPU without `PSHUFB` still vectorizes.
-
-SSE2 has no byte shuffle, so it cannot do the nibble lookup. It multiplies by
-repeated doubling instead: for each set bit of `c`, accumulate, then double in
-the field, where doubling is `_mm_add_epi8(x, x)` with a conditional reduction
-selected by `_mm_cmpgt_epi8(0, x)`. No tables, no memory traffic. The reduction
-constant is read from `gf_mul_table[2][0x80]` rather than hardcoded, so it
-follows the field.
-
-| tier | ns/call at 1500B | throughput | vs scalar |
-|---|---|---|---|
-| scalar | 1578.8 | 0.95 GB/s | 1.0x |
-| sse2 | 913.3 | 1.64 GB/s | **1.73x** |
-| ssse3 | 161.3 | 9.30 GB/s | 9.8x |
-
-The same commit hardens the cook pipeline's AVX2 gate, which set its tier from
-CPUID leaf 7 alone: it now checks OSXSAVE and XCR0 for YMM state, and reaches
-leaf 7 via `__get_cpuid_count` so a CPU without that leaf reports nothing
-instead of whatever the highest leaf happened to return.
-
-`bench_addmul1_force()` pins one implementation, so `test_fec` holds every path
-the host supports against the scalar reference across all 256 multipliers and
-sizes covering each loop and tail. Verified under `qemu64` (SSE2 only),
-`Nehalem` (SSSE3), and `Haswell` (AVX2); AVX-512BW stays unverified here because
-qemu-user does not enable the opmask and ZMM state in XCR0, so the OS-support
-check correctly declines it.
-
 ## Not done (deliberately)
 
-**MMX addmul1**: On x86_64, SSE2 is architecturally guaranteed, so MMX adds
-nothing above the floor. On i386 the only parts without SSE2 are pre-2001
-(Pentium III, Athlon XP, Geode LX), where an 8-byte doubling loop would land
-between the scalar table and the 1.73x that SSE2 gives at 16 bytes, in exchange
-for MMX/x87 state handling (`emms`) around every call. The dispatch covers
-i386, so those CPUs take the scalar path.
+**MMX addmul1**: written, measured, and thrown away. The earlier note here
+reasoned from x86_64, where SSE2 is guaranteed, and so missed that OpenWrt's
+geode and legacy targets have no SSE2 at all. On those, MMX is the only vector
+unit, which made this look obligatory. It is not, because the multiply is not
+bandwidth-bound: the repeated-doubling loop costs about five ops per byte at
+MMX's 8-byte width, against one L1-resident load per byte for the scalar path,
+which indexes a single 256-byte row of `gf_mul_table` for a fixed `c`. SSE2
+wins only because doubling the width halves that per-byte cost.
+
+Measured on a real 32-bit build, not inferred (`-march=pentium-mmx`, run
+natively so the MMX is genuine rather than GCC's x86_64 SSE emulation):
+
+| tier | ns/call at 1500B | vs scalar |
+|---|---|---|
+| scalar | 1737.6 | 1.00x |
+| mmx | 3166.0 | **0.55x** |
+| sse2 | 1019.3 | 1.70x |
+
+So the floor keeps the scalar table for `addmul1`, which is both correct and
+faster there. The XOR stage is the opposite case and does take MMX, below.
 
 **Scatter-gather RS encoder to eliminate blob_encode memcpy**: The
 `blob_encode_t::input()` memcpy (~1400B per packet) packs variable-length
