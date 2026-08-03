@@ -126,6 +126,40 @@ jobs:
             expect_addmul1: scalar
             expect_xor: spe
             expect_crc32c: sw
+          # Three of OpenWrt's fourteen 32-bit ARM architectures name NEON, and
+          # the same core is published both with and without it, so the flag is
+          # the only thing that can decide. Both are built: the a15 must reach
+          # the vector paths, the a9 must stay on scalar and word.
+          - name: armv7-neon
+            packages: qemu-user-static zstd
+            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/armsr/armv7/openwrt-toolchain-25.12.0-rc5-armsr-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            bench_target: bench-cross
+            test_target: test-cross
+            prod_target: all-cross
+            make_args: ""
+            bench_bin: bench_udpspeeder_cross
+            test_bin: test_udpspeeder_cross
+            prod_bin: speederv2_cross
+            qemu_cmd: "qemu-arm-static -cpu cortex-a15"
+            cpu_flags: "-mcpu=cortex-a15 -mfpu=neon-vfpv4"
+            expect_addmul1: neon
+            expect_xor: neon
+            expect_crc32c: sw
+          - name: armv7-scalar
+            packages: qemu-user-static zstd
+            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mvebu/cortexa9/openwrt-toolchain-25.12.0-rc5-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            bench_target: bench-cross
+            test_target: test-cross
+            prod_target: all-cross
+            make_args: ""
+            bench_bin: bench_udpspeeder_cross
+            test_bin: test_udpspeeder_cross
+            prod_bin: speederv2_cross
+            qemu_cmd: "qemu-arm-static -cpu cortex-a9"
+            cpu_flags: "-mcpu=cortex-a9 -mfpu=vfpv3-d16"
+            expect_addmul1: scalar
+            expect_xor: word
+            expect_crc32c: sw
           - name: riscv64
             packages: qemu-user-static zstd
             toolchain_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sifiveu/generic/openwrt-toolchain-24.10.0-sifiveu-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"

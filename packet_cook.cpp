@@ -9,7 +9,7 @@
 #include <immintrin.h>  /* AVX2 — for xor_tile_avx2 (guarded by target attr) */
 #include <cpuid.h>      /* __get_cpuid, __get_cpuid_count — feature probes */
 #define COOK_VEC_WIDTH 16
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
 #include <arm_neon.h>
 #define COOK_VEC_WIDTH 16
 #elif defined(HAVE_PPC_SPE)
@@ -276,7 +276,8 @@ xor_tile_avx512(char *data, int len, const char *tile, int tile_len)
 }
 #endif
 
-#if (defined(__aarch64__) || defined(HAVE_PPC_SPE)) && defined(BENCH_EXPOSE_INTERNALS)
+#if (defined(__aarch64__) || defined(__ARM_NEON) || defined(HAVE_PPC_SPE)) \
+    && defined(BENCH_EXPOSE_INTERNALS)
 /*
  * Send the XOR down the word path instead of the vector one. The build makes
  * this choice at compile time, so there is no tier to pin; this exists so the
@@ -406,7 +407,7 @@ xor_tile(char *data, int len, const char *tile, int tile_len)
         return;
     }
     xor_tile_word(data, len, tile, tile_len);
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
 #ifdef XOR_PIN_WORD_ACTIVE
     if (xor_pin_word) {
         xor_tile_word(data, len, tile, tile_len);
@@ -628,7 +629,7 @@ int bench_xor_tile_force(const char *name) {
         xor_simd_tier = 4; return 1;
     }
     return 0;
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
     if (!strcmp(name, "word")) { xor_pin_word = 1; return 1; }
     if (!strcmp(name, "neon")) { xor_pin_word = 0; return 1; }
     return 0;
@@ -650,7 +651,7 @@ const char *bench_xor_tile_impl() {
     if (xor_simd_tier >= 2) return "sse2";
     if (xor_simd_tier >= 1) return "mmx";
     return "word";
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
     return xor_pin_word ? "word" : "neon";
 #elif defined(HAVE_PPC_SPE)
     return xor_pin_word ? "word" : "spe";
@@ -666,7 +667,7 @@ const char *bench_xor_tile_impl() {
 const char *bench_xor_tile_auto() {
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
     xor_simd_tier = -1;
-#elif defined(__aarch64__) || defined(HAVE_PPC_SPE)
+#elif defined(__aarch64__) || defined(__ARM_NEON) || defined(HAVE_PPC_SPE)
     xor_pin_word = 0;
 #endif
     return bench_xor_tile_impl();

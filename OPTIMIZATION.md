@@ -581,10 +581,11 @@ a model whose name says otherwise, and the gate declines and falls to AVX2.
 
 ### Outside x86, where the build makes the choice
 
-No other architecture dispatches at runtime. NEON is mandatory on aarch64, the
-e500 SPE XOR is reached through a build flag the makefile derives from `-mcpu`,
-and the ARM hardware checksum is compiled in when the target names a core and
-GCC therefore defines `__ARM_FEATURE_CRC32`. A compile-time choice is still a
+No other architecture dispatches at runtime. NEON is mandatory on aarch64 and
+optional on 32-bit ARM, where `__ARM_NEON` decides; the e500 SPE XOR is reached
+through a build flag the makefile derives from `-mcpu`; and the ARM hardware
+checksum is compiled in when the target names a core and GCC therefore defines
+`__ARM_FEATURE_CRC32`. A compile-time choice is still a
 choice, so the `build-static` rows name the path each build must land on and
 compare it against the same references:
 
@@ -593,6 +594,8 @@ compare it against the same references:
 | `-mcpu=cortex-a53` | `cortex-a53` | neon | neon | hw |
 | `aarch64-linux-gnu-g++` | default | neon | neon | sw |
 | `-mcpu=8548` | `e500v2` | scalar | spe | sw |
+| `-mcpu=cortex-a15 -mfpu=neon-vfpv4` | `cortex-a15` | neon | neon | sw |
+| `-mcpu=cortex-a9 -mfpu=vfpv3-d16` | `cortex-a9` | scalar | word | sw |
 | `mips-linux-gnu-g++` | default | scalar | word | sw |
 | `riscv64` | default | scalar | word | sw |
 

@@ -724,24 +724,60 @@ addmul1_select(void)
 }
 #endif /* x86 dispatch */
 
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_NEON)
 #include <arm_neon.h>
+
+/*
+ * The nibble lookup is the one part of this kernel that is not portable across
+ * the two ARM architectures. aarch64 has vqtbl1q_u8, a single instruction over
+ * a 16-byte table. ARMv7 NEON has no 128-bit table lookup at all; its vtbl2_u8
+ * reads a 16-byte table as two 64-bit registers and returns 8 bytes, so a full
+ * vector costs two of them and a vcombine. Everything else below is the same
+ * intrinsic on both.
+ *
+ * The guard is __ARM_NEON rather than __arm__ on purpose. OpenWrt publishes
+ * arm_cortex-a7 and arm_cortex-a9 with no NEON alongside the _neon variants of
+ * the same cores, and GCC defines this macro only when the target really has
+ * the unit. Reaching wider than that is the fault the SSSE3 crash was.
+ */
+#if defined(__aarch64__)
+typedef uint8x16_t gf_tbl_t;
+static inline gf_tbl_t gf_tbl_load(const gf *p) { return vld1q_u8(p); }
+static inline uint8x16_t gf_tbl_lookup(gf_tbl_t t, uint8x16_t idx)
+{
+    return vqtbl1q_u8(t, idx);
+}
+#else
+typedef uint8x8x2_t gf_tbl_t;
+static inline gf_tbl_t gf_tbl_load(const gf *p)
+{
+    gf_tbl_t t;
+    t.val[0] = vld1_u8(p);
+    t.val[1] = vld1_u8(p + 8);
+    return t;
+}
+static inline uint8x16_t gf_tbl_lookup(gf_tbl_t t, uint8x16_t idx)
+{
+    return vcombine_u8(vtbl2_u8(t, vget_low_u8(idx)),
+		       vtbl2_u8(t, vget_high_u8(idx)));
+}
+#endif
 
 static void
 addmul1_neon(gf *dst, gf *src, gf c, int sz)
 {
-    uint8x16_t tbl_lo = vld1q_u8(gf_lo_table[c]);
-    uint8x16_t tbl_hi = vld1q_u8(gf_hi_table[c]);
-    uint8x16_t mask   = vdupq_n_u8(0x0F);
+    gf_tbl_t tbl_lo = gf_tbl_load(gf_lo_table[c]);
+    gf_tbl_t tbl_hi = gf_tbl_load(gf_hi_table[c]);
+    uint8x16_t mask = vdupq_n_u8(0x0F);
 
     int i = 0;
     for (; i + 32 <= sz; i += 32) {
 	uint8x16_t x1 = vld1q_u8(src + i);
 	uint8x16_t x2 = vld1q_u8(src + i + 16);
-	uint8x16_t lo1 = vqtbl1q_u8(tbl_lo, vandq_u8(x1, mask));
-	uint8x16_t hi1 = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x1, 4));
-	uint8x16_t lo2 = vqtbl1q_u8(tbl_lo, vandq_u8(x2, mask));
-	uint8x16_t hi2 = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x2, 4));
+	uint8x16_t lo1 = gf_tbl_lookup(tbl_lo, vandq_u8(x1, mask));
+	uint8x16_t hi1 = gf_tbl_lookup(tbl_hi, vshrq_n_u8(x1, 4));
+	uint8x16_t lo2 = gf_tbl_lookup(tbl_lo, vandq_u8(x2, mask));
+	uint8x16_t hi2 = gf_tbl_lookup(tbl_hi, vshrq_n_u8(x2, 4));
 	uint8x16_t d1 = vld1q_u8(dst + i);
 	uint8x16_t d2 = vld1q_u8(dst + i + 16);
 	vst1q_u8(dst + i,      veorq_u8(d1, veorq_u8(lo1, hi1)));
@@ -749,8 +785,8 @@ addmul1_neon(gf *dst, gf *src, gf c, int sz)
     }
     for (; i + 16 <= sz; i += 16) {
 	uint8x16_t x = vld1q_u8(src + i);
-	uint8x16_t lo = vqtbl1q_u8(tbl_lo, vandq_u8(x, mask));
-	uint8x16_t hi = vqtbl1q_u8(tbl_hi, vshrq_n_u8(x, 4));
+	uint8x16_t lo = gf_tbl_lookup(tbl_lo, vandq_u8(x, mask));
+	uint8x16_t hi = gf_tbl_lookup(tbl_hi, vshrq_n_u8(x, 4));
 	uint8x16_t d = vld1q_u8(dst + i);
 	vst1q_u8(dst + i, veorq_u8(d, veorq_u8(lo, hi)));
     }
@@ -776,7 +812,7 @@ addmul1_neon(gf *dst, gf *src, gf c, int sz)
  */
 static int addmul1_neon_pin_scalar = 0;
 #endif
-#endif /* __aarch64__ */
+#endif /* ARM NEON */
 
 #define UNROLL 16 /* 1, 4, 8, 16 */
 /*
@@ -832,7 +868,7 @@ addmul1(gf *dst1, gf *src1, gf c, int sz)
 {
 #if defined(__x86_64__) || defined(__i386__)
     addmul1_x86_fn(dst1, src1, c, sz);
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
 #ifdef BENCH_EXPOSE_INTERNALS
     if (addmul1_neon_pin_scalar) {
 	addmul1_scalar(dst1, src1, c, sz);
@@ -1405,7 +1441,7 @@ const char *bench_addmul1_impl() {
     if (addmul1_x86_fn == addmul1_ssse3) return "ssse3";
     if (addmul1_x86_fn == addmul1_sse2) return "sse2";
     return "scalar";
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
     return addmul1_neon_pin_scalar ? "scalar" : "neon";
 #else
     return "scalar";
@@ -1421,7 +1457,7 @@ const char *bench_addmul1_impl() {
 const char *bench_addmul1_auto() {
 #if defined(__x86_64__) || defined(__i386__)
     addmul1_select();
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
     addmul1_neon_pin_scalar = 0;
 #endif
     return bench_addmul1_impl();
@@ -1454,7 +1490,7 @@ int bench_addmul1_force(const char *name) {
     }
 #endif
     return 0;
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__ARM_NEON)
     if (!strcmp(name, "scalar")) { addmul1_neon_pin_scalar = 1; return 1; }
     if (!strcmp(name, "neon")) { addmul1_neon_pin_scalar = 0; return 1; }
     return 0;
