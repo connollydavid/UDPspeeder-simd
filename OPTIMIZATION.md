@@ -573,11 +573,22 @@ rows compare every implementation against its reference except AVX-512BW. The
 MMX XOR is compared on a 32-bit part that has MMX and nothing above it, which an
 x86_64 build cannot do: GCC's `TARGET_MMX_WITH_SSE` turns `__m64` work into SSE.
 
-**AVX-512BW is the gap.** QEMU's TCG implements no AVX-512 at any CPU model, so
-no emulated run reaches that path, and a GitHub runner has the instructions only
-when the job lands on an Intel host. The `Skylake-Server` row covers the next
-best thing. TCG clears the feature bit and leaves the ZMM state out of `XCR0` on
-a model whose name says otherwise, and the gate declines and falls to AVX2.
+**AVX-512BW needs Intel SDE.** QEMU's TCG implements no AVX-512 at any CPU
+model, and on a model whose name says otherwise it clears the feature bit and
+leaves ZMM state out of `XCR0`, so the gate correctly declines and falls to
+AVX2. A GitHub runner has the instructions only when the job lands on an Intel
+host. So the path was compared against nothing for as long as it existed.
+
+Intel SDE presents a full CPU model, `XCR0` included, so the guard chain sees
+AVX-512 as available and the tier is held against its reference like any other.
+`bench/with-sde.sh` runs the suite under a hash-pinned copy; `bench/sde.lock`
+carries the pin and the reason, and the terms sit beside it in
+`bench/SDE-LICENSE.txt`.
+
+The lane earns its place by a negative control rather than by running green. A
+faulted `addmul1_avx512` fails four tests under `sde64 -skx`, and the same
+binary passes everything natively, because the path is skipped on a CPU without
+AVX-512. A broken AVX-512 path is invisible without this.
 
 ### Outside x86, where the build makes the choice
 

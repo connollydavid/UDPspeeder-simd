@@ -1,0 +1,42 @@
+# Intel Software Development Emulator, pinned.
+#
+# AVX-512BW is the one path with no way to run it. QEMU's TCG emulates no
+# AVX-512 at any CPU model, and it leaves ZMM state disabled in XCR0, so our
+# OS-support check correctly declines and the tier is skipped rather than
+# tested. GitHub's runners do not carry it either. SDE presents a full CPU
+# model, XCR0 included, so the guard chain sees AVX-512 as available and the
+# tier is compared against its reference like every other.
+#
+# Proved by the negative control: a faulted avx512 multiply fails four tests
+# under SDE, and the same binary passes everything natively, because the path
+# is skipped. Without this lane a broken AVX-512 path is invisible.
+#
+# Licence: Intel Simplified Software License, October 2022, verbatim beside
+# this file in SDE-LICENSE.txt and also inside the tarball under Licenses/.
+# It permits use and redistribution in binary form without modification, so
+# long as the notices travel with it. The tarball is redistributed byte for
+# byte and carries its own; nothing here is repacked or altered.
+#
+# The tarball is not fetchable unattended from Intel: the download requires a
+# person to accept the licence. So it is obtained once by hand and mirrored,
+# and every later fetch is the one pinned, hash-verified download.
+
+version   = 10.13.1
+released  = 2026-07-28
+file      = sde-external-10.13.1-2026-07-28-lin.tar.xz
+sha256    = 94e97d623fec54385686e1e7ba65ebc9941748c05ee451423948334892bf2b50
+
+# Signed by Intel Corporation through Sectigo Public Code Signing CA R36, in
+# the detached PKCS#7 file Intel ships beside the tarball. Verified on the copy
+# this hash was taken from:
+#   openssl smime -verify -binary -inform DER -in <file>.sig \
+#           -content <file> -noverify
+signature = pkcs7-detached, Intel Corporation via Sectigo Code Signing CA R36
+
+# Where an unattended fetch may get it. Empty until the mirror is published;
+# with no mirror, bench/with-sde.sh asks for SDE_HOME or a local tarball and
+# prints where to obtain one.
+mirror    =
+
+# Obtained from, when the mirror is refreshed:
+upstream  = https://www.intel.com/content/www/us/en/download/684897/intel-software-development-emulator.html
