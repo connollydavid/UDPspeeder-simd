@@ -5,6 +5,8 @@
   body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
          max-width: 42rem; margin: 4rem auto; padding: 0 1.25rem; line-height: 1.6; }
   h1 { font-size: 1.2rem; letter-spacing: -.02em; }
+  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em;
+       opacity: .6; margin-top: 2.5rem; }
   ul { list-style: none; padding: 0; }
   li { padding: .4rem 0 .4rem 1.4rem; position: relative; }
   li::before { content: "\2192"; position: absolute; left: 0; opacity: .5; }
@@ -15,10 +17,16 @@
 lossy, high-latency link with Reed-Solomon forward error correction.</p>
 <ul>
   <li><a href="https://github.com/connollydavid/UDPspeeder-simd">Source and releases</a></li>
-  <li><a href="dev/bench/">Throughput benchmarks</a> <small>x86-64</small></li>
-  <li><a href="dev/bench-powerpc/">Throughput benchmarks</a> <small>PowerPC e500v2, emulated</small></li>
   <li><a href="https://connollydavid.github.io/agentic-UDPspeeder-simd/">Documentation</a></li>
 </ul>
-<p><small>This page previously redirected to slartibardfast.github.io/UDPspeeder,
-the account this work was started under. The project moved; that site is no
-longer updated.</small></p>
+<h2>Benchmarks</h2>
+<ul>
+  <li><a href="dev/bench/">Kernels</a> <small>x86-64</small></li>
+  <li><a href="dev/bench-powerpc/">Kernels</a> <small>PowerPC e500v2, emulated</small></li>
+  <li><a href="dev/throughput/">Throughput</a> <small>io_uring against the recvfrom baseline</small></li>
+</ul>
+<h2>Archive</h2>
+<ul>
+  <li><a href="https://slartibardfast.github.io/UDPspeeder/">Earlier benchmarks</a>
+      <small>February 2026, under the account this began on</small></li>
+</ul>
