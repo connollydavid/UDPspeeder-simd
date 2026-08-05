@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [branch_libev, master]
+    # release.yml carried this trigger before its job moved here. Without it
+    # the release job's ref test can never be true and a tag publishes nothing.
+    tags: ['v*']
   pull_request:
     branches: [branch_libev, master]
   workflow_dispatch:
