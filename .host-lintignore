@@ -1,0 +1,31 @@
+# Corpora this project vendors but does not author.
+#
+# Path exclusion is the narrowest of the three dispositions and is reserved for
+# material that cannot be reworded: an immutable record, a self-referential test
+# corpus, or third-party source carried verbatim. These are the third kind. They
+# are upstream's files, synced rather than edited, and rewording a numeral in
+# them would diverge from upstream for no gain and conflict on the next sync.
+#
+# Validated before excluding, as the rule requires: a full scan of all tracked
+# files reports zero blocking flags, so nothing real is hidden in here. Every
+# finding in these paths is a bare-numeral warning on ordinary arithmetic or on
+# a kernel or compiler version in a comment.
+
+# libev, embedded upstream event loop (Marc Lehmann, BSD-2-Clause / GPL-2.0+)
+libev/
+
+# nanobench, single-header microbenchmark library (Martin Ankerl, MIT)
+bench/nanobench.h
+
+# Intel's licence text, carried byte for byte beside the emulator it covers.
+# Not UTF-8, so the scanner cannot read it at all, and it must not be re-encoded
+# any more than it may be reworded.
+bench/SDE-LICENSE.txt
+
+# The allowlist itself. Every entry is by definition a phrase carrying a
+# tell-shaped token, so scanning this file re-reports each declaration as a
+# finding. This is the self-referential case the rule already names: material
+# that must embed the shapes the tool detects is excluded through the ignore
+# mechanism rather than reworded into uselessness. Its integrity is checked by
+# host-lint lexicon --check, which is the gate that actually applies here.
+LEXICON

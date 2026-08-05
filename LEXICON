@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.7)
+OpenWrt binutils 2.44 requires
+The Winsock 2.2 dll was found okay
+than 2.2 in addition to 2.2, it will still return
+2.2 in wVersion since that is the version we
+compilation requires kernel headers 6.0+
+| io_uring multishot | 798.5 | 784.8, 798.5, 837.8 |
+| recvfrom baseline | 629.9 | 627.6, 629.9, 654.0 |
+**-O3**: Tested, no measurable improvement
+mdape * 100.0);
+if (pre_ratio + 0.0001 < now_ratio) {
+int in_y= double(pre_y) + double(in_x-pre_x)*k+ 0.9999;
+int in_y= in_x*in_ratio + 0.9999;
+(in_x - pre_x) / distance + 0.9999;
+ev_timer_set(&conn_info.timer, 0, timer_interval / 1000.0);
+ev_timer_set(&global_timer, 0, timer_interval / 1000.0);
+echo "0.0"
+* compilation requires kernel headers 6.0+ (Ubuntu 22.04 HWE or 24.04).
