@@ -108,124 +108,31 @@ jobs:
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
 
+  arch-matrix:
+    name: Read the architecture map
+    runs-on: ubuntu-latest
+    outputs:
+      arches: ${{ steps.read.outputs.arches }}
+    steps:
+      - uses: actions/checkout@v4
+      # bench/arch-map.tsv describes an architecture once, and this turns it
+      # into the matrix below. Adding a target is an edit to the table rather
+      # than to this workflow, and a toolchain hash cannot drift away from the
+      # URL it sits beside. The derivation lives in bench/arch-matrix.awk so it
+      # can be run and diffed locally, and it was checked field by field against
+      # the hand-written matrix it replaced.
+      - id: read
+        run: |
+          json=$(awk -f bench/arch-matrix.awk bench/arch-map.tsv)
+          echo "arches={\"include\":$json}" >> "$GITHUB_OUTPUT"
+
   build-static:
+    needs: arch-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        include:
-          - name: x86_64
-            packages: ""
-            toolchain_url: ""
-            bench_target: bench-static
-            test_target: test-static
-            prod_target: all
-            make_args: ""
-            bench_bin: bench_udpspeeder_static
-            test_bin: test_udpspeeder_static
-            prod_bin: speederv2
-            qemu_cmd: ""
-            cpu_flags: ""
-            expect_addmul1: any
-            expect_xor: any
-            expect_crc32c: any
-          - name: aarch64
-            packages: g++-aarch64-linux-gnu qemu-user-static
-            toolchain_url: ""
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: "CC=aarch64-linux-gnu-g++"
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: qemu-aarch64-static
-            cpu_flags: ""
-            expect_addmul1: neon
-            expect_xor: neon
-            expect_crc32c: sw
-          - name: mips
-            packages: g++-mips-linux-gnu qemu-user-static
-            toolchain_url: ""
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: "CC=mips-linux-gnu-g++"
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: qemu-mips-static
-            cpu_flags: ""
-            expect_addmul1: scalar
-            expect_xor: word
-            expect_crc32c: sw
-          - name: powerpc
-            packages: qemu-user-static zstd
-            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mpc85xx/p1010/openwrt-toolchain-25.12.0-rc5-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: ""
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: "qemu-ppc-static -cpu e500v2"
-            cpu_flags: "-mcpu=8548"
-            expect_addmul1: scalar
-            expect_xor: spe
-            expect_crc32c: sw
-          # Three of OpenWrt's fourteen 32-bit ARM architectures name NEON, and
-          # the same core is published both with and without it, so something has
-          # to decide. It is not a flag: OpenWrt defines no CPU_CFLAGS for arm and
-          # passes no -mfpu anywhere in its tree. It configures a per-target
-          # toolchain instead, and the compiler default carries the FPU, which is
-          # why these two rows pass no cpu_flags. Adding any would test our flag
-          # rather than the feed's toolchain. Verified: the a15 toolchain defines
-          # __ARM_NEON with an empty command line and the a9 toolchain does not.
-          - name: armv7-neon
-            packages: qemu-user-static zstd
-            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/armsr/armv7/openwrt-toolchain-25.12.0-rc5-armsr-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: ""
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: "qemu-arm-static -cpu cortex-a15"
-            cpu_flags: ""
-            expect_addmul1: neon
-            expect_xor: neon
-            expect_crc32c: sw
-          - name: armv7-scalar
-            packages: qemu-user-static zstd
-            toolchain_url: "https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mvebu/cortexa9/openwrt-toolchain-25.12.0-rc5-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: ""
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: "qemu-arm-static -cpu cortex-a9"
-            cpu_flags: ""
-            expect_addmul1: scalar
-            expect_xor: word
-            expect_crc32c: sw
-          - name: riscv64
-            packages: qemu-user-static zstd
-            toolchain_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sifiveu/generic/openwrt-toolchain-24.10.0-sifiveu-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            bench_target: bench-cross
-            test_target: test-cross
-            prod_target: all-cross
-            make_args: ""
-            bench_bin: bench_udpspeeder_cross
-            test_bin: test_udpspeeder_cross
-            prod_bin: speederv2_cross
-            qemu_cmd: qemu-riscv64-static
-            cpu_flags: ""
-            expect_addmul1: scalar
-            expect_xor: word
-            expect_crc32c: sw
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.arch-matrix.outputs.arches) }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -262,8 +169,7 @@ jobs:
       - name: Download OpenWrt toolchain
         if: matrix.toolchain_url != ''
         run: |
-          want=$(awk -F'\t' -v n='${{ matrix.name }}' \
-                   '!/^#/ && $1 == n { print $3 }' bench/arch-map.tsv)
+          want='${{ matrix.sha256 }}'
           if [ -z "$want" ] || [ "$want" = "-" ]; then
             echo "FAIL  bench/arch-map.tsv records no sha256 for ${{ matrix.name }}"
             exit 1
@@ -579,3 +485,52 @@ jobs:
           if [[ $FAIL -ne 0 ]]; then
             exit 1
           fi
+
+  # Releases are cut from the artifacts this run already verified, rather than
+  # from a second workflow with a matrix of its own. The old release.yml built
+  # two architectures while build-static built seven, so a tag would have
+  # published less than CI had tested and looked authoritative doing it. This
+  # job needs every verification job, so a tag cannot publish a binary whose
+  # dispatch, instruction screen or interop check did not pass.
+  release:
+    name: Publish the tagged binaries
+    needs: [test, build-static, cpu-dispatch, interop]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download every architecture's artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Name each production binary after its architecture
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          while IFS=$'\t' read -r name _; do
+            case "$name" in \#*|"") continue ;; esac
+            for cand in "artifacts/udpspeeder-$name/speederv2_cross" \
+                        "artifacts/udpspeeder-$name/speederv2"; do
+              if [ -f "$cand" ]; then
+                cp "$cand" "release/speederv2_linux_$name"
+                chmod +x "release/speederv2_linux_$name"
+                break
+              fi
+            done
+            if [ ! -f "release/speederv2_linux_$name" ]; then
+              echo "FAIL  no production binary in the $name artifact"
+              exit 1
+            fi
+          done < bench/arch-map.tsv
+          ls -l release/
+          echo "sha256:"; sha256sum release/*
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
