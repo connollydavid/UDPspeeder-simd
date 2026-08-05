@@ -83,7 +83,7 @@ See [UDPspeeder + openvpn config guide](https://github.com/wangyu-/UDPspeeder/wi
 # Advanced Topic
 
 ### Full Options
-```
+```host-lint:ignore
 UDPspeeder V2
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
 repository: https://github.com/wangyu-/UDPspeeder
