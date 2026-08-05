@@ -1,0 +1,41 @@
+# Every architecture this fork builds for, with the toolchain that builds it,
+# the emulator that runs it, and the path each dispatcher must land on.
+#
+# The list is data so that adding an architecture is an edit here rather than to
+# the workflow, and so that a developer and CI run the same check. bench/arch-
+# check.sh reads a row; .github/workflows/ci.yml turns the file into its matrix.
+#
+# Columns, tab separated:
+#   1 name        label for the row
+#   2 toolchain   openwrt tarball URL, apt:<package>, or - for the host compiler
+#   3 sha256      sha256 of that tarball, or - when there is none to pin
+#   4 cpu_flags   appended to the compiler command, or -
+#   5 qemu        emulator and CPU model, or - to run natively
+#   6 addmul1     path the multiply must choose
+#   7 xor_tile    path the cook XOR must choose
+#   8 crc32c      path the checksum must choose
+#
+# "any" declines to hold a column. Only x86_64 uses it, because its dispatch
+# follows whatever chip the runner has; the cpu-dispatch job pins that down
+# against named CPU models instead. An empty column is a failure, not a skip.
+#
+# The two 32-bit ARM rows are a matched pair, and both carry no cpu_flags on
+# purpose. OpenWrt defines no CPU_CFLAGS for arm and passes no -mfpu anywhere;
+# it configures a per-target toolchain and lets the compiler default carry the
+# FPU. Naming a flag here would test the flag rather than the toolchain the feed
+# actually uses. The a15 row proves the vector paths are reached, the a9 row
+# proves they stay out of a build for a core with no NEON unit.
+#
+# An unverified toolchain download builds the binaries we ship from whatever
+# the network returned. Every tarball is pinned; the download step refuses on a
+# mismatch rather than carrying on. Rows using an apt package or the host
+# compiler have nothing to pin and record -.
+#
+# name	toolchain	sha256	cpu_flags	qemu	addmul1	xor_tile	crc32c
+x86_64	-	-	-	-	any	any	any
+aarch64	apt:g++-aarch64-linux-gnu	-	-	qemu-aarch64-static	neon	neon	sw
+mips	apt:g++-mips-linux-gnu	-	-	qemu-mips-static	scalar	word	sw
+powerpc	https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mpc85xx/p1010/openwrt-toolchain-25.12.0-rc5-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst	d1f2f6ca847aef5321e66a62d1df802aeeb3041e2330800319de05bb7ea2941d	-mcpu=8548	qemu-ppc-static -cpu e500v2	scalar	spe	sw
+armv7-neon	https://downloads.openwrt.org/releases/25.12.0-rc5/targets/armsr/armv7/openwrt-toolchain-25.12.0-rc5-armsr-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst	fb2e2996e9aa85788db59b5a73c6711232e14af570a1c2464621020e5cc06c2a	-	qemu-arm-static -cpu cortex-a15	neon	neon	sw
+armv7-scalar	https://downloads.openwrt.org/releases/25.12.0-rc5/targets/mvebu/cortexa9/openwrt-toolchain-25.12.0-rc5-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst	2feeb2561335f798c6b763567223f2a13a1a0f8ec7d8f597f03527bd823bc787	-	qemu-arm-static -cpu cortex-a9	scalar	word	sw
+riscv64	https://downloads.openwrt.org/releases/24.10.0/targets/sifiveu/generic/openwrt-toolchain-24.10.0-sifiveu-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst	1cb8f6763f3c9181fc9ce94d0ea6b95ee75a3504a73f2a5679a98827e535e77d	-	qemu-riscv64-static	scalar	word	sw

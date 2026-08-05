@@ -33,10 +33,10 @@ sha256    = 94e97d623fec54385686e1e7ba65ebc9941748c05ee451423948334892bf2b50
 #           -content <file> -noverify
 signature = pkcs7-detached, Intel Corporation via Sectigo Code Signing CA R36
 
-# Where an unattended fetch may get it. Empty until the mirror is published;
-# with no mirror, bench/with-sde.sh asks for SDE_HOME or a local tarball and
-# prints where to obtain one.
-mirror    =
+# Where an unattended fetch gets it: our own mirror of Intel's tarball, passed
+# on byte for byte under the licence beside this file. The release notes there
+# say plainly that it is Intel's software rather than ours.
+mirror    = https://github.com/connollydavid/UDPspeeder-simd/releases/download/tooling-sde-10.13.1/sde-external-10.13.1-2026-07-28-lin.tar.xz
 
 # Obtained from, when the mirror is refreshed:
 upstream  = https://www.intel.com/content/www/us/en/download/684897/intel-software-development-emulator.html

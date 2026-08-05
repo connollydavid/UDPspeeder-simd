@@ -41,6 +41,20 @@ jobs:
       - name: Build production binary
         run: make all
 
+      # AVX-512BW runs nowhere else. QEMU emulates none of it and leaves ZMM
+      # state out of XCR0, so the gate correctly declines and the tier is
+      # skipped; a GitHub runner carries the instructions only by luck of which
+      # host it lands on. SDE presents a full CPU model, so the tier is compared
+      # against its reference like any other. The copy is hash-pinned in
+      # bench/sde.lock and the wrapper refuses anything that does not match.
+      - name: Run correctness tests (Intel SDE, AVX-512BW)
+        env:
+          EXPECT_DISPATCH_HELD: 1
+          EXPECT_ADDMUL1: avx512bw
+          EXPECT_XOR_TILE: avx512bw
+          EXPECT_CRC32C: hw
+        run: bash bench/with-sde.sh skx ./test_udpspeeder
+
       # Read the emitted code, which the running tests cannot do. An instruction
       # the CPU cannot decode faults whether or not the dispatcher meant to reach
       # it, and that is exactly how the SSSE3 crash worked. The selftest runs
@@ -221,10 +235,27 @@ jobs:
           echo "ok    hardware and software checksums compared over $n cases"
           rm -f a53.log
 
+      # An unverified download builds the binaries we ship from whatever the
+      # network returned. The hash lives in bench/arch-map.tsv beside the URL,
+      # one place, and a mismatch stops the job rather than being carried past.
       - name: Download OpenWrt toolchain
         if: matrix.toolchain_url != ''
         run: |
+          want=$(awk -F'\t' -v n='${{ matrix.name }}' \
+                   '!/^#/ && $1 == n { print $3 }' bench/arch-map.tsv)
+          if [ -z "$want" ] || [ "$want" = "-" ]; then
+            echo "FAIL  bench/arch-map.tsv records no sha256 for ${{ matrix.name }}"
+            exit 1
+          fi
           curl -fSL "${{ matrix.toolchain_url }}" -o toolchain.tar.zst
+          got=$(sha256sum toolchain.tar.zst | cut -d' ' -f1)
+          if [ "$want" != "$got" ]; then
+            echo "FAIL  toolchain sha256 mismatch for ${{ matrix.name }}"
+            echo "      expected $want"
+            echo "      got      $got"
+            exit 1
+          fi
+          echo "ok    toolchain matches the pin in bench/arch-map.tsv"
           mkdir -p /tmp/openwrt-toolchain
           tar --zstd -xf toolchain.tar.zst -C /tmp/openwrt-toolchain --strip-components=1
           OPENWRT_GXX=$(find /tmp/openwrt-toolchain -name '*-g++' -path '*/bin/*' | head -1)
