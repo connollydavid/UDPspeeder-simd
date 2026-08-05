@@ -135,6 +135,8 @@ const i32_t max_fail_time = 0;  // disable
 const u32_t heartbeat_interval = 1000;
 
 const u32_t timer_interval = 400;  // this should be smaller than heartbeat_interval and retry interval;
+/* libev counts in seconds as a double; every interval here is in ms. */
+const double ms_per_second = 1000.0;
 
 // const uint32_t conv_timeout=120000; //120 second
 // const u32_t conv_timeout=120000; //for test

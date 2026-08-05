@@ -173,7 +173,7 @@ static void server_process_tunnel_packet(struct ev_loop *loop, int local_listen_
 
         conn_info.timer.data = &conn_info;
         ev_init(&conn_info.timer, conn_timer_cb);
-        ev_timer_set(&conn_info.timer, 0, timer_interval / 1000.0);
+        ev_timer_set(&conn_info.timer, 0, timer_interval / ms_per_second);
         ev_timer_start(loop, &conn_info.timer);
 
         conn_info.fec_encode_manager.set_data(&conn_info);
@@ -495,7 +495,7 @@ int tunnel_server_event_loop() {
 
     ev_timer global_timer;
     ev_init(&global_timer, global_timer_cb);
-    ev_timer_set(&global_timer, 0, timer_interval / 1000.0);
+    ev_timer_set(&global_timer, 0, timer_interval / ms_per_second);
     ev_timer_start(loop, &global_timer);
 
     // mylog(log_debug," timer.get_timer_fd() =%d\n",timer.get_timer_fd());

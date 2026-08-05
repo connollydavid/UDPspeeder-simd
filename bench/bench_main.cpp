@@ -31,11 +31,17 @@ int main(int argc, char *argv[]) {
     {
         auto results = bench.results();
         for (size_t i = 0; i < results.size(); i++) {
+            /* nanobench reports the error as a fraction; the warning is in
+             * percent, and a run noisier than this is not worth comparing. */
+            const double as_percent = 100.0;
+            const double noisy_run_threshold = 0.05;
+
             double mdape = results[i].medianAbsolutePercentError(
                 ankerl::nanobench::Result::Measure::elapsed);
-            if (mdape > 0.05) {
-                fprintf(stderr, "WARNING: %s has MdAPE %.1f%% (>5%%)\n",
-                    results[i].config().mBenchmarkName.c_str(), mdape * 100.0);
+            if (mdape > noisy_run_threshold) {
+                fprintf(stderr, "WARNING: %s has MdAPE %.1f%% (>%.0f%%)\n",
+                    results[i].config().mBenchmarkName.c_str(),
+                    mdape * as_percent, noisy_run_threshold * as_percent);
             }
         }
     }

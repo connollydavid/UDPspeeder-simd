@@ -410,7 +410,7 @@ int tunnel_client_event_loop() {
 
     conn_info.timer.data = &conn_info;
     ev_init(&conn_info.timer, conn_timer_cb);
-    ev_timer_set(&conn_info.timer, 0, timer_interval / 1000.0);
+    ev_timer_set(&conn_info.timer, 0, timer_interval / ms_per_second);
     ev_timer_start(loop, &conn_info.timer);
     // conn_info.timer.add_fd_to_epoll(epoll_fd);
     // conn_info.timer.set_timer_repeat_us(timer_interval*1000);

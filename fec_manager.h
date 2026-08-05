@@ -19,6 +19,20 @@ const int max_fec_packet_num = 255;  // this is the limitation of the rs lib
 extern u32_t fec_buff_num;
 
 const int rs_str_len = max_fec_packet_num * 10 + 100;
+
+/*
+ * Added before truncating a double to int, so the result rounds up rather
+ * than toward zero. Redundancy is interpolated between two configured
+ * points, and rounding a fractional packet down would give less protection
+ * than the operator asked for.
+ */
+const double round_up_before_truncation = 0.9999;
+
+/*
+ * Slack when comparing two redundancy ratios, so that a pair differing only
+ * in the last bits of a division is not reported as a misconfiguration.
+ */
+const double ratio_compare_epsilon = 0.0001;
 extern int header_overhead;
 extern int debug_fec_enc;
 extern int debug_fec_dec;
@@ -77,7 +91,7 @@ struct fec_parameter_t {
             double now_ratio = double(par_vec[i].y) / par_vec[i].x;
             double pre_ratio = double(par_vec[i - 1].y) / par_vec[i - 1].x;
 
-            if (pre_ratio + 0.0001 < now_ratio) {
+            if (pre_ratio + ratio_compare_epsilon < now_ratio) {
                 if (found_problem == 0) {
                     mylog(log_warn, "possible problems: %d/%d<%d/%d", pre_y, pre_x, now_y, now_x);
                     found_problem = 1;
@@ -114,12 +128,9 @@ struct fec_parameter_t {
             for (int j = pre_x + 1; j <= now_x - 1; j++) {
                 int in_x = j;
 
-                ////////	int in_y= double(pre_y) + double(in_x-pre_x)*k+ 0.9999;// round to upper
-
                 double distance = now_x - pre_x;
-                ///////	double in_ratio=pre_ratio*(1.0-(in_x-pre_x)/distance)   +   now_ratio *(1.0- (now_x-in_x)/distance);
-                //////	int in_y= in_x*in_ratio + 0.9999;
-                int in_y = pre_y + (now_y - pre_y) * (in_x - pre_x) / distance + 0.9999;
+                int in_y = pre_y + (now_y - pre_y) * (in_x - pre_x) / distance +
+                           round_up_before_truncation;
 
                 if (in_x + in_y > max_fec_packet_num) {
                     in_y = max_fec_packet_num - in_x;

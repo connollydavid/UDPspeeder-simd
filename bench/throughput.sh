@@ -123,8 +123,10 @@ while time.monotonic() < end:
 
     echo "  received $bytes bytes in ${elapsed}s" >&2
 
+    # nothing arrived, so the measured rate is zero rather than absent
+    local no_throughput="0.0"
     if [[ -z "$bytes" || "$bytes" == "0" ]]; then
-        echo "0.0"
+        echo "$no_throughput"
         return
     fi
 
