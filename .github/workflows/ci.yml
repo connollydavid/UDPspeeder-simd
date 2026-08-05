@@ -91,11 +91,36 @@ jobs:
           bash bench/isa-screen-selftest.sh
           bash bench/isa-screen.sh speederv2
 
-      - name: Throughput test (io_uring)
-        run: bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5
+      # Both runs emit --json, which throughput.sh documents as being for
+      # github-action-benchmark. Without it the numbers were measured on every
+      # run and thrown away. The baseline takes the prefix the dashboard expects,
+      # since the script names only the path it was asked to measure.
+      - name: Throughput test
+        run: |
+          set -o pipefail
+          { bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5 --json
+            UDPSPEEDER_NO_URING=1 bash bench/throughput.sh ./speederv2 \
+              --iterations 3 --duration 5 --json \
+              | sed 's|"throughput/|"baseline/throughput/|'
+          } | python3 -c 'import sys, json; print(json.dumps(
+                [json.loads(l) for l in sys.stdin if l.strip()]))' \
+            > throughput_results.json
+          cat throughput_results.json
 
-      - name: Throughput test (recvfrom baseline)
-        run: UDPSPEEDER_NO_URING=1 bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5
+      # Mbps, so bigger is better, unlike the timing dashboards beside it.
+      - name: Store throughput results
+        if: github.ref == 'refs/heads/branch_libev'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: UDPspeeder Throughput
+          tool: customBiggerIsBetter
+          output-file-path: throughput_results.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '115%'
+          comment-on-alert: true
+          fail-on-alert: false
+          benchmark-data-dir-path: dev/throughput
 
       - name: Store benchmark results
         if: github.ref == 'refs/heads/branch_libev'
