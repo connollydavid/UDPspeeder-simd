@@ -8,3 +8,8 @@ test_udpspeeder*
 bench_udpspeeder*
 git_version.h
 *.d
+
+/fuzz_cook
+/fuzz_cook_libfuzzer
+fuzz-artifacts/
+fuzz-corpus/

@@ -567,11 +567,19 @@ rm_crc32(cook_ctx_t *ctx, char *s, int &len)
 {
     if (ctx->disable_checksum) return 0;
     assert(len >= 0);
-    len -= (int)sizeof(uint32_t);
-    if (len < 0) return -1;
-    uint32_t crc_in = cook_read_u32(s + len);
-    uint32_t crc = (uint32_t)crc32c(s, len);
+    /*
+     * len is only written once the packet is known good. The earlier form
+     * subtracted first and tested after, so a short packet came back with len
+     * negative alongside the error. Every caller checks the return code and
+     * drops the packet, so nothing acted on it, but an out-parameter left in a
+     * nonsense state is a trap for the next caller rather than a safe one.
+     */
+    if (len < (int)sizeof(uint32_t)) return -1;
+    int body = len - (int)sizeof(uint32_t);
+    uint32_t crc_in = cook_read_u32(s + body);
+    uint32_t crc = (uint32_t)crc32c(s, body);
     if (crc != crc_in) return -1;
+    len = body;
     return 0;
 }
 

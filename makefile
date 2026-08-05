@@ -133,6 +133,33 @@ test-sanitize: git_version
 	ASAN_OPTIONS=abort_on_error=1:detect_leaks=1 \
 	  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ./test_udpspeeder_asan
 
+# Hostile bytes through the packet decoder, under the same sanitizers. de_cook
+# is what a packet from the network touches first, and it trims a length the
+# sender chose before anything is authenticated. Built with gcc this is the
+# standalone driver, a bounded random test; bench/fuzz_cook.cpp carries a
+# libFuzzer entry point for a clang build that can do the real thing.
+FUZZ_SOURCES=bench/fuzz_cook.cpp packet_cook.cpp crc32/Crc32.cpp xor_spe.S
+
+FUZZ_ITERATIONS ?= 200000
+FUZZ_SECONDS ?= 60
+
+fuzz: git_version
+	${cc_local} -o fuzz_cook -I. -Ibench ${FUZZ_SOURCES} \
+	    ${SAN_FLAGS} -fsanitize=address,undefined
+	ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=halt_on_error=1 \
+	  ./fuzz_cook ${FUZZ_ITERATIONS}
+
+# The real thing, where clang is present. Coverage-guided, so it reaches cases
+# the bounded random driver above will not stumble on. Findings land in
+# ./fuzz-artifacts as reproducers.
+fuzz-libfuzzer: git_version
+	clang++ -o fuzz_cook_libfuzzer -I. -Ibench ${FUZZ_SOURCES} \
+	    ${SAN_FLAGS} -DFUZZ_LIBFUZZER -fsanitize=fuzzer,address,undefined
+	mkdir -p fuzz-artifacts fuzz-corpus
+	./fuzz_cook_libfuzzer fuzz-corpus -max_total_time=${FUZZ_SECONDS} \
+	    -artifact_prefix=fuzz-artifacts/ -print_final_stats=1
+
+
 bench-static: git_version
 	${cc_local} -o bench_udpspeeder_static -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static
 

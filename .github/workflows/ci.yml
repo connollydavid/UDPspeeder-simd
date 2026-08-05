@@ -29,6 +29,27 @@ jobs:
       - name: Run correctness tests (ASan, UBSan)
         run: make test-sanitize
 
+      # de_cook is what a packet from the network touches first, and it trims a
+      # length the sender chose before anything is authenticated. One crash has
+      # already come from exactly there (a4d32c3, an IV length used without
+      # being range-checked). Removing that check again makes this lane fail,
+      # which is why it is here rather than as a green line nobody has tested.
+      - name: Fuzz the packet decoder (bounded random)
+        run: make fuzz
+
+      - name: Fuzz the packet decoder (libFuzzer)
+        run: |
+          sudo apt-get update && sudo apt-get install -y clang
+          make fuzz-libfuzzer FUZZ_SECONDS=120
+
+      - name: Keep any reproducer
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-reproducers
+          path: fuzz-artifacts/
+          if-no-files-found: ignore
+
       - name: Build benchmarks
         run: make bench
 
