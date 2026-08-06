@@ -84,7 +84,11 @@ jobs:
           mkdir -p localfeed/net
           cp -r feed/net/udpspeeder-simd localfeed/net/
 
-      - name: Download the ${{ matrix.release }} SDK for ${{ matrix.target }}
+      # Resolved before the cache so the key names the exact tarball. A target
+      # absent from a release line is reported by name: airoha/an7581 exists
+      # only on main, and its bare wget failure read as a network fault.
+      - name: Resolve the ${{ matrix.release }} SDK for ${{ matrix.target }}
+        id: sdk
         run: |
           idx="https://downloads.openwrt.org/releases"
           ver=$(wget -qO- "$idx/" \
@@ -92,8 +96,42 @@ jobs:
             | tr -d '"/' | sort -V | tail -1)
           if [ -z "$ver" ]; then echo "FAIL  no ${{ matrix.release }} release found"; exit 1; fi
           base="$idx/$ver/targets/${{ matrix.target }}"
-          sdk=$(wget -qO- "$base/sha256sums" | grep -oE 'openwrt-sdk[^*]+\.tar\.zst' | head -1)
-          wget -qO sdk.tar.zst "$base/$sdk"
+          if ! wget -qO sha256sums "$base/sha256sums"; then
+            echo "FAIL  ${{ matrix.target }} has no SDK in ${{ matrix.release }} ($base)"
+            echo "      Point this architecture at a target the release line carries."
+            exit 1
+          fi
+          sdk=$(grep -oE 'openwrt-sdk[^*]+\.tar\.zst' sha256sums | head -1)
+          if [ -z "$sdk" ]; then echo "FAIL  no SDK listed for ${{ matrix.target }} in $ver"; exit 1; fi
+          echo "ver=$ver"   >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "sdk=$sdk"   >> "$GITHUB_OUTPUT"
+
+      # The tarball is the same bytes on every run for a given release, and this
+      # job runs once per architecture per release, so the download dominates.
+      - uses: actions/cache@v4
+        with:
+          path: sdk.tar.zst
+          key: sdk-${{ matrix.release }}-${{ matrix.target }}-${{ steps.sdk.outputs.sdk }}
+
+      - name: Fetch and verify the SDK
+        run: |
+          if [ ! -f sdk.tar.zst ]; then
+            wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
+          else
+            echo "cached  ${{ steps.sdk.outputs.sdk }}"
+          fi
+          # sha256sums was fetched to name the file; it also states the hash, so
+          # check it rather than trust the transfer, cached or freshly pulled.
+          want=$(grep " \*\?${{ steps.sdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
+          got=$(sha256sum sdk.tar.zst | awk '{print $1}')
+          if [ -z "$want" ] || [ "$want" != "$got" ]; then
+            echo "FAIL  SDK checksum mismatch for ${{ steps.sdk.outputs.sdk }}"
+            echo "      recorded $want"
+            echo "      got      $got"
+            exit 1
+          fi
+          echo "ok      sha256 $got"
           mkdir sdk && tar --zstd -xf sdk.tar.zst -C sdk --strip-components=1
 
       - name: Build
