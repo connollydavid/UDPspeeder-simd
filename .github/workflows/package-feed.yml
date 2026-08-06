@@ -51,12 +51,13 @@ jobs:
       - uses: actions/checkout@v7
       - id: read
         run: |
-          # 25.12 serves apk, 24.10 serves opkg. The format follows the release,
-          # so it is carried here rather than worked out again downstream.
+          # main and 25.12 serve apk, 24.10 serves opkg. The format follows the
+          # release, so it is carried here rather than worked out downstream.
           json=$(awk -F'\t' '
           /^#/ || NF < 4 { next }
           {
-            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"25.12\",\"fmt\":\"apk\"}", sep, $1, $2; sep=","
+            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"main\",\"fmt\":\"apk\"}",  sep, $1, $2; sep=","
+            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"25.12\",\"fmt\":\"apk\"}", sep, $1, $2
             printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"24.10\",\"fmt\":\"opkg\"}", sep, $1, $2
           }' .github/scripts/openwrt-arch-map.tsv)
           echo "arches={\"include\":[$json]}" >> "$GITHUB_OUTPUT"
@@ -90,12 +91,17 @@ jobs:
       - name: Resolve the ${{ matrix.release }} SDK for ${{ matrix.target }}
         id: sdk
         run: |
-          idx="https://downloads.openwrt.org/releases"
-          ver=$(wget -qO- "$idx/" \
-            | grep -oE "\"${{ matrix.release }}\.[0-9]+(-rc[0-9]+)?/\"" \
-            | tr -d '"/' | sort -V | tail -1)
-          if [ -z "$ver" ]; then echo "FAIL  no ${{ matrix.release }} release found"; exit 1; fi
-          base="$idx/$ver/targets/${{ matrix.target }}"
+          if [ "${{ matrix.release }}" = main ]; then
+            # main is the snapshot tree, which has no point releases to resolve
+            base="https://downloads.openwrt.org/snapshots/targets/${{ matrix.target }}"
+          else
+            idx="https://downloads.openwrt.org/releases"
+            ver=$(wget -qO- "$idx/" \
+              | grep -oE "\"${{ matrix.release }}\.[0-9]+(-rc[0-9]+)?/\"" \
+              | tr -d '"/' | sort -V | tail -1)
+            if [ -z "$ver" ]; then echo "FAIL  no ${{ matrix.release }} release found"; exit 1; fi
+            base="$idx/$ver/targets/${{ matrix.target }}"
+          fi
           if ! wget -qO sha256sums "$base/sha256sums"; then
             echo "FAIL  ${{ matrix.target }} has no SDK in ${{ matrix.release }} ($base)"
             echo "      Point this architecture at a target the release line carries."
@@ -294,7 +300,9 @@ jobs:
           for d in collected/pkg-*; do
             rest=${d#collected/pkg-}; rel=${rest%%-*}; arch=${rest#*-}
             dst="site/$rel/$arch"; mkdir -p "$dst"; cp "$d"/* "$dst"/
-            if [ "$rel" = "25.12" ]; then
+            # apk everywhere except 24.10, matching the fmt the matrix assigns.
+            # Stated as the exception so a later apk release needs no change.
+            if [ "$rel" != "24.10" ]; then
               # --allow-untrusted as OpenWrt's own mkndx calls do: the packages
               # being indexed are unsigned SDK output, and without it mkndx
               # refuses to index them. The index itself is signed, which is what
@@ -320,7 +328,7 @@ jobs:
             # The index is what is actually published, so confirm it landed
             # rather than infer it from an exit code. mkndx refuses untrusted
             # input by writing nothing, and it is the file a client fetches.
-            if [ "$rel" = "25.12" ]; then
+            if [ "$rel" != "24.10" ]; then
               [ -s "$dst/packages.adb" ] \
                 || { echo "FAIL  $rel/$arch has no packages.adb"; exit 1; }
             else
@@ -349,6 +357,12 @@ jobs:
           by David Connolly. Not affiliated with, endorsed by, or supported by
           the OpenWrt project. Report problems at
           <a href="https://github.com/connollydavid/packages/issues">connollydavid/packages</a>.</p>
+          <h2>OpenWrt snapshot (apk)</h2>
+          <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
+            https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
+          echo "https://connollydavid.github.io/UDPspeeder-simd/feed/main/\$(apk --print-arch)/packages.adb" \\
+            >> /etc/apk/repositories.d/customfeeds.list
+          apk update &amp;&amp; apk add udpspeeder-simd</pre>
           <h2>OpenWrt 25.12 (apk)</h2>
           <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
@@ -362,6 +376,17 @@ jobs:
           echo "src/gz udpspeeder_simd https://connollydavid.github.io/UDPspeeder-simd/feed/24.10/\$DISTRIB_ARCH" \\
             >> /etc/opkg/customfeeds.conf
           opkg update &amp;&amp; opkg install udpspeeder-simd</pre>
+          <h2>Usage</h2>
+          <p>Settings live in <code>/etc/config/udpspeeder-simd</code>. Set
+          <code>enabled 1</code>, <code>server 1</code> on one end and
+          <code>server 0</code> on the other, and give both ends the same
+          <code>key</code>, <code>fec</code> and <code>mtu</code>. Then</p>
+          <pre>/etc/init.d/udpspeeder-simd enable
+          /etc/init.d/udpspeeder-simd start</pre>
+          <p>This build checksums the wire with CRC32C where the stock
+          <code>udpspeeder</code> uses CRC-32, so the two do not interoperate.
+          Run this package at both ends. It installs alongside
+          <code>udpspeeder</code> without conflicting.</p>
           HTML
 
       # Pages here is served from the gh-pages branch, and mdbook.yml owns its
