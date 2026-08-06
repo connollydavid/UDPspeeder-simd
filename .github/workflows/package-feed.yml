@@ -107,22 +107,15 @@ jobs:
           echo "base=$base" >> "$GITHUB_OUTPUT"
           echo "sdk=$sdk"   >> "$GITHUB_OUTPUT"
 
-      # The tarball is the same bytes on every run for a given release, and this
-      # job runs once per architecture per release, so the download dominates.
-      - uses: actions/cache@v4
-        with:
-          path: sdk.tar.zst
-          key: sdk-${{ matrix.release }}-${{ matrix.target }}-${{ steps.sdk.outputs.sdk }}
-
+      # Not cached, deliberately. These SDKs average 240 MB and the matrix has 70
+      # of them, about 16 GB against a 10 GB per-repository cache. Caching them
+      # would never hold and would evict every other cache in the repo on the
+      # way. The one SDK the index job reuses every run is cached, in that job.
       - name: Fetch and verify the SDK
         run: |
-          if [ ! -f sdk.tar.zst ]; then
-            wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
-          else
-            echo "cached  ${{ steps.sdk.outputs.sdk }}"
-          fi
+          wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
           # sha256sums was fetched to name the file; it also states the hash, so
-          # check it rather than trust the transfer, cached or freshly pulled.
+          # check it rather than trust the transfer.
           want=$(grep " \*\?${{ steps.sdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
           got=$(sha256sum sdk.tar.zst | awk '{print $1}')
           if [ -z "$want" ] || [ "$want" != "$got" ]; then
