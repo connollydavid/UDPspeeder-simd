@@ -248,13 +248,17 @@ jobs:
             exit 1
           fi
           mkdir sdk && tar --zstd -xf sdk.tar.zst -C sdk --strip-components=1
-          for t in apk usign; do
+          for t in apk usign mkhash; do
             [ -x "sdk/staging_dir/host/bin/$t" ] || { echo "FAIL  the SDK has no $t"; exit 1; }
           done
           [ -x sdk/scripts/ipkg-make-index.sh ] || { echo "FAIL  the SDK has no ipkg-make-index.sh"; exit 1; }
           echo "APK=$PWD/sdk/staging_dir/host/bin/apk"     >> "$GITHUB_ENV"
           echo "USIGN=$PWD/sdk/staging_dir/host/bin/usign" >> "$GITHUB_ENV"
           echo "MKINDEX=$PWD/sdk/scripts/ipkg-make-index.sh" >> "$GITHUB_ENV"
+          # ipkg-make-index.sh calls $MKHASH for each package sha and OpenWrt's
+          # build system is what normally sets it. Unset it expands to nothing,
+          # the script runs `sha256` and dies at 127.
+          echo "MKHASH=$PWD/sdk/staging_dir/host/bin/mkhash" >> "$GITHUB_ENV"
 
       # One index per architecture per release: a client asks for its own and
       # will not read another's.
@@ -301,7 +305,7 @@ jobs:
                  --output packages.adb *.apk)
             else
               (cd "$dst" \
-                 && "$MKINDEX" . 2>/dev/null > Packages.manifest \
+                 && "$MKINDEX" . > Packages.manifest \
                  && grep -vE '^(Maintainer|LicenseFiles|Source|SourceName|Require|SourceDateEpoch)' \
                       Packages.manifest > Packages \
                  && rm -f Packages.manifest \
