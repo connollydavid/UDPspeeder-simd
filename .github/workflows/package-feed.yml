@@ -18,14 +18,10 @@ name: package feed
 # #29901 merges. Once it does, the official feed is the better answer and this
 # should be retired rather than left running beside it.
 
-# Dispatch only until a run has published successfully. The feed branches carry
-# v1.0.3 and the signing secrets are set, but nothing has exercised the path end
-# to end, and a scheduled first run would sign and publish unattended. Restore
-# the weekly line once a dispatched run has produced a feed worth serving.
-#   schedule:
-#     - cron: "0 8 * * 1"
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1"
 
 permissions:
   contents: write
