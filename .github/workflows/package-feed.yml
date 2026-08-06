@@ -320,6 +320,17 @@ jobs:
                  && "$USIGN" -S -m Packages \
                       -s "$GITHUB_WORKSPACE/key-build")
             fi
+            # The index is what is actually published, so confirm it landed
+            # rather than infer it from an exit code. mkndx refuses untrusted
+            # input by writing nothing, and it is the file a client fetches.
+            if [ "$rel" = "25.12" ]; then
+              [ -s "$dst/packages.adb" ] \
+                || { echo "FAIL  $rel/$arch has no packages.adb"; exit 1; }
+            else
+              for f in Packages Packages.gz Packages.sig; do
+                [ -s "$dst/$f" ] || { echo "FAIL  $rel/$arch has no $f"; exit 1; }
+              done
+            fi
             echo "ok    $rel/$arch: $(ls "$dst" | grep -cE '\.(apk|ipk)$') package(s)"
           done
           rm -f private-key.pem key-build key-build.pub
