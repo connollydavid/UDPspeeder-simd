@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785984978952,
+  "lastUpdate": 1785985764798,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -271,6 +271,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 606.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c2733d378fa7634ae619123027fe6928372befb4",
+          "message": "Give the index script the hash tool it calls\n\nipkg-make-index.sh runs $MKHASH for each package checksum, and OpenWrt's\nbuild system is what normally exports it. Nothing exported it here, so\nthe variable expanded to nothing, the script tried to run a command named\nsha256 and exited 127. The opkg half of the feed produced no index.\n\nmkhash ships in the SDK beside apk and usign, so it is exported with\nthem and checked for like them.\n\nThe redirect that sent the script's stderr to /dev/null is gone. It was\nthere to drop one progress line per package and it hid the failure\ncompletely: the job reported 127 with no message.\n\nReproduced against a released ipk with the SDK's own script: 127 without\nthe variable, a correct index with it, and the whole chain through the\ndetached signature verifies.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-06T04:05:14+01:00",
+          "tree_id": "8b9c88ad092b95e123f8f5e5a60cbe9a0ed7991d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c2733d378fa7634ae619123027fe6928372befb4"
+        },
+        "date": 1785985763824,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1528.6,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1260.3,
             "unit": "Mbps"
           }
         ]
