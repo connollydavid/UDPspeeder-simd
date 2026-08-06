@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785984981081,
+  "lastUpdate": 1785985766733,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -1987,6 +1987,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 53.0223,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c2733d378fa7634ae619123027fe6928372befb4",
+          "message": "Give the index script the hash tool it calls\n\nipkg-make-index.sh runs $MKHASH for each package checksum, and OpenWrt's\nbuild system is what normally exports it. Nothing exported it here, so\nthe variable expanded to nothing, the script tried to run a command named\nsha256 and exited 127. The opkg half of the feed produced no index.\n\nmkhash ships in the SDK beside apk and usign, so it is exported with\nthem and checked for like them.\n\nThe redirect that sent the script's stderr to /dev/null is gone. It was\nthere to drop one progress line per package and it hid the failure\ncompletely: the job reported 127 with no message.\n\nReproduced against a released ipk with the SDK's own script: 127 without\nthe variable, a correct index with it, and the whole chain through the\ndetached signature verifies.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-06T04:05:14+01:00",
+          "tree_id": "8b9c88ad092b95e123f8f5e5a60cbe9a0ed7991d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c2733d378fa7634ae619123027fe6928372befb4"
+        },
+        "date": 1785985766069,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 8.17648,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 9.81157,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 22.03,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 38.115,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 632.621,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 2078.87,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 987.464,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2868.97,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 13.5174,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 58.4692,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 256.937,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 440.717,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 15.613,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 85.8454,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 418.889,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 628.735,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 5.12082,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 12.6518,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 71.3594,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 108.965,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 5.03682,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 12.6589,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 66.806,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 119.265,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 289.533,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 313.873,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 398.265,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 468.678,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 33.1877,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 58.4639,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 151.297,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 191.719,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 182.056,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 295.732,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 37.593,
             "unit": "ns/op"
           }
         ]
