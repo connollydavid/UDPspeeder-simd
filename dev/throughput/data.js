@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785977462453,
+  "lastUpdate": 1785981480625,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -67,6 +67,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 695.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d0e497a695e75b4424f470f36f69f39b49f18620",
+          "message": "Serve the package feed from this repository\n\nThe feed publishes builds of this software, so it belongs beside the\nsoftware rather than in the governance repository that plans it. Users\npaste the feed URL into their router configuration, and that URL should\nname the project.\n\nPublished paths move to connollydavid.github.io/UDPspeeder-simd/feed/,\nwritten into a subdirectory of gh-pages so the benchmark data under dev/\nand the landing page at the root are untouched.\n\nThe architecture map comes across as openwrt-arch-map.tsv. It maps every\narchitecture the OpenWrt buildbot publishes to a target and an emulator,\nand bench/arch-map.tsv already here is a different table for the ISA\ndispatch benchmarks.\n\nThe landing page states that the feed is personal, names who signs it,\nand disclaims any connection to the OpenWrt project.\n\nThe weekly trigger is commented out. The branch this builds still pins\nv1.0.0, which faults on four architectures, so a scheduled run would\npublish it.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-06T02:53:49+01:00",
+          "tree_id": "4fbfc2c687728525b8934bbfeea0038428788ff5",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d0e497a695e75b4424f470f36f69f39b49f18620"
+        },
+        "date": 1785981480341,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 823.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 687.8,
             "unit": "Mbps"
           }
         ]
