@@ -11,6 +11,12 @@ a{color:#8bf}}</style>
 by David Connolly. Not affiliated with, endorsed by, or supported by
 the OpenWrt project. Report problems at
 <a href="https://github.com/connollydavid/packages/issues">connollydavid/packages</a>.</p>
+<h2>OpenWrt snapshot (apk)</h2>
+<pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \
+  https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
+echo "https://connollydavid.github.io/UDPspeeder-simd/feed/main/$(apk --print-arch)/packages.adb" \
+  >> /etc/apk/repositories.d/customfeeds.list
+apk update &amp;&amp; apk add udpspeeder-simd</pre>
 <h2>OpenWrt 25.12 (apk)</h2>
 <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \
   https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
@@ -24,3 +30,14 @@ apk update &amp;&amp; apk add udpspeeder-simd</pre>
 echo "src/gz udpspeeder_simd https://connollydavid.github.io/UDPspeeder-simd/feed/24.10/$DISTRIB_ARCH" \
   >> /etc/opkg/customfeeds.conf
 opkg update &amp;&amp; opkg install udpspeeder-simd</pre>
+<h2>Usage</h2>
+<p>Settings live in <code>/etc/config/udpspeeder-simd</code>. Set
+<code>enabled 1</code>, <code>server 1</code> on one end and
+<code>server 0</code> on the other, and give both ends the same
+<code>key</code>, <code>fec</code> and <code>mtu</code>. Then</p>
+<pre>/etc/init.d/udpspeeder-simd enable
+/etc/init.d/udpspeeder-simd start</pre>
+<p>This build checksums the wire with CRC32C where the stock
+<code>udpspeeder</code> uses CRC-32, so the two do not interoperate.
+Run this package at both ends. It installs alongside
+<code>udpspeeder</code> without conflicting.</p>
