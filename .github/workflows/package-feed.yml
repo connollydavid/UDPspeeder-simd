@@ -355,8 +355,8 @@ jobs:
           <h2>OpenWrt 25.12 (apk)</h2>
           <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
-          echo "https://connollydavid.github.io/UDPspeeder-simd/feed/25.12/\$(apk --print-arch)" \\
-            >> /etc/apk/repositories
+          echo "https://connollydavid.github.io/UDPspeeder-simd/feed/25.12/\$(apk --print-arch)/packages.adb" \\
+            >> /etc/apk/repositories.d/customfeeds.list
           apk update &amp;&amp; apk add udpspeeder-simd</pre>
           <h2>OpenWrt 24.10 (opkg)</h2>
           <pre>wget -O /etc/opkg/keys/$keyid \\
