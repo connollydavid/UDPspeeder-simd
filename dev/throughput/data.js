@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785983385204,
+  "lastUpdate": 1785983962250,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -169,6 +169,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 626.9,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8deb1dd5a9a9b902bf84570451a2cfb8e9ccd18a",
+          "message": "Confirm each index landed before publishing it\n\nmkndx writes nothing when it refuses its input, and the index is the one\nfile a client fetches, so its presence is checked rather than inferred\nfrom an exit code. The opkg side checks Packages, Packages.gz and the\ndetached signature for the same reason.\n\nTested against apk-tools 3.0.5 from the published SDK with real packages\nfrom the 25.12 feed: the earlier invocation reported three untrusted\nsignatures, created no index and exited 99, and the invocation with\n--allow-untrusted indexed all three.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-06T03:35:09+01:00",
+          "tree_id": "760f1388b9c9f84102b08cfcac5d147de193f3a7",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8deb1dd5a9a9b902bf84570451a2cfb8e9ccd18a"
+        },
+        "date": 1785983961241,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 806.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 675.9,
             "unit": "Mbps"
           }
         ]
