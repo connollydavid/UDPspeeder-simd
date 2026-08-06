@@ -1,0 +1,16 @@
+Package: udpspeeder-simd
+Version: 1.0.3-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/connollydavid/UDPspeeder-simd
+Architecture: i386_pentium4
+Installed-Size: 163840
+Filename: udpspeeder-simd_1.0.3-r1_i386_pentium4.ipk
+Size: 62202
+SHA256sum: 76e0a929063e12c093383e1eed756fa9a3e46b9b77e7a6c1895f26e3c083371f
+Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
+ with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
+ with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
+ alongside the udpspeeder package with distinct paths, so the two do not conflict.
+
