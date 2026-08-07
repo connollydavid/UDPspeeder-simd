@@ -173,9 +173,13 @@ jobs:
 
       - name: Install the packages and run the runtime test
         run: |
-          docker run --rm -v "$PWD/pkgs:/pkgs:ro" \
+          mkdir -p out
+          docker run --rm -v "$PWD/pkgs:/pkgs:ro" -v "$PWD/out:/out" \
             "openwrt/rootfs:${{ steps.img.outputs.tag }}" \
             /bin/sh /pkgs/verify-in-openwrt.sh "${{ matrix.fmt }}"
+
+      - name: The installed binaries must be hardened
+        run: sh .github/scripts/check-hardening.sh out
 
   index:
     name: Sign the indexes and publish

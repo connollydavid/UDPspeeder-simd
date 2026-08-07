@@ -36,6 +36,26 @@ for pair in "udpspeeder udpspeeder-snapshot" "udpspeeder-simd udpspeeder-simd-sn
 		|| { echo "FAIL  $1 does not state that it is an unofficial build"; fail=1; }
 done
 
+n=$(find /usr/bin /etc/config /etc/init.d -perm /6000 2>/dev/null | wc -l)
+if [ "$n" -ne 0 ]; then
+	echo "FAIL  $n setuid or setgid files installed"
+	find /usr/bin /etc/config /etc/init.d -perm /6000 2>/dev/null
+	fail=1
+else
+	echo "ok    nothing installed setuid or setgid"
+fi
+
+for c in /etc/config/udpspeeder /etc/config/udpspeeder-simd; do
+	mode=$(ls -l "$c" 2>/dev/null | cut -c1-10)
+	case "$mode" in
+		-rw-------) echo "ok    $c is readable only by its owner" ;;
+		*) echo "FAIL  $c is $mode and holds the tunnel key"; fail=1 ;;
+	esac
+done
+
+mkdir -p /out
+cp /usr/bin/udpspeeder /usr/bin/udpspeeder-simd /out/ 2>/dev/null
+
 sh /pkgs/pre-test.sh >/dev/null 2>&1 || { echo "FAIL  pre-test could not install socat"; exit 1; }
 if sh /pkgs/test.sh; then
 	echo "ok    payload made the round trip"
