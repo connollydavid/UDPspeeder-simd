@@ -386,17 +386,6 @@ jobs:
           <pre>apk add udpspeeder-simd-snapshot</pre>
           <p>or <code>opkg install udpspeeder-simd-snapshot</code> on
           24.10.</p>
-          <h2>Usage</h2>
-          <p>Settings live in <code>/etc/config/udpspeeder-simd</code>. Set
-          <code>enabled 1</code>, <code>server 1</code> on one end and
-          <code>server 0</code> on the other, and give both ends the same
-          <code>key</code>, <code>fec</code> and <code>mtu</code>. Then</p>
-          <pre>/etc/init.d/udpspeeder-simd enable
-          /etc/init.d/udpspeeder-simd start</pre>
-          <p>This build checksums the wire with CRC32C where the stock
-          <code>udpspeeder</code> uses CRC-32, so the two do not interoperate.
-          Run this package at both ends. It installs alongside
-          <code>udpspeeder</code> without conflicting.</p>
           HTML
 
       - name: Publish under /feed on gh-pages
