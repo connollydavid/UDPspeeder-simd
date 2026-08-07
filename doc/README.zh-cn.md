@@ -107,7 +107,8 @@ https://github.com/wangyu-/udp2raw-tunnel
 ```host-lint:ignore
 UDPspeeder V2
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
-repository: https://github.com/wangyu-/UDPspeeder
+repository: https://github.com/connollydavid/UDPspeeder-simd
+based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
 
 usage:
     run as client: ./this_program -c -l local_listen_ip:local_port -r server_ip:server_port  [options]
