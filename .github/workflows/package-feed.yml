@@ -386,6 +386,9 @@ jobs:
           <pre>apk add udpspeeder-simd-snapshot</pre>
           <p>or <code>opkg install udpspeeder-simd-snapshot</code> on
           24.10.</p>
+          <p>It checksums the wire with CRC32C where <code>udpspeeder</code>
+          uses CRC-32, so the two do not interoperate. Run it at both ends of
+          the link.</p>
           HTML
 
       - name: Publish under /feed on gh-pages
