@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786120917838,
+  "lastUpdate": 1786121285535,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -4972,6 +4972,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 53.6701,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "a150db028d87bc86e319ee29da1b22c31a291c54",
+          "message": "Verify the feed is signed, from a client's side\n\nThe install check uses local files and --allow-untrusted, which switches off\nthe property the feed exists to provide. A job now runs after publishing: it\nreads the landing page for the key filename, adds the feed exactly as those\ninstructions say, confirms the package is refused while the key is absent, then\ninstalls it once the published key is in place.\n\nIt follows the published instructions rather than a copy of them, so a landing\npage that tells someone the wrong thing fails the run.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T17:43:12+01:00",
+          "tree_id": "3e3c7bfd70cea0e18e207b8e67aa670a56ca8598",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/a150db028d87bc86e319ee29da1b22c31a291c54"
+        },
+        "date": 1786121284850,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 6.22869,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 6.83064,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 12.6723,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 22.8728,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 406.928,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1362.04,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 745.355,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2097.16,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 10.5331,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 43.983,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 190.919,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 325.349,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 11.9304,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 69.6482,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 318.586,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 474.154,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 2.56243,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 7.98036,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 51.997,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 89.8885,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 2.49914,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 7.99751,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 52.7551,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 90.5934,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 208.825,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 220.309,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 299.253,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 347.402,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 25.7305,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 44.0405,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 114.718,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 157.371,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 108.668,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 219.664,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 24.9777,
             "unit": "ns/op"
           }
         ]
