@@ -1,3 +1,16 @@
+Package: UDPspeeder
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: arm_arm1176jzf-s_vfp
+Installed-Size: 153600
+Filename: UDPspeeder_20260730-r1_arm_arm1176jzf-s_vfp.ipk
+Size: 78767
+SHA256sum: 1dd81acec9d7d958d5a58dee2e8355bc9f0c05d2ac886b1f9a105e44c37a0349
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
 Package: udpspeeder-simd
 Version: 1.0.3-r1
 Depends: libc, libstdcpp6

@@ -1,3 +1,16 @@
+Package: UDPspeeder
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: mips_24kc
+Installed-Size: 215040
+Filename: UDPspeeder_20260730-r1_mips_24kc.ipk
+Size: 88545
+SHA256sum: 21f17fcda2798d05fcd5869f144ee52a1be24ba49ca8e179bb2dd7e15c476b17
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
 Package: udpspeeder-simd
 Version: 1.0.3-r1
 Depends: libc, libstdcpp6

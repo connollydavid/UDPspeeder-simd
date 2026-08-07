@@ -1,3 +1,16 @@
+Package: UDPspeeder
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: mips64_mips64r2
+Installed-Size: 286720
+Filename: UDPspeeder_20260730-r1_mips64_mips64r2.ipk
+Size: 97627
+SHA256sum: cbcbd2443a425b7b0a9de1a06611a1e3c999b4234ce5ca658d1f86915d4d6024
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
 Package: udpspeeder-simd
 Version: 1.0.3-r1
 Depends: libc, libstdcpp6
@@ -13,6 +26,4 @@ Description:  A Forward Error Correction UDP tunnel that improves a high-latency
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
-
-
 

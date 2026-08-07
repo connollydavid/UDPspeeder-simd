@@ -1,3 +1,16 @@
+Package: UDPspeeder
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: arm_cortex-a7_vfpv4
+Installed-Size: 153600
+Filename: UDPspeeder_20260730-r1_arm_cortex-a7_vfpv4.ipk
+Size: 77823
+SHA256sum: b29f29bf90c1fce3d95595c6e1650771b99059f069756da3fa872c7ded50d0d5
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
 Package: udpspeeder-simd
 Version: 1.0.3-r1
 Depends: libc, libstdcpp6

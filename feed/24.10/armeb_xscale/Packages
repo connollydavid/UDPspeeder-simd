@@ -1,3 +1,16 @@
+Package: UDPspeeder
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: armeb_xscale
+Installed-Size: 163840
+Filename: UDPspeeder_20260730-r1_armeb_xscale.ipk
+Size: 80137
+SHA256sum: 5b92f3eab5ae9092cd0aec08622253c4682a7075153d6284096f9690d90f06b7
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
 Package: udpspeeder-simd
 Version: 1.0.3-r1
 Depends: libc, libstdcpp6
