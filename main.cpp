@@ -18,7 +18,7 @@ using namespace std;
 #endif
 
 #ifndef PROGRAM_VERSION
-#define PROGRAM_VERSION "v1.0.5"
+#define PROGRAM_VERSION "v1.0.6"
 #endif
 
 static void print_help() {
@@ -30,6 +30,9 @@ static void print_help() {
     printf("build date: %s %s\n", __DATE__, __TIME__);
     printf("repository: https://github.com/connollydavid/UDPspeeder-simd\n");
     printf("based on UDPspeeder: https://github.com/wangyu-/UDPspeeder\n");
+#ifdef SOURCE_COMMIT
+    printf("source commit: %s\n", SOURCE_COMMIT);
+#endif
     printf("\n");
     printf("usage:\n");
     printf("    run as client: ./this_program -c -l local_listen_ip:local_port -r server_ip:server_port  [options]\n");
