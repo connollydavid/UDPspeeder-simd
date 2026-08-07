@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: armeb_xscale
 Installed-Size: 163840
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_armeb_xscale.ipk
-Size: 64775
-SHA256sum: ac37f1be815a3e9633fa35f1802bd752e350590f396f3aac501cebbb43ff4f18
+Size: 64848
+SHA256sum: 87f0a8b2088af778fdd7c87f07c34234e6909d68186e30da13d789b6f01636a3
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

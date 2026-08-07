@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: aarch64_cortex-a72
 Installed-Size: 235520
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_aarch64_cortex-a72.ipk
-Size: 67746
-SHA256sum: dcd9c7bb5c35ca756be4cbdc572ff882ffe2e4b263c32b5098a529b619bbc274
+Size: 67817
+SHA256sum: 6f514e7bb8ba0bc7fc3e8c2bc30cbf9ee60776fb59291c2bbe1590e9a400fca8
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

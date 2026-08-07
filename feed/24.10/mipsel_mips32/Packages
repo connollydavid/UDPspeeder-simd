@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: mipsel_mips32
 Installed-Size: 235520
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_mipsel_mips32.ipk
-Size: 72451
-SHA256sum: 108d6f4c943676e4bb87be17cd10e6c345287b31672675c28d73f3db94cc9762
+Size: 72526
+SHA256sum: 2b59d1f97ca7ebc9928bce2704d7c4a7dae72a4b4861381df9fdd84c59cf2583
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

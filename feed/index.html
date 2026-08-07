@@ -10,13 +10,11 @@ a{color:#8bf}}</style>
 <p class=unofficial><strong>A personal feed.</strong> Built and signed
 by David Connolly. Not affiliated with, endorsed by, or supported by
 the OpenWrt project. Report problems at
-<a href="https://github.com/connollydavid/packages/issues">connollydavid/packages</a>.</p>
-<p>Two packages, both built from a source snapshot:
-<code>udpspeeder-snapshot</code>, the stock tunnel newer than the
-official feed carries, and <code>udpspeeder-simd-snapshot</code>, the
-SIMD fork. Both carry a name of their own, so adding this feed
-changes nothing until you install one by name, and neither claims a
-name OpenWrt ships or is being asked to ship.</p>
+<a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
+<p>Two packages, both from a source snapshot:
+<code>udpspeeder-snapshot</code>, the stock tunnel, and
+<code>udpspeeder-simd-snapshot</code>, the SIMD fork. Adding this
+feed installs nothing on its own.</p>
 <h2>OpenWrt snapshot (apk)</h2>
 <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \
   https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
@@ -58,14 +56,6 @@ and the name belongs to OpenWrt.</p>
 <pre>apk add udpspeeder-simd-snapshot</pre>
 <p>or <code>opkg install udpspeeder-simd-snapshot</code> on
 24.10.</p>
-<h2>Usage</h2>
-<p>Settings live in <code>/etc/config/udpspeeder-simd</code>. Set
-<code>enabled 1</code>, <code>server 1</code> on one end and
-<code>server 0</code> on the other, and give both ends the same
-<code>key</code>, <code>fec</code> and <code>mtu</code>. Then</p>
-<pre>/etc/init.d/udpspeeder-simd enable
-/etc/init.d/udpspeeder-simd start</pre>
-<p>This build checksums the wire with CRC32C where the stock
-<code>udpspeeder</code> uses CRC-32, so the two do not interoperate.
-Run this package at both ends. It installs alongside
-<code>udpspeeder</code> without conflicting.</p>
+<p>It checksums the wire with CRC32C where <code>udpspeeder</code>
+uses CRC-32, so the two do not interoperate. Run it at both ends of
+the link.</p>

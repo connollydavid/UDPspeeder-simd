@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_cortex-a9
 Installed-Size: 153600
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_arm_cortex-a9.ipk
-Size: 62796
-SHA256sum: de870fcea94c62515eee1158714aceb2d5db7638161dfb3027506a0602aa3f68
+Size: 62871
+SHA256sum: f639c2b51c3ca3a527e0c9b48c39f1fe43a3b18c3a6c6381d0d74331de0a0b4d
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

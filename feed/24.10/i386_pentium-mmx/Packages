@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: i386_pentium-mmx
 Installed-Size: 174080
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_i386_pentium-mmx.ipk
-Size: 63377
-SHA256sum: 7a3e3a3f42aa4b2f4ccc727553c0bd04bcb031316ff3bfac0a07e7869afc40c0
+Size: 63449
+SHA256sum: 5425300bc44411c2aef5ba24a7de41dfceef8053e63d93f71a335864850b2f5f
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

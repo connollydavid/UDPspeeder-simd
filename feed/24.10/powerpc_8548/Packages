@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: powerpc_8548
 Installed-Size: 235520
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_powerpc_8548.ipk
-Size: 75946
-SHA256sum: 38368d246207d892d7ac3f0dca09b566735828ac9293a729e5b011b6db20bb96
+Size: 76019
+SHA256sum: a1002bcf0830b282aaa9f951ff741b1f5231e4aaadd41c815e3c7570dc9d60f3
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1

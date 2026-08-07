@@ -8,12 +8,14 @@ URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_arm926ej-s
 Installed-Size: 163840
 Filename: udpspeeder-simd-snapshot_1.0.6-r1_arm_arm926ej-s.ipk
-Size: 64522
-SHA256sum: 655f1d3aeda65fba539e67874481309fa0f7dd47b057e5d828eeba9ee45c864b
+Size: 64596
+SHA256sum: de7c9a178946716370d0166459de358e1138a8abc1cafdd615649c2a6d2b1990
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
  alongside the udpspeeder package with distinct paths, so the two do not conflict.
+ It checksums the wire with CRC32C where udpspeeder uses CRC-32, so the two do not
+ interoperate and this package must run at both ends of the link.
 
 Package: udpspeeder-snapshot
 Version: 20260730-r1
