@@ -127,9 +127,59 @@ jobs:
           name: pkg-${{ matrix.release }}-${{ matrix.arch }}
           path: out/
 
+  verify:
+    name: Install on ${{ matrix.release }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: '24.10'
+            fmt: opkg
+          - release: '25.12'
+            fmt: apk
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pkg-${{ matrix.release }}-x86_64
+          path: pkgs
+
+      - name: Take the test scripts from the feed branch
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "feed-${{ matrix.release }}" "$PKG_REPO" feed
+          git -C feed sparse-checkout set $(for p in $PKGS; do printf 'net/%s ' "$p"; done)
+          cp feed/net/udpspeeder-snapshot/pre-test.sh pkgs/
+          cp feed/net/udpspeeder-snapshot/test.sh pkgs/
+          cp .github/scripts/verify-in-openwrt.sh pkgs/
+
+      - name: Resolve the newest ${{ matrix.release }} rootfs image
+        id: img
+        run: |
+          api="https://hub.docker.com/v2/repositories/openwrt/rootfs/tags"
+          tag=$(wget -qO- "$api?page_size=100&name=x86-64-${{ matrix.release }}." \
+            | tr ',' '\n' \
+            | grep -oE '"x86-64-${{ matrix.release }}\.[0-9]+"' \
+            | tr -d '"' | sort -V | tail -1)
+          if [ -z "$tag" ]; then
+            echo "FAIL  no x86-64 rootfs image published for ${{ matrix.release }}"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "image openwrt/rootfs:$tag"
+
+      - name: Install the packages and run the runtime test
+        run: |
+          docker run --rm -v "$PWD/pkgs:/pkgs:ro" \
+            "openwrt/rootfs:${{ steps.img.outputs.tag }}" \
+            /bin/sh /pkgs/verify-in-openwrt.sh "${{ matrix.fmt }}"
+
   index:
     name: Sign the indexes and publish
-    needs: build
+    needs: [build, verify]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
