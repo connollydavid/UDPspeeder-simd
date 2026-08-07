@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786121283365,
+  "lastUpdate": 1786121917992,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -815,6 +815,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1042.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "cf6bb414e5985edca45d26834253c2784d355cfc",
+          "message": "Strip the quotes openwrt_release actually uses\n\nDISTRIB_ARCH is single-quoted, so the arch carried its quotes into the feed\nURL and opkg was handed a path that does not exist. Both lines now install\nfrom the published feed and refuse to before the key is in place.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T17:54:18+01:00",
+          "tree_id": "c9d6757d0498ab05b2c129b56d6b0dcbbacd920b",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/cf6bb414e5985edca45d26834253c2784d355cfc"
+        },
+        "date": 1786121915854,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 808.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 634.9,
             "unit": "Mbps"
           }
         ]
