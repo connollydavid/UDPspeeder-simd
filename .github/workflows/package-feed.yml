@@ -14,7 +14,7 @@ concurrency:
 
 env:
   PKG_REPO: https://github.com/connollydavid/packages.git
-  PKGS: udpspeeder-simd udpspeeder-snapshot udpspeeder-simd-snapshot
+  PKGS: udpspeeder-snapshot udpspeeder-simd-snapshot
 
 jobs:
   matrix:
@@ -286,32 +286,31 @@ jobs:
           by David Connolly. Not affiliated with, endorsed by, or supported by
           the OpenWrt project. Report problems at
           <a href="https://github.com/connollydavid/packages/issues">connollydavid/packages</a>.</p>
-          <p>Three packages, none of which replaces OpenWrt's
-          <code>UDPspeeder</code> on an upgrade: <code>udpspeeder-simd</code>,
-          the SIMD fork at a release tag; <code>udpspeeder-snapshot</code>, the
-          stock tunnel at a newer source snapshot; and
-          <code>udpspeeder-simd-snapshot</code>, the fork at a source snapshot.
-          Each carries its own name, so adding this feed changes nothing until
-          you install one by name.</p>
+          <p>Two packages, both built from a source snapshot:
+          <code>udpspeeder-snapshot</code>, the stock tunnel newer than the
+          official feed carries, and <code>udpspeeder-simd-snapshot</code>, the
+          SIMD fork. Both carry a name of their own, so adding this feed
+          changes nothing until you install one by name, and neither claims a
+          name OpenWrt ships or is being asked to ship.</p>
           <h2>OpenWrt snapshot (apk)</h2>
           <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
           echo "https://connollydavid.github.io/UDPspeeder-simd/feed/main/\$(apk --print-arch)/packages.adb" \\
             >> /etc/apk/repositories.d/customfeeds.list
-          apk update &amp;&amp; apk add udpspeeder-simd</pre>
+          apk update</pre>
           <h2>OpenWrt 25.12 (apk)</h2>
           <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
           echo "https://connollydavid.github.io/UDPspeeder-simd/feed/25.12/\$(apk --print-arch)/packages.adb" \\
             >> /etc/apk/repositories.d/customfeeds.list
-          apk update &amp;&amp; apk add udpspeeder-simd</pre>
+          apk update</pre>
           <h2>OpenWrt 24.10 (opkg)</h2>
           <pre>wget -O /etc/opkg/keys/$keyid \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/usign-$keyid.pub
           . /etc/openwrt_release
           echo "src/gz udpspeeder_simd https://connollydavid.github.io/UDPspeeder-simd/feed/24.10/\$DISTRIB_ARCH" \\
             >> /etc/opkg/customfeeds.conf
-          opkg update &amp;&amp; opkg install udpspeeder-simd</pre>
+          opkg update</pre>
           <h2>udpspeeder-snapshot</h2>
           <p>The stock tunnel built from a source snapshot newer than the
           20230206.0 the official feed carries. It is a separate package, so it
@@ -326,12 +325,13 @@ jobs:
           <code>/etc/init.d/udpspeeder</code>, so your existing settings carry
           across the swap.</p>
           <h2>udpspeeder-simd-snapshot</h2>
-          <p>The fork built from a source snapshot rather than a release tag,
-          for testing a fix before it is tagged. It conflicts with
-          <code>udpspeeder-simd</code>, which owns the same paths:</p>
-          <pre>apk del udpspeeder-simd
-          apk add udpspeeder-simd-snapshot</pre>
-          <p>or <code>opkg remove</code> then <code>opkg install</code> on
+          <p>The SIMD fork, built from a source snapshot rather than a release
+          tag, so a fix can be tested before it is tagged. It conflicts with
+          <code>udpspeeder-simd</code>, which owns the same paths, and that
+          package is not offered here: it is under review for the official feed
+          and the name belongs to OpenWrt.</p>
+          <pre>apk add udpspeeder-simd-snapshot</pre>
+          <p>or <code>opkg install udpspeeder-simd-snapshot</code> on
           24.10.</p>
           <h2>Usage</h2>
           <p>Settings live in <code>/etc/config/udpspeeder-simd</code>. Set
