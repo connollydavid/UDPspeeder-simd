@@ -1,0 +1,31 @@
+Package: udpspeeder-simd-snapshot
+Version: 1.0.6-r1
+Depends: libc, libstdcpp6
+Conflicts: udpspeeder-simd
+License: MIT
+Section: net
+URL: https://github.com/connollydavid/UDPspeeder-simd
+Architecture: mipsel_24kc
+Installed-Size: 235520
+Filename: udpspeeder-simd-snapshot_1.0.6-r1_mipsel_24kc.ipk
+Size: 72453
+SHA256sum: 0b3037d0113a72785591226ee83fac672cb0466e42b4883d1dd671a98c43b901
+Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
+ with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
+ with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
+ alongside the udpspeeder package with distinct paths, so the two do not conflict.
+
+Package: udpspeeder-snapshot
+Version: 20260730-r1
+Depends: libc, libstdcpp6
+Conflicts: UDPspeeder
+License: MIT
+Section: net
+URL: https://github.com/wangyu-/UDPspeeder
+Architecture: mipsel_24kc
+Installed-Size: 215040
+Filename: udpspeeder-snapshot_20260730-r1_mipsel_24kc.ipk
+Size: 88424
+SHA256sum: bba2b8a7bd762bfd22ce78272a2a92342b587bc5b1805b0542c8cf822cf9b59b
+Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
