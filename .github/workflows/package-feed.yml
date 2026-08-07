@@ -341,12 +341,10 @@ jobs:
           by David Connolly. Not affiliated with, endorsed by, or supported by
           the OpenWrt project. Report problems at
           <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
-          <p>Two packages, both built from a source snapshot:
-          <code>udpspeeder-snapshot</code>, the stock tunnel newer than the
-          official feed carries, and <code>udpspeeder-simd-snapshot</code>, the
-          SIMD fork. Both carry a name of their own, so adding this feed
-          changes nothing until you install one by name, and neither claims a
-          name OpenWrt ships or is being asked to ship.</p>
+          <p>Two packages, both from a source snapshot:
+          <code>udpspeeder-snapshot</code>, the stock tunnel, and
+          <code>udpspeeder-simd-snapshot</code>, the SIMD fork. Adding this
+          feed installs nothing on its own.</p>
           <h2>OpenWrt snapshot (apk)</h2>
           <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
             https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
