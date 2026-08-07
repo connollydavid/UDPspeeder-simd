@@ -8,7 +8,7 @@ pkg=udpspeeder-snapshot
 fail=0
 
 mkdir -p /var/lock /var/run /var/log
-arch=$(sed -n 's/^DISTRIB_ARCH=//p' /etc/openwrt_release | tr -d '"')
+arch=$(sed -n 's/^DISTRIB_ARCH=//p' /etc/openwrt_release | tr -d "\"'")
 [ -n "$arch" ] || arch=$(apk --print-arch 2>/dev/null)
 echo "line $rel  arch $arch"
 
