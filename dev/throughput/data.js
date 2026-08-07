@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786124653639,
+  "lastUpdate": 1786124989758,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -951,6 +951,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 597.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "0ba7c9f5f9b74a26ed016a59076bb1c5d6879225",
+          "message": "Say the two do not interoperate on the landing page\n\nDropping the usage section took the only statement that this fork and stock\nudpspeeder cannot talk to each other. It belongs beside the package it applies\nto.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T18:45:30+01:00",
+          "tree_id": "f6c49d0e300b61f9b34c377b2a850a3b07288c5e",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/0ba7c9f5f9b74a26ed016a59076bb1c5d6879225"
+        },
+        "date": 1786124985675,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1586.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1327.6,
             "unit": "Mbps"
           }
         ]
