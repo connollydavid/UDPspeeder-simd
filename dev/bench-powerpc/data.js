@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786119769047,
+  "lastUpdate": 1786120108246,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -4114,6 +4114,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1066.08,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5c1728034eeac0dfcbea7d6694fb593866b4b944",
+          "message": "Give the verification the two things the rootfs image lacks\n\nThe image has no timeout applet and no /var/lock, so every probe exited 127\nwith empty output and opkg could not take its lock. Both read as the tunnel\nfailing. Installing coreutils-timeout and creating the runtime directories\nmakes both lines pass, runtime test included.\n\nThe install and package commands no longer discard stderr, which is what hid\nthis.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T17:27:02+01:00",
+          "tree_id": "54570ecfd977c98be028d4a88e276b42f41a8974",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5c1728034eeac0dfcbea7d6694fb593866b4b944"
+        },
+        "date": 1786120105952,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 133.74,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 445.882,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1693.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 2481.41,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 37875.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 125079,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 43575,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 135619,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 136.12,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 468.691,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1801.66,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2689.04,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 146.798,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 404.279,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 2099.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2054.97,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 153.989,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 402.504,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1419.27,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2059.08,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 765.48,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1242.72,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3167.31,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4354.62,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 475.599,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 974.937,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3004.67,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4259.34,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2221.02,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1448.51,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1056.7,
             "unit": "ns/op"
           }
         ]
