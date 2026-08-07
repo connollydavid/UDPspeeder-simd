@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786117727663,
+  "lastUpdate": 1786119443689,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -645,6 +645,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 670.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "dfe77228ecee0fdb39849acaf64fe3dce051c604",
+          "message": "Install the packages in OpenWrt before publishing them\n\nThe matrix proved the packages build; nothing proved one installs or runs. A\njob now installs both into the release's own x86-64 rootfs image, checks each\nbinary introduces itself as the package that shipped it and says it is an\nunofficial build, and runs the package's own runtime test. The index job waits\non it, so a package that cannot install cannot reach the feed.\n\nOne architecture and two images, native on the runner, so it costs a couple of\nminutes rather than another matrix.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T17:12:54+01:00",
+          "tree_id": "ff6d614a197c2d1f4aa05e0dd38610c65adbdb04",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/dfe77228ecee0fdb39849acaf64fe3dce051c604"
+        },
+        "date": 1786119442631,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 804.8,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 674.3,
             "unit": "Mbps"
           }
         ]
