@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786120108246,
+  "lastUpdate": 1786120725739,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -4293,6 +4293,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1056.7,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "25a0e7b6b9703ea33c0c04bf3f951fbd43a02e75",
+          "message": "Report the hardening rather than require it\n\nDemanding a position-independent executable made the check assert a build\nconfiguration the mirrored package does not have. It now fails only on defects\na package controls, an executable stack, a missing RELRO segment or an RPATH,\nand reports the ELF type and whether RELRO is full.\n\nCo-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-07T17:37:27+01:00",
+          "tree_id": "56d7156cd5561b3de0d9ddf3b071abe03f86edcd",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/25a0e7b6b9703ea33c0c04bf3f951fbd43a02e75"
+        },
+        "date": 1786120723546,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 133.828,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 460.068,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1704.77,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 2496.07,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 37800.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 125369,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 59360.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 135101,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 135.636,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 469.612,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1802.21,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2690.17,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 144.958,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 393.465,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1394.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2038.39,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 150.571,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 398.845,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1401.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2038.83,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 776.218,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1253.11,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3179.91,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4360.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 470.811,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 970.285,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2993.91,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4226.82,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2208.05,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1443.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1056.52,
             "unit": "ns/op"
           }
         ]
