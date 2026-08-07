@@ -20,7 +20,8 @@ static void print_help() {
     printf("UDPspeeder V2\n");
     printf("git version: %s    ", git_version_buf);
     printf("build date: %s %s\n", __DATE__, __TIME__);
-    printf("repository: https://github.com/wangyu-/UDPspeeder\n");
+    printf("repository: https://github.com/connollydavid/UDPspeeder-simd\n");
+    printf("based on UDPspeeder: https://github.com/wangyu-/UDPspeeder\n");
     printf("\n");
     printf("usage:\n");
     printf("    run as client: ./this_program -c -l local_listen_ip:local_port -r server_ip:server_port  [options]\n");
