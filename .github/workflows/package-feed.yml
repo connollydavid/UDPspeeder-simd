@@ -340,7 +340,7 @@ jobs:
           <p class=unofficial><strong>A personal feed.</strong> Built and signed
           by David Connolly. Not affiliated with, endorsed by, or supported by
           the OpenWrt project. Report problems at
-          <a href="https://github.com/connollydavid/packages/issues">connollydavid/packages</a>.</p>
+          <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
           <p>Two packages, both built from a source snapshot:
           <code>udpspeeder-snapshot</code>, the stock tunnel newer than the
           official feed carries, and <code>udpspeeder-simd-snapshot</code>, the
