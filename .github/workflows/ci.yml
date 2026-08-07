@@ -20,6 +20,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: The banner version must match the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF#refs/tags/}"
+          banner=$(sed -n 's/^#define PROGRAM_VERSION "\(.*\)"$/\1/p' main.cpp)
+          if [ -z "$banner" ]; then
+            echo "FAIL  no PROGRAM_VERSION found in main.cpp"
+            exit 1
+          fi
+          if [ "$tag" != "$banner" ]; then
+            echo "FAIL  tag is $tag but the banner says $banner"
+            echo "      Edit PROGRAM_VERSION in main.cpp, then move the tag."
+            exit 1
+          fi
+          echo "ok    banner and tag agree on $tag"
+
       - name: Run correctness tests
         run: make test
 

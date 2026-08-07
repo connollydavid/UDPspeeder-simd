@@ -84,7 +84,7 @@ See [UDPspeeder + openvpn config guide](https://github.com/wangyu-/UDPspeeder/wi
 
 ### Full Options
 ```host-lint:ignore
-udpspeeder-simd v1.0.5
+udpspeeder-simd v1.0.6
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
 repository: https://github.com/connollydavid/UDPspeeder-simd
 based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
