@@ -13,11 +13,15 @@
 #include "git_version.h"
 using namespace std;
 
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "udpspeeder-simd"
+#endif
+
 static void print_help() {
     char git_version_buf[100] = {0};
     strncpy(git_version_buf, gitversion, sizeof(git_version_buf) - 1);
 
-    printf("UDPspeeder V2\n");
+    printf("%s\n", PROGRAM_NAME);
     printf("git version: %s    ", git_version_buf);
     printf("build date: %s %s\n", __DATE__, __TIME__);
     printf("repository: https://github.com/connollydavid/UDPspeeder-simd\n");

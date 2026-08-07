@@ -105,7 +105,7 @@ https://github.com/wangyu-/udp2raw-tunnel
 
 ### 命令选项
 ```host-lint:ignore
-UDPspeeder V2
+udpspeeder-simd
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
 repository: https://github.com/connollydavid/UDPspeeder-simd
 based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
