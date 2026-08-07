@@ -6,15 +6,19 @@ fail=0
 
 sed -n 's/^DISTRIB_DESCRIPTION=//p' /etc/openwrt_release | tr -d '"'
 
+mkdir -p /var/lock /var/run /var/log
+
 if [ "$fmt" = opkg ]; then
-	opkg update >/dev/null 2>&1 || { echo "FAIL  opkg update"; exit 1; }
+	opkg update || { echo "FAIL  opkg update"; exit 1; }
+	opkg install coreutils-timeout || { echo "FAIL  no timeout applet available"; exit 1; }
 	for f in /pkgs/*.ipk; do
-		opkg install "$f" >/dev/null 2>&1 || { echo "FAIL  opkg install $f"; exit 1; }
+		opkg install "$f" || { echo "FAIL  opkg install $f"; exit 1; }
 	done
 else
-	apk update >/dev/null 2>&1 || { echo "FAIL  apk update"; exit 1; }
+	apk update || { echo "FAIL  apk update"; exit 1; }
+	apk add coreutils-timeout || { echo "FAIL  no timeout applet available"; exit 1; }
 	for f in /pkgs/*.apk; do
-		apk add --allow-untrusted "$f" >/dev/null 2>&1 || { echo "FAIL  apk add $f"; exit 1; }
+		apk add --allow-untrusted "$f" || { echo "FAIL  apk add $f"; exit 1; }
 	done
 fi
 echo "ok    both packages installed"
