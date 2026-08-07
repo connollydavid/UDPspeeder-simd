@@ -15,6 +15,7 @@ concurrency:
 env:
   PKG_REPO: https://github.com/connollydavid/packages.git
   PKGS: udpspeeder-snapshot udpspeeder-simd-snapshot
+  FEED: https://connollydavid.github.io/UDPspeeder-simd/feed
 
 jobs:
   matrix:
@@ -407,3 +408,47 @@ jobs:
           publish_dir: ./site
           destination_dir: feed
           keep_files: false
+
+  signed-feed:
+    name: Install from the signed feed on ${{ matrix.release }}
+    needs: index
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: '24.10'
+            fmt: opkg
+          - release: '25.12'
+            fmt: apk
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve the newest ${{ matrix.release }} rootfs image
+        id: img
+        run: |
+          api="https://hub.docker.com/v2/repositories/openwrt/rootfs/tags"
+          tag=$(wget -qO- "$api?page_size=100&name=x86-64-${{ matrix.release }}." \
+            | tr ',' '\n' \
+            | grep -oE '"x86-64-${{ matrix.release }}\.[0-9]+"' \
+            | tr -d '"' | sort -V | tail -1)
+          if [ -z "$tag" ]; then
+            echo "FAIL  no x86-64 rootfs image published for ${{ matrix.release }}"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Pages to serve the new index
+        run: |
+          for i in $(seq 1 30); do
+            wget -q --spider "$FEED/${{ matrix.release }}/x86_64/packages.adb" && break
+            wget -q --spider "$FEED/${{ matrix.release }}/x86_64/Packages" && break
+            sleep 10
+          done
+          wget -q --spider "$FEED/" || { echo "FAIL  $FEED never became reachable"; exit 1; }
+
+      - name: Follow the published instructions, key and all
+        run: |
+          docker run --rm -v "$PWD/.github/scripts:/s:ro" \
+            "openwrt/rootfs:${{ steps.img.outputs.tag }}" \
+            /bin/sh /s/verify-signed-feed.sh "${{ matrix.fmt }}" "$FEED" "${{ matrix.release }}"
