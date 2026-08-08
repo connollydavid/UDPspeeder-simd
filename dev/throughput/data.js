@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786228640954,
+  "lastUpdate": 1786229837451,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1053,6 +1053,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1631.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3de97dd06a70c86a3fcbe953e41d384024511b48",
+          "message": "package feed: verify a snapshot SDK against sums read after it\n\nA snapshot SDK is rebuilt continuously, so the tarball can change between\nreading the checksum file and fetching it. The window was the whole SDK\ndownload. The sums are now read after the tarball, which cuts the window\nto a few kilobytes and makes the comparison one about bytes already held,\nand the fetch retries three times before giving up.",
+          "timestamp": "2026-08-08T23:53:09+01:00",
+          "tree_id": "fe5b6eb188577be434c4fc07b2007e2d7a38b6eb",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3de97dd06a70c86a3fcbe953e41d384024511b48"
+        },
+        "date": 1786229832665,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 797.6,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 721.4,
             "unit": "Mbps"
           }
         ]
