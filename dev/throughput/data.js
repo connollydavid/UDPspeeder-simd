@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786229837451,
+  "lastUpdate": 1786232355549,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1087,6 +1087,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 721.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d02580721767610029e123dc51beacf191dce6fb",
+          "message": "package feed: the flashprog variants install side by side now\n\nThey no longer share a path, so the verify job installs every package it\nwas given and runs each one's own test, and the page no longer tells\npeople to pick one.",
+          "timestamp": "2026-08-09T00:34:49+01:00",
+          "tree_id": "67060ded695d7c293997b5f76efebeb12885d85a",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d02580721767610029e123dc51beacf191dce6fb"
+        },
+        "date": 1786232350070,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 839.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 632.3,
             "unit": "Mbps"
           }
         ]
