@@ -86,13 +86,20 @@ jobs:
 
       - name: Fetch and verify the SDK
         run: |
-          wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
-          want=$(grep " \*\?${{ steps.sdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
-          got=$(sha256sum sdk.tar.zst | awk '{print $1}')
-          if [ -z "$want" ] || [ "$want" != "$got" ]; then
+          matched=
+          for attempt in 1 2 3; do
+            wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
+            wget -qO sha256sums "${{ steps.sdk.outputs.base }}/sha256sums"
+            want=$(grep " \*\?${{ steps.sdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
+            got=$(sha256sum sdk.tar.zst | awk '{print $1}')
+            if [ -n "$want" ] && [ "$want" = "$got" ]; then matched=y; break; fi
+            echo "note    attempt $attempt read sums that no longer match the tarball"
+            echo "        recorded $want"
+            echo "        got      $got"
+            sleep 30
+          done
+          if [ -z "$matched" ]; then
             echo "FAIL  SDK checksum mismatch for ${{ steps.sdk.outputs.sdk }}"
-            echo "      recorded $want"
-            echo "      got      $got"
             exit 1
           fi
           echo "ok      sha256 $got"
