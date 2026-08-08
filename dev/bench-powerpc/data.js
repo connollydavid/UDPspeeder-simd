@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786228543550,
+  "lastUpdate": 1786229655683,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -5904,6 +5904,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1065.52,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3de97dd06a70c86a3fcbe953e41d384024511b48",
+          "message": "package feed: verify a snapshot SDK against sums read after it\n\nA snapshot SDK is rebuilt continuously, so the tarball can change between\nreading the checksum file and fetching it. The window was the whole SDK\ndownload. The sums are now read after the tarball, which cuts the window\nto a few kilobytes and makes the comparison one about bytes already held,\nand the fetch retries three times before giving up.",
+          "timestamp": "2026-08-08T23:53:09+01:00",
+          "tree_id": "fe5b6eb188577be434c4fc07b2007e2d7a38b6eb",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3de97dd06a70c86a3fcbe953e41d384024511b48"
+        },
+        "date": 1786229651997,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 106.378,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 325.849,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1190.87,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1746.16,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 27078.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 90251.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 31843.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 98507.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 110.48,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 399.695,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1552.37,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2331.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 110.938,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 384.566,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1471.32,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2159.87,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 119.832,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 390.22,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1478.25,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2164.82,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 823.816,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1272.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3361.54,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4632.92,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 480.127,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 971.117,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3155.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4483.42,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2337.27,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1520.97,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1136.41,
             "unit": "ns/op"
           }
         ]
