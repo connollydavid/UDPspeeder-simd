@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786227919936,
+  "lastUpdate": 1786228640954,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1019,6 +1019,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 965.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "7848e28f2379b4c2c22d42b4c8851a119cb3bf44",
+          "message": "package feed: give the build the feeds its dependencies live in\n\nThe build replaced feeds.conf with the local feed alone. That was enough\nwhile every package needed only libstdcpp, which the SDK ships, and it\nfails the moment one needs libpci, libftdi1 or libjaylink: meson resolves\na selected programmer group against a library that is not staged and\nstops. The base and packages feeds for the release line are now written\nalongside the local one.",
+          "timestamp": "2026-08-08T23:33:21+01:00",
+          "tree_id": "938cae7c4fd5a80d8cb253a12e7936e90dcfd850",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/7848e28f2379b4c2c22d42b4c8851a119cb3bf44"
+        },
+        "date": 1786228636958,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1837.8,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1631.6,
             "unit": "Mbps"
           }
         ]
