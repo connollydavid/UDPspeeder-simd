@@ -16,6 +16,7 @@ env:
   PKG_REPO: https://github.com/connollydavid/packages.git
   PKG_DIRS: net/udpspeeder-snapshot net/udpspeeder-simd-snapshot utils/flashprog-snapshot
   PKGS: udpspeeder-snapshot udpspeeder-simd-snapshot flashprog-snapshot flashprog-spi-snapshot
+  DEP_PKGS: libatomic1 libftdi1 libjaylink libpci libusb-1.0-0
   FEED: https://connollydavid.github.io/UDPspeeder-simd/feed
 
 jobs:
@@ -136,7 +137,7 @@ jobs:
       - name: Collect
         run: |
           mkdir -p out
-          for p in $PKGS; do
+          for p in $PKGS $DEP_PKGS; do
             find sdk/bin \( -name "$p-[0-9]*.apk" -o -name "${p}_[0-9]*.ipk" \) \
               -exec cp {} out/ \;
           done
@@ -365,6 +366,10 @@ jobs:
           by David Connolly. Not affiliated with, endorsed by, or supported by
           the OpenWrt project. Report problems at
           <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
+          <p>The libraries flashprog needs are carried here too, under the
+          names OpenWrt ships them under, so the feed installs on a system
+          whose package repository is not configured. If yours is, prefer it:
+          these are built from the release SDK and will lag.</p>
           <p>Four packages: <code>udpspeeder-snapshot</code>, the stock
           tunnel, <code>udpspeeder-simd-snapshot</code>, the SIMD fork, and
           <code>flashprog-snapshot</code> with
