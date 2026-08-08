@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786124989758,
+  "lastUpdate": 1786227919936,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -985,6 +985,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1327.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "f2c0da9b47bcacfa1b7b1f91f0ecba9be5c65ac2",
+          "message": "package feed: carry the flashprog packages\n\nThe feed took its package list as bare names under net/. It now takes\npaths, so a package can live in another section, and collects by package\nname rather than by a udpspeeder glob.\n\nThe two flashprog packages own the same path and refuse to install\ntogether, so the verify job installs the full one and runs the package's\nown test against it.",
+          "timestamp": "2026-08-08T23:21:06+01:00",
+          "tree_id": "f87bbacada1a1827ed0b894569efaa443a076700",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/f2c0da9b47bcacfa1b7b1f91f0ecba9be5c65ac2"
+        },
+        "date": 1786227914404,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1187.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 965.8,
             "unit": "Mbps"
           }
         ]
