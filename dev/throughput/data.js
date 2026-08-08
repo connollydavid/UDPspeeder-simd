@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786232355549,
+  "lastUpdate": 1786233445993,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1121,6 +1121,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 632.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "03b8369f05539430085a52eef03fd46ffa6bc620",
+          "message": "package feed: carry the libraries flashprog links\n\nA system whose package repository is not configured cannot resolve libpci,\nlibftdi1, libjaylink or libusb, so the feed's own packages are\nuninstallable there. They are collected and published alongside, under the\nnames OpenWrt uses, which the page now says outright.",
+          "timestamp": "2026-08-09T00:53:20+01:00",
+          "tree_id": "87c69805ffa449087504d508e39b644e8a3bb03d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/03b8369f05539430085a52eef03fd46ffa6bc620"
+        },
+        "date": 1786233438706,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1641.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1337.4,
             "unit": "Mbps"
           }
         ]
