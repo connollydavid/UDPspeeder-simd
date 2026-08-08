@@ -11,9 +11,10 @@ a{color:#8bf}}</style>
 by David Connolly. Not affiliated with, endorsed by, or supported by
 the OpenWrt project. Report problems at
 <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
-<p>Two packages, both from a source snapshot:
-<code>udpspeeder-snapshot</code>, the stock tunnel, and
-<code>udpspeeder-simd-snapshot</code>, the SIMD fork. Adding this
+<p>Four packages: <code>udpspeeder-snapshot</code>, the stock
+tunnel, <code>udpspeeder-simd-snapshot</code>, the SIMD fork, and
+<code>flashprog-snapshot</code> with
+<code>flashprog-spi-snapshot</code>, a flash chip programmer. Adding this
 feed installs nothing on its own.</p>
 <h2>OpenWrt snapshot (apk)</h2>
 <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \
@@ -59,3 +60,19 @@ and the name belongs to OpenWrt.</p>
 <p>It checksums the wire with CRC32C where <code>udpspeeder</code>
 uses CRC-32, so the two do not interoperate. Run it at both ends of
 the link.</p>
+<h2>flashprog-snapshot</h2>
+<p>flashprog identifies, reads, writes, verifies and erases flash
+chips over SPI, LPC, FWH and parallel buses. It is offered to OpenWrt
+in <a href="https://github.com/openwrt/packages/issues/29591">issue
+29591</a> and carries a name of its own until that is settled.</p>
+<pre>apk add flashprog-snapshot</pre>
+<p>or <code>opkg install flashprog-snapshot</code> on 24.10.</p>
+<p>It reaches the board's own flash through MTD and spidev, and
+external chips through a serial, USB, FTDI or SEGGER J-Link
+programmer, and on x86 through the mainboard or a PCI device.</p>
+<h2>flashprog-spi-snapshot</h2>
+<p>The same programmer carrying only what needs no library: MTD,
+spidev and the serial programmers. It owns
+<code>/usr/bin/flashprog</code> too, so the two conflict and you
+install one or the other.</p>
+<pre>apk add flashprog-spi-snapshot</pre>

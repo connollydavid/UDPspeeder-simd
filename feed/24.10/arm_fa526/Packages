@@ -1,3 +1,47 @@
+Package: flashprog-snapshot
+Version: 1.5-r1
+Depends: libc, libftdi1, libjaylink, libusb-1.0-0
+Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+License: GPL-2.0-only
+Section: utils
+URL: https://flashprog.org/
+Architecture: arm_fa526
+Installed-Size: 696320
+Filename: flashprog-snapshot_1.5-r1_arm_fa526.ipk
+Size: 137296
+SHA256sum: 194cb81aac985e845b58f01409910f95f4377eeb2ee7ce2710a865182ca9266c
+Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
+ SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
+ https://github.com/openwrt/packages/issues/29591 and carries a name of its
+ own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
+ the package under review.
+ 
+ This build reaches the board's own flash through MTD and spidev, and
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
+ and on x86 through the mainboard or a PCI device.
+
+Package: flashprog-spi-snapshot
+Version: 1.5-r1
+Depends: libc
+Conflicts: flashprog, flashprog-spi
+Provides: flashprog-snapshot
+License: GPL-2.0-only
+Section: utils
+URL: https://flashprog.org/
+Architecture: arm_fa526
+Installed-Size: 634880
+Filename: flashprog-spi-snapshot_1.5-r1_arm_fa526.ipk
+Size: 107252
+SHA256sum: da6538b054a1d1af9319839cd1a8c0f65af585f415f2b5637f9c1ef385c3e650
+Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
+ SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
+ https://github.com/openwrt/packages/issues/29591 and carries a name of its
+ own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
+ the package under review.
+ 
+ This build reaches the board's own flash through MTD and spidev, and
+ external chips through a serial programmer. It needs no libraries.
+
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1
 Depends: libc, libstdcpp6
