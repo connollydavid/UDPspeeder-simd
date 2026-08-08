@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786232173409,
+  "lastUpdate": 1786233275627,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -6262,6 +6262,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1137.96,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "03b8369f05539430085a52eef03fd46ffa6bc620",
+          "message": "package feed: carry the libraries flashprog links\n\nA system whose package repository is not configured cannot resolve libpci,\nlibftdi1, libjaylink or libusb, so the feed's own packages are\nuninstallable there. They are collected and published alongside, under the\nnames OpenWrt uses, which the page now says outright.",
+          "timestamp": "2026-08-09T00:53:20+01:00",
+          "tree_id": "87c69805ffa449087504d508e39b644e8a3bb03d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/03b8369f05539430085a52eef03fd46ffa6bc620"
+        },
+        "date": 1786233270129,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 112.371,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 325.309,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1193.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1748.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 27258.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 90509,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 32231.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 98848.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 110.456,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 401.666,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1552.02,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2322.74,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 111.881,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 387.288,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1472.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2180.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 120.562,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 391.333,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1477.73,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 3346.42,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 1371.77,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1278.43,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3375.95,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4633.81,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 476.703,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 967.175,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3145.86,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4475.76,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2323.69,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1525.08,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1134.69,
             "unit": "ns/op"
           }
         ]
