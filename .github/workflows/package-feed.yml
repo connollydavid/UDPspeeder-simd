@@ -101,8 +101,19 @@ jobs:
       - name: Build
         run: |
           cd sdk
-          echo "src-link localfeed $GITHUB_WORKSPACE/localfeed" > feeds.conf
-          ./scripts/feeds update localfeed
+          if [ "${{ matrix.release }}" = main ]; then
+            basebranch=main; pkgbranch=master
+          else
+            basebranch=openwrt-${{ matrix.release }}; pkgbranch=openwrt-${{ matrix.release }}
+          fi
+          sed -E \
+            -e 's#^src-git-full #src-git #' \
+            -e "s#(base https://git\.openwrt\.org/openwrt/openwrt\.git).*#\1;$basebranch#" \
+            -e "s#(packages https://git\.openwrt\.org/feed/packages\.git).*#\1;$pkgbranch#" \
+            feeds.conf.default | grep -E ' (base|packages) ' > feeds.conf
+          echo "src-link localfeed $GITHUB_WORKSPACE/localfeed" >> feeds.conf
+          cat feeds.conf
+          ./scripts/feeds update -a
           ./scripts/feeds install -a -p localfeed
           make defconfig
           for p in $PKGS; do echo "CONFIG_PACKAGE_$p=m" >> .config; done
