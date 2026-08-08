@@ -12,14 +12,12 @@ if [ "$fmt" = opkg ]; then
 	opkg update || { echo "FAIL  opkg update"; exit 1; }
 	opkg install coreutils-timeout || { echo "FAIL  no timeout applet available"; exit 1; }
 	for f in /pkgs/*.ipk; do
-		case "$f" in *flashprog-spi-snapshot*) continue ;; esac
 		opkg install "$f" || { echo "FAIL  opkg install $f"; exit 1; }
 	done
 else
 	apk update || { echo "FAIL  apk update"; exit 1; }
 	apk add coreutils-timeout || { echo "FAIL  no timeout applet available"; exit 1; }
 	for f in /pkgs/*.apk; do
-		case "$f" in *flashprog-spi-snapshot*) continue ;; esac
 		apk add --allow-untrusted "$f" || { echo "FAIL  apk add $f"; exit 1; }
 	done
 fi
@@ -27,7 +25,7 @@ echo "ok    packages installed"
 
 for f in /usr/bin/udpspeeder /etc/config/udpspeeder /etc/init.d/udpspeeder \
 	/usr/bin/udpspeeder-simd /etc/config/udpspeeder-simd /etc/init.d/udpspeeder-simd \
-	/usr/bin/flashprog; do
+	/usr/bin/flashprog /usr/bin/flashprog-spi; do
 	[ -e "$f" ] || { echo "FAIL  $f missing"; fail=1; }
 done
 [ "$fail" -eq 0 ] && echo "ok    every installed path present"
@@ -61,15 +59,17 @@ for c in /etc/config/udpspeeder /etc/config/udpspeeder-simd; do
 done
 
 mkdir -p /out
-cp /usr/bin/udpspeeder /usr/bin/udpspeeder-simd /usr/bin/flashprog /out/ 2>/dev/null
+cp /usr/bin/udpspeeder /usr/bin/udpspeeder-simd /usr/bin/flashprog /usr/bin/flashprog-spi /out/ 2>/dev/null
 
 fpver=$(flashprog --version | sed -n 's/^flashprog v\([^ ]*\).*/\1/p')
-if sh /pkgs/flashprog-test.sh flashprog-snapshot "$fpver"; then
-	echo "ok    flashprog-snapshot passed its own test"
-else
-	echo "FAIL  flashprog-snapshot runtime test"
-	fail=1
-fi
+for p in flashprog-snapshot flashprog-spi-snapshot; do
+	if sh /pkgs/flashprog-test.sh "$p" "$fpver"; then
+		echo "ok    $p passed its own test"
+	else
+		echo "FAIL  $p runtime test"
+		fail=1
+	fi
+done
 
 sh /pkgs/pre-test.sh >/dev/null 2>&1 || { echo "FAIL  pre-test could not install socat"; exit 1; }
 if sh /pkgs/test.sh; then

@@ -426,9 +426,8 @@ jobs:
           programmer, and on x86 through the mainboard or a PCI device.</p>
           <h2>flashprog-spi-snapshot</h2>
           <p>The same programmer carrying only what needs no library: MTD,
-          spidev and the serial programmers. It owns
-          <code>/usr/bin/flashprog</code> too, so the two conflict and you
-          install one or the other.</p>
+          spidev and the serial programmers. It installs as
+          <code>flashprog-spi</code>, so it sits alongside the full build.</p>
           <pre>apk add flashprog-spi-snapshot</pre>
           HTML
 
