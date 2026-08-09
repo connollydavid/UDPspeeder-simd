@@ -1,20 +1,20 @@
 Package: flashprog-snapshot
 Version: 1.5-r1
 Depends: libc, libftdi1, libjaylink, libusb-1.0-0
-Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+Conflicts: flashprog
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: arm_xscale
 Installed-Size: 696320
 Filename: flashprog-snapshot_1.5-r1_arm_xscale.ipk
-Size: 136982
-SHA256sum: d066b422e64c5b672e45c9f19cbf8b8fef4db330ebd88bcb43d7ea9172cf690c
+Size: 136984
+SHA256sum: 109a2b4743b9f74efe6ffcd0a7c0629ddc5c9c4b37a80817fe2bb1d47feb5bcd
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
@@ -23,24 +23,86 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
 Depends: libc
-Conflicts: flashprog, flashprog-spi
-Provides: flashprog-snapshot
+Conflicts: flashprog-spi
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: arm_xscale
 Installed-Size: 634880
 Filename: flashprog-spi-snapshot_1.5-r1_arm_xscale.ipk
-Size: 107105
-SHA256sum: e89addbcc73b2527912ea57b8fe6ac0de297eb7071d796dc3670a4c9cea67a18
+Size: 107087
+SHA256sum: bd0bfd440cd5e4c02d12e4eac5c35a6d12a8d64a369e2a51d9eebb13bf0b5f51
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial programmer. It needs no libraries.
+
+Package: libatomic1
+Version: 13.3.0-r4
+Depends: libgcc1
+Provides: libatomic
+License: GPL-3.0-with-GCC-exception
+Section: libs
+URL: http://gcc.gnu.org/
+ABIVersion: 1
+Status: unknown hold not-installed
+Essential: yes
+Architecture: arm_xscale
+Installed-Size: 30720
+Filename: libatomic1_13.3.0-r4_arm_xscale.ipk
+Size: 6838
+SHA256sum: 4a619b6abf51e0e5772fdba103dad055f40df61146da5ac56e28f9c07490172b
+Description:  Atomic support library
+
+Package: libftdi1
+Version: 1.5-r2
+Depends: libc, libusb-1.0-0
+License: LGPL-2.1-only
+Section: libs
+URL: http://www.intra2net.com/en/developer/libftdi/
+Architecture: arm_xscale
+Installed-Size: 61440
+Filename: libftdi1_1.5-r2_arm_xscale.ipk
+Size: 21947
+SHA256sum: 9004a80b0199f7c55ce0261fecc932304d646909ce33e84c9bdac2dc147b4903
+Description:  libFTDI - FTDI USB driver with bitbang mode
+ libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
+ The library is linked with your program in userspace, no kernel driver required.
+
+Package: libjaylink
+Version: 0.3.1-r1
+Depends: libc, libusb-1.0-0
+License: GPL-2.0+
+Section: libs
+URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
+Architecture: arm_xscale
+Installed-Size: 61440
+Filename: libjaylink_0.3.1-r1_arm_xscale.ipk
+Size: 20236
+SHA256sum: b83328e28992bab1d6c3048becfeb8b1e191b374a1c4987f180cbd8b164c2ddb
+Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
+ compatible devices.
+
+Package: libusb-1.0-0
+Version: 1.0.27-r1
+Depends: libc, libpthread, librt, libatomic1
+Provides: libusb-1.0
+License: LGPL-2.1-or-later
+Section: libs
+URL: https://libusb.info/
+ABIVersion: -0
+CPE-ID: cpe:/a:libusb:libusb
+Architecture: arm_xscale
+Installed-Size: 71680
+Filename: libusb-1.0-0_1.0.27-r1_arm_xscale.ipk
+Size: 31166
+SHA256sum: a2457fce9b80faf7e7a5189a21846ece1cd95ec1c501c296900c6ab42d769ab4
+Description:  libusb is a C library that gives applications easy access to USB devices on
+ many different operating systems.
 
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1

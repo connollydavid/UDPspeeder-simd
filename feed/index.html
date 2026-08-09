@@ -11,6 +11,10 @@ a{color:#8bf}}</style>
 by David Connolly. Not affiliated with, endorsed by, or supported by
 the OpenWrt project. Report problems at
 <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
+<p>The libraries flashprog needs are carried here too, under the
+names OpenWrt ships them under, so the feed installs on a system
+whose package repository is not configured. If yours is, prefer it:
+these are built from the release SDK and will lag.</p>
 <p>Four packages: <code>udpspeeder-snapshot</code>, the stock
 tunnel, <code>udpspeeder-simd-snapshot</code>, the SIMD fork, and
 <code>flashprog-snapshot</code> with
@@ -72,7 +76,6 @@ external chips through a serial, USB, FTDI or SEGGER J-Link
 programmer, and on x86 through the mainboard or a PCI device.</p>
 <h2>flashprog-spi-snapshot</h2>
 <p>The same programmer carrying only what needs no library: MTD,
-spidev and the serial programmers. It owns
-<code>/usr/bin/flashprog</code> too, so the two conflict and you
-install one or the other.</p>
+spidev and the serial programmers. It installs as
+<code>flashprog-spi</code>, so it sits alongside the full build.</p>
 <pre>apk add flashprog-spi-snapshot</pre>

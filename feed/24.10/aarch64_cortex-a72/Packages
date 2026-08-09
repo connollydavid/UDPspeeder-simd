@@ -1,20 +1,20 @@
 Package: flashprog-snapshot
 Version: 1.5-r1
 Depends: libc, libftdi1, libjaylink, libusb-1.0-0
-Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+Conflicts: flashprog
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: aarch64_cortex-a72
 Installed-Size: 860160
 Filename: flashprog-snapshot_1.5-r1_aarch64_cortex-a72.ipk
-Size: 146577
-SHA256sum: 598ac2559fb3fc66b66fc2e18ccc68ea69f99f9706c8b75d5453be61e19b325b
+Size: 146576
+SHA256sum: b64a5c88265b135cd4378c9d53354e09eabf4f1a9368a1260b9df4293958210c
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
@@ -23,24 +23,86 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
 Depends: libc
-Conflicts: flashprog, flashprog-spi
-Provides: flashprog-snapshot
+Conflicts: flashprog-spi
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: aarch64_cortex-a72
 Installed-Size: 798720
 Filename: flashprog-spi-snapshot_1.5-r1_aarch64_cortex-a72.ipk
-Size: 115518
-SHA256sum: c8cfe2d19034863f297c4c23075202ea73c61007ac9ce0f9c20aa0d5a2dfdbdb
+Size: 115513
+SHA256sum: 7b2adf2e4b271d18078376d1f6a88f64b52aaa9ff044829d33f9ddc0e0bc6f64
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial programmer. It needs no libraries.
+
+Package: libatomic1
+Version: 13.3.0-r4
+Depends: libgcc1
+Provides: libatomic
+License: GPL-3.0-with-GCC-exception
+Section: libs
+URL: http://gcc.gnu.org/
+ABIVersion: 1
+Status: unknown hold not-installed
+Essential: yes
+Architecture: aarch64_cortex-a72
+Installed-Size: 71680
+Filename: libatomic1_13.3.0-r4_aarch64_cortex-a72.ipk
+Size: 8117
+SHA256sum: c3d4736c5ce078acfbb198b1ff0bb69df48dabc5ed90610e60e75acfcde0c980
+Description:  Atomic support library
+
+Package: libftdi1
+Version: 1.5-r2
+Depends: libc, libusb-1.0-0
+License: LGPL-2.1-only
+Section: libs
+URL: http://www.intra2net.com/en/developer/libftdi/
+Architecture: aarch64_cortex-a72
+Installed-Size: 81920
+Filename: libftdi1_1.5-r2_aarch64_cortex-a72.ipk
+Size: 23088
+SHA256sum: 2872b9890989b977f3f229d8f3827d405dc225b6a97c29a252ff8a2ce51c355a
+Description:  libFTDI - FTDI USB driver with bitbang mode
+ libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
+ The library is linked with your program in userspace, no kernel driver required.
+
+Package: libjaylink
+Version: 0.3.1-r1
+Depends: libc, libusb-1.0-0
+License: GPL-2.0+
+Section: libs
+URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
+Architecture: aarch64_cortex-a72
+Installed-Size: 71680
+Filename: libjaylink_0.3.1-r1_aarch64_cortex-a72.ipk
+Size: 22488
+SHA256sum: a21c53b35bfebed94651e7c0bf31e6eee2c2ddcdc56cae6b8af22539cf1d3c77
+Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
+ compatible devices.
+
+Package: libusb-1.0-0
+Version: 1.0.27-r1
+Depends: libc, libpthread, librt, libatomic1
+Provides: libusb-1.0
+License: LGPL-2.1-or-later
+Section: libs
+URL: https://libusb.info/
+ABIVersion: -0
+CPE-ID: cpe:/a:libusb:libusb
+Architecture: aarch64_cortex-a72
+Installed-Size: 143360
+Filename: libusb-1.0-0_1.0.27-r1_aarch64_cortex-a72.ipk
+Size: 36231
+SHA256sum: dfc33ae95cb0117bfac68d6c0e3e59c7efe936f860d8dbaa1ec1902b79cdde19
+Description:  libusb is a C library that gives applications easy access to USB devices on
+ many different operating systems.
 
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1

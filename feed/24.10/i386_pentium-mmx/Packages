@@ -1,20 +1,20 @@
 Package: flashprog-snapshot
 Version: 1.5-r1
 Depends: libc, libpci, libftdi1, libjaylink, libusb-1.0-0
-Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+Conflicts: flashprog
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: i386_pentium-mmx
 Installed-Size: 890880
 Filename: flashprog-snapshot_1.5-r1_i386_pentium-mmx.ipk
-Size: 213118
-SHA256sum: f5fe140f22d106ff3b13978a790cf65db558e00e6c6a5b3dd50e651995bfb514
+Size: 213108
+SHA256sum: 5c297e9c36bee47a6a20bf3a8b49ef4321d6559ea86f5ad2678d9afae1a80314
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
@@ -23,24 +23,99 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
 Depends: libc
-Conflicts: flashprog, flashprog-spi
-Provides: flashprog-snapshot
+Conflicts: flashprog-spi
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: i386_pentium-mmx
 Installed-Size: 655360
 Filename: flashprog-spi-snapshot_1.5-r1_i386_pentium-mmx.ipk
-Size: 111925
-SHA256sum: a1aad66808a11d670be9f6c7fc69d7f0f28e604fe20be33e518141e1b2585721
+Size: 111894
+SHA256sum: 1821e6bd8203529fcb1e47f985291fba37a55396105c8b47dfa0d19786d6a1a1
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial programmer. It needs no libraries.
+
+Package: libatomic1
+Version: 13.3.0-r4
+Depends: libgcc1
+Provides: libatomic
+License: GPL-3.0-with-GCC-exception
+Section: libs
+URL: http://gcc.gnu.org/
+ABIVersion: 1
+Status: unknown hold not-installed
+Essential: yes
+Architecture: i386_pentium-mmx
+Installed-Size: 30720
+Filename: libatomic1_13.3.0-r4_i386_pentium-mmx.ipk
+Size: 7203
+SHA256sum: 43aaa8b32e8d8d67407f2632919944346641155f21a47431439846702fde3521
+Description:  Atomic support library
+
+Package: libftdi1
+Version: 1.5-r2
+Depends: libc, libusb-1.0-0
+License: LGPL-2.1-only
+Section: libs
+URL: http://www.intra2net.com/en/developer/libftdi/
+Architecture: i386_pentium-mmx
+Installed-Size: 61440
+Filename: libftdi1_1.5-r2_i386_pentium-mmx.ipk
+Size: 22513
+SHA256sum: f9d4a7c1803223f74ed1c2cd82916f4f04b67fa7ebf8bd18f92eee8708e295c5
+Description:  libFTDI - FTDI USB driver with bitbang mode
+ libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
+ The library is linked with your program in userspace, no kernel driver required.
+
+Package: libjaylink
+Version: 0.3.1-r1
+Depends: libc, libusb-1.0-0
+License: GPL-2.0+
+Section: libs
+URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
+Architecture: i386_pentium-mmx
+Installed-Size: 71680
+Filename: libjaylink_0.3.1-r1_i386_pentium-mmx.ipk
+Size: 22201
+SHA256sum: f7df3ee03ff20f59f0ead1472b9e43a095fdeb1a1cbef4d9ce5929d677c34b4b
+Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
+ compatible devices.
+
+Package: libpci
+Version: 3.14.0-r2
+Depends: libc
+License: GPL-2.0
+Section: libs
+URL: http://mj.ucw.cz/pciutils.shtml
+Architecture: i386_pentium-mmx
+Installed-Size: 71680
+Filename: libpci_3.14.0-r2_i386_pentium-mmx.ipk
+Size: 29243
+SHA256sum: f27dab1e73395f35cea1d7b0ad980e2ac788462dc549c904b48ca29eaf3f1a75
+Description:  Linux PCI Libraries
+
+Package: libusb-1.0-0
+Version: 1.0.27-r1
+Depends: libc, libpthread, librt, libatomic1
+Provides: libusb-1.0
+License: LGPL-2.1-or-later
+Section: libs
+URL: https://libusb.info/
+ABIVersion: -0
+CPE-ID: cpe:/a:libusb:libusb
+Architecture: i386_pentium-mmx
+Installed-Size: 81920
+Filename: libusb-1.0-0_1.0.27-r1_i386_pentium-mmx.ipk
+Size: 34310
+SHA256sum: 0c11b5f2d3345970619df44dde4ee2dd5dd1173019beb7e50d7c9c4f1e266941
+Description:  libusb is a C library that gives applications easy access to USB devices on
+ many different operating systems.
 
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1

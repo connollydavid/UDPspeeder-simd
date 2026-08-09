@@ -1,20 +1,20 @@
 Package: flashprog-snapshot
 Version: 1.5-r1
 Depends: libc, libftdi1, libjaylink, libusb-1.0-0
-Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+Conflicts: flashprog
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: arm_cortex-a15_neon-vfpv4
 Installed-Size: 696320
 Filename: flashprog-snapshot_1.5-r1_arm_cortex-a15_neon-vfpv4.ipk
-Size: 136321
-SHA256sum: 2e1925aada1ef39057e8556a2b7c17e253fb4934fd72bedb9c59b76bd8fdeabe
+Size: 136316
+SHA256sum: f5c0d1266c0176e9cc3e3eaccc278633291b962779c89facd60e84b8c1ff3b13
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
@@ -23,24 +23,86 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
 Depends: libc
-Conflicts: flashprog, flashprog-spi
-Provides: flashprog-snapshot
+Conflicts: flashprog-spi
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: arm_cortex-a15_neon-vfpv4
 Installed-Size: 634880
 Filename: flashprog-spi-snapshot_1.5-r1_arm_cortex-a15_neon-vfpv4.ipk
-Size: 106757
-SHA256sum: a689438d7ab1a7b4bf9cc32339aaffc486a0d68706d7fd7ef074dc65bfa9430e
+Size: 106772
+SHA256sum: 9d471892f7d7b6cfa6f062d251c2358e0eb25635d4b1f195ad44ff00c043e925
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial programmer. It needs no libraries.
+
+Package: libatomic1
+Version: 13.3.0-r4
+Depends: libgcc1
+Provides: libatomic
+License: GPL-3.0-with-GCC-exception
+Section: libs
+URL: http://gcc.gnu.org/
+ABIVersion: 1
+Status: unknown hold not-installed
+Essential: yes
+Architecture: arm_cortex-a15_neon-vfpv4
+Installed-Size: 20480
+Filename: libatomic1_13.3.0-r4_arm_cortex-a15_neon-vfpv4.ipk
+Size: 5780
+SHA256sum: d972a1ca27629fb58069cc1be8e3802be5b38fe619dd16dd4c33a9c8fd1aaa33
+Description:  Atomic support library
+
+Package: libftdi1
+Version: 1.5-r2
+Depends: libc, libusb-1.0-0
+License: LGPL-2.1-only
+Section: libs
+URL: http://www.intra2net.com/en/developer/libftdi/
+Architecture: arm_cortex-a15_neon-vfpv4
+Installed-Size: 61440
+Filename: libftdi1_1.5-r2_arm_cortex-a15_neon-vfpv4.ipk
+Size: 21533
+SHA256sum: 75f35b9d2dee30fe7acd4be8d783213bbd1317f01548b5c1e3022b270fe57e3b
+Description:  libFTDI - FTDI USB driver with bitbang mode
+ libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
+ The library is linked with your program in userspace, no kernel driver required.
+
+Package: libjaylink
+Version: 0.3.1-r1
+Depends: libc, libusb-1.0-0
+License: GPL-2.0+
+Section: libs
+URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
+Architecture: arm_cortex-a15_neon-vfpv4
+Installed-Size: 51200
+Filename: libjaylink_0.3.1-r1_arm_cortex-a15_neon-vfpv4.ipk
+Size: 20110
+SHA256sum: faf00fad6e607b859b5e16eafe04df478a6fbab268c3be1ad9303a220d3aab3c
+Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
+ compatible devices.
+
+Package: libusb-1.0-0
+Version: 1.0.27-r1
+Depends: libc, libpthread, librt, libatomic1
+Provides: libusb-1.0
+License: LGPL-2.1-or-later
+Section: libs
+URL: https://libusb.info/
+ABIVersion: -0
+CPE-ID: cpe:/a:libusb:libusb
+Architecture: arm_cortex-a15_neon-vfpv4
+Installed-Size: 71680
+Filename: libusb-1.0-0_1.0.27-r1_arm_cortex-a15_neon-vfpv4.ipk
+Size: 30162
+SHA256sum: 634f3277b69289c5ba99f1adfe7a0c0f6eadf102472137f44d665ab713fbdbc8
+Description:  libusb is a C library that gives applications easy access to USB devices on
+ many different operating systems.
 
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1

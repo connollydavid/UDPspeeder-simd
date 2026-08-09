@@ -1,20 +1,20 @@
 Package: flashprog-snapshot
 Version: 1.5-r1
 Depends: libc, libftdi1, libjaylink, libusb-1.0-0
-Conflicts: flashprog, flashprog-spi, flashprog-spi-snapshot
+Conflicts: flashprog
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: mips_24kc
 Installed-Size: 727040
 Filename: flashprog-snapshot_1.5-r1_mips_24kc.ipk
-Size: 122457
-SHA256sum: 289fad8c6776b602655d1bc554029a27aa007b38fd8c00952fd3ed080d9d91ed
+Size: 122447
+SHA256sum: 5c23d59481f84a5ce62ab8c5dd199561e7dc7cafa163a7555de48691942895a8
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
@@ -23,24 +23,86 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
 Depends: libc
-Conflicts: flashprog, flashprog-spi
-Provides: flashprog-snapshot
+Conflicts: flashprog-spi
 License: GPL-2.0-only
 Section: utils
 URL: https://flashprog.org/
 Architecture: mips_24kc
 Installed-Size: 665600
 Filename: flashprog-spi-snapshot_1.5-r1_mips_24kc.ipk
-Size: 94467
-SHA256sum: bb72c490d2c47c45b60c9e9030f53c472ed5bc19e9252d325c28eecd1116d562
+Size: 94466
+SHA256sum: 80df1f3f7e303cd58c7e59421f4fb89f8e59a74fefe634677df5115b257bb316
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It owns /usr/bin/flashprog, so it conflicts with
- the package under review.
+ own until that is settled. It installs the same paths as the package under
+ review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial programmer. It needs no libraries.
+
+Package: libatomic1
+Version: 13.3.0-r4
+Depends: libgcc1
+Provides: libatomic
+License: GPL-3.0-with-GCC-exception
+Section: libs
+URL: http://gcc.gnu.org/
+ABIVersion: 1
+Status: unknown hold not-installed
+Essential: yes
+Architecture: mips_24kc
+Installed-Size: 71680
+Filename: libatomic1_13.3.0-r4_mips_24kc.ipk
+Size: 6118
+SHA256sum: f799c167697eba33a639c72d3934dd553dc44497b866650f1e985449b3e58e44
+Description:  Atomic support library
+
+Package: libftdi1
+Version: 1.5-r2
+Depends: libc, libusb-1.0-0
+License: LGPL-2.1-only
+Section: libs
+URL: http://www.intra2net.com/en/developer/libftdi/
+Architecture: mips_24kc
+Installed-Size: 81920
+Filename: libftdi1_1.5-r2_mips_24kc.ipk
+Size: 21856
+SHA256sum: 9730590e21f3cb38d1f0f2c7cb07b95afb94f7230838001d8cc8e062ce4ce5f9
+Description:  libFTDI - FTDI USB driver with bitbang mode
+ libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
+ The library is linked with your program in userspace, no kernel driver required.
+
+Package: libjaylink
+Version: 0.3.1-r1
+Depends: libc, libusb-1.0-0
+License: GPL-2.0+
+Section: libs
+URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
+Architecture: mips_24kc
+Installed-Size: 71680
+Filename: libjaylink_0.3.1-r1_mips_24kc.ipk
+Size: 18195
+SHA256sum: 018153e8ee2af6ff62383c353374d551dae906b29696342f661475dbf0c289d3
+Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
+ compatible devices.
+
+Package: libusb-1.0-0
+Version: 1.0.27-r1
+Depends: libc, libpthread, librt, libatomic1
+Provides: libusb-1.0
+License: LGPL-2.1-or-later
+Section: libs
+URL: https://libusb.info/
+ABIVersion: -0
+CPE-ID: cpe:/a:libusb:libusb
+Architecture: mips_24kc
+Installed-Size: 71680
+Filename: libusb-1.0-0_1.0.27-r1_mips_24kc.ipk
+Size: 30081
+SHA256sum: dbf5a3eb90fdb91f0e7b91f3363e9380da09a532dfe008590c5aa635ebcb1c39
+Description:  libusb is a C library that gives applications easy access to USB devices on
+ many different operating systems.
 
 Package: udpspeeder-simd-snapshot
 Version: 1.0.6-r1
