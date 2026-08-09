@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: loongarch64_generic
 Installed-Size: 839680
 Filename: flashprog-snapshot_1.5-r1_loongarch64_generic.ipk
-Size: 161181
-SHA256sum: ac66f2a9b631f81ba1fb9a327178bbeda61cff2cd34bc4919902b4f6c3c8fd78
+Size: 161195
+SHA256sum: 0f05d12cca06092c784d94a16f582be4d32dc1ea3bc998515d165bed842ecaba
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -17,9 +17,10 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device. The mainboard and PCI
- device programmers need a kernel built with CONFIG_DEVMEM.
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
+ On x86 it also reaches the mainboard, a PCI device and a chip on the
+ parallel port. The mainboard programmer and most PCI device programmers
+ need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

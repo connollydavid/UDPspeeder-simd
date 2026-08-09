@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: arm_cortex-a7
 Installed-Size: 696320
 Filename: flashprog-snapshot_1.5-r1_arm_cortex-a7.ipk
-Size: 136471
-SHA256sum: 8f71ac67ce60721e91be5b60831333504249bd5f496cd04f7f3280e6437f0265
+Size: 136479
+SHA256sum: 512076ce4d66d02007f071e4e4f95fd6d84e028d8df8bc7b0fb2fe9ce2294b8a
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -17,9 +17,10 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device. The mainboard and PCI
- device programmers need a kernel built with CONFIG_DEVMEM.
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
+ On x86 it also reaches the mainboard, a PCI device and a chip on the
+ parallel port. The mainboard programmer and most PCI device programmers
+ need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

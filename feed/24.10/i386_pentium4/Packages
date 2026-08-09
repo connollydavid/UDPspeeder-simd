@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: i386_pentium4
 Installed-Size: 880640
 Filename: flashprog-snapshot_1.5-r1_i386_pentium4.ipk
-Size: 208169
-SHA256sum: 7d5e3cd98462707edbaab489ece15c5680b598da4aefd49ea6ada871d964cf0d
+Size: 208179
+SHA256sum: 33b826ec330315622609564dabbec1b80efd0e57929f43f4bc92af05a8c5ee9a
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -17,9 +17,10 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device. The mainboard and PCI
- device programmers need a kernel built with CONFIG_DEVMEM.
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
+ On x86 it also reaches the mainboard, a PCI device and a chip on the
+ parallel port. The mainboard programmer and most PCI device programmers
+ need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

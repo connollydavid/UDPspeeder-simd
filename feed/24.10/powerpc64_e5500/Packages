@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: powerpc64_e5500
 Installed-Size: 860160
 Filename: flashprog-snapshot_1.5-r1_powerpc64_e5500.ipk
-Size: 147483
-SHA256sum: b106bc219dff70ff967233d0b288b58ae972e70e75b1c215627921c0dd90721a
+Size: 147498
+SHA256sum: 923f0ecffd771c03f7c13267282e7d7e35cc613e762b640f04db6500829008af
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -17,9 +17,10 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device. The mainboard and PCI
- device programmers need a kernel built with CONFIG_DEVMEM.
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
+ On x86 it also reaches the mainboard, a PCI device and a chip on the
+ parallel port. The mainboard programmer and most PCI device programmers
+ need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: mips64_mips64r2
 Installed-Size: 860160
 Filename: flashprog-snapshot_1.5-r1_mips64_mips64r2.ipk
-Size: 133733
-SHA256sum: 8e4b473187cf43896596de4cfb82c8a0991f3a690a86934092d5821277ae8502
+Size: 133741
+SHA256sum: 610e42055bbdcdd4e968a1eee1adc9d6d0f6238c49103136d24453a54fa72a71
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -17,9 +17,10 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  review, so it conflicts with it.
  
  This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device. The mainboard and PCI
- device programmers need a kernel built with CONFIG_DEVMEM.
+ external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
+ On x86 it also reaches the mainboard, a PCI device and a chip on the
+ parallel port. The mainboard programmer and most PCI device programmers
+ need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
