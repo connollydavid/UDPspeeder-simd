@@ -8,19 +8,15 @@ URL: https://flashprog.org/
 Architecture: armeb_xscale
 Installed-Size: 675840
 Filename: flashprog-snapshot_1.5-r1_armeb_xscale.ipk
-Size: 125430
-SHA256sum: 34bc4c37ea7981a133b59e618badb46ec68a2a1071c5cd9f02aded5e66505ecb
-Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
- SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
- https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It installs the same paths as the package under
- review, so it conflicts with it.
- 
- This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial, USB, FTDI or SEGGER J-Link programmer.
- On x86 it also reaches the mainboard, a PCI device and a chip on the
- parallel port. The mainboard programmer and most PCI device programmers
- need a kernel built with CONFIG_DEVMEM.
+Size: 125300
+SHA256sum: 8e07f0484e364accb2bcf680718c792a0759182de5be276ca76b53407e6db8f3
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
+ write-protect and config subcommands read and set the block protection
+ and the status and configuration register bits of SPI NOR chips. This
+ package is offered to OpenWrt in
+ https://github.com/openwrt/packages/issues/29591 and carries a name of
+ its own until that is settled, and the same paths, so it conflicts with
+ the package under review.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
@@ -32,16 +28,15 @@ URL: https://flashprog.org/
 Architecture: armeb_xscale
 Installed-Size: 614400
 Filename: flashprog-spi-snapshot_1.5-r1_armeb_xscale.ipk
-Size: 95560
-SHA256sum: 35a33ed266250e135b591e02887210ac55c0b60dac61ff9f8c88b510fa5b29b8
-Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
- SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
- https://github.com/openwrt/packages/issues/29591 and carries a name of its
- own until that is settled. It installs the same paths as the package under
- review, so it conflicts with it.
- 
- This build reaches the board's own flash through MTD and spidev, and
- external chips through a serial programmer. It needs no libraries.
+Size: 95529
+SHA256sum: 6aa12673681c2d0f3a77fd0f2b4fb7c36b1b47f85813e39fa7e1063207f03065
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
+ write-protect and config subcommands read and set the block protection
+ and the status and configuration register bits of SPI NOR chips. This
+ package is offered to OpenWrt in
+ https://github.com/openwrt/packages/issues/29591 and carries a name of
+ its own until that is settled, and the same paths, so it conflicts with
+ the package under review.
 
 Package: libatomic1
 Version: 13.3.0-r4
