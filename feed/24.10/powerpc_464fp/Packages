@@ -8,12 +8,11 @@ URL: https://flashprog.org/
 Architecture: powerpc_464fp
 Installed-Size: 798720
 Filename: flashprog-snapshot_1.5-r1_powerpc_464fp.ipk
-Size: 144041
-SHA256sum: 056368805c74e71432af53126bb0aace193744076e4a4495b3f038b5896003aa
-Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
- write-protect and config subcommands read and set the block protection
- and the status and configuration register bits of SPI NOR chips. This
- package is offered to OpenWrt in
+Size: 144004
+SHA256sum: f5796714fb8f693eb3deca90dd8702c751ca0127e37590a31d4277ea844a4f84
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. It
+ reads and sets the protection and configuration bits of SPI NOR chips.
+ This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of
  its own until that is settled, and the same paths, so it conflicts with
  the package under review.
@@ -28,12 +27,11 @@ URL: https://flashprog.org/
 Architecture: powerpc_464fp
 Installed-Size: 727040
 Filename: flashprog-spi-snapshot_1.5-r1_powerpc_464fp.ipk
-Size: 111264
-SHA256sum: 206b6554db4ef71abb60a8c4beea01b157911d3f4fc347989ab7ff9460d10687
-Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
- write-protect and config subcommands read and set the block protection
- and the status and configuration register bits of SPI NOR chips. This
- package is offered to OpenWrt in
+Size: 111220
+SHA256sum: a0908099e8993cb0fe28d74f00d40c4545e4b183ed62292f92e7963d93c656c7
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. It
+ reads and sets the protection and configuration bits of SPI NOR chips.
+ This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of
  its own until that is settled, and the same paths, so it conflicts with
  the package under review.
@@ -133,4 +131,6 @@ Filename: udpspeeder-snapshot_20260730-r1_powerpc_464fp.ipk
 Size: 89579
 SHA256sum: f10f0f22c226b18da11ecf694184d2e6b00e5a0f451ec1e6ada8695541311f55
 Description:  A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction,for All Traffics(TCP/UDP/ICMP)
+
+
 

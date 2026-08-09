@@ -8,12 +8,11 @@ URL: https://flashprog.org/
 Architecture: mipsel_74kc
 Installed-Size: 727040
 Filename: flashprog-snapshot_1.5-r1_mipsel_74kc.ipk
-Size: 133517
-SHA256sum: 18ce307561b9892e53fe2a6bd021002b933aca9b5164803d4bcfba3940112a22
-Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
- write-protect and config subcommands read and set the block protection
- and the status and configuration register bits of SPI NOR chips. This
- package is offered to OpenWrt in
+Size: 133487
+SHA256sum: 83dd60c591d13c2f3b89225fad8f96b888608483d84d8e545d82a11dd8c9eb8d
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. It
+ reads and sets the protection and configuration bits of SPI NOR chips.
+ This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of
  its own until that is settled, and the same paths, so it conflicts with
  the package under review.
@@ -28,12 +27,11 @@ URL: https://flashprog.org/
 Architecture: mipsel_74kc
 Installed-Size: 665600
 Filename: flashprog-spi-snapshot_1.5-r1_mipsel_74kc.ipk
-Size: 105454
-SHA256sum: e13fd157d61f6b6ec6db3b97b28e46a67ce5d184bacb202aad9202b0e8547eb0
-Description:  flashprog detects, reads, writes, verifies and erases flash chips. Its
- write-protect and config subcommands read and set the block protection
- and the status and configuration register bits of SPI NOR chips. This
- package is offered to OpenWrt in
+Size: 105414
+SHA256sum: 88c6375a84c51f68d59e72bec9920fd6e821a22f57bd325193193690665c6897
+Description:  flashprog detects, reads, writes, verifies and erases flash chips. It
+ reads and sets the protection and configuration bits of SPI NOR chips.
+ This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of
  its own until that is settled, and the same paths, so it conflicts with
  the package under review.
