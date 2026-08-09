@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: arm_xscale
 Installed-Size: 696320
 Filename: flashprog-snapshot_1.5-r1_arm_xscale.ipk
-Size: 136984
-SHA256sum: 109a2b4743b9f74efe6ffcd0a7c0629ddc5c9c4b37a80817fe2bb1d47feb5bcd
+Size: 137020
+SHA256sum: 554744062c9024cb1540725b0484d650c4db910e598ce8d684ecb7b5894c6069
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -18,7 +18,8 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device.
+ and on x86 through the mainboard or a PCI device. The mainboard and PCI
+ device programmers need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

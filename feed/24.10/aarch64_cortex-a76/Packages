@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: aarch64_cortex-a76
 Installed-Size: 860160
 Filename: flashprog-snapshot_1.5-r1_aarch64_cortex-a76.ipk
-Size: 146576
-SHA256sum: dd5a188b3fc5332f4ace04fd16cc8606eb2ff74ba4eb10c89d26a412862c1999
+Size: 146621
+SHA256sum: 6849bf2c3baf7cd66d9cf4453220c3644f8ff2db3741f81570d688a1b077b974
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -18,7 +18,8 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device.
+ and on x86 through the mainboard or a PCI device. The mainboard and PCI
+ device programmers need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

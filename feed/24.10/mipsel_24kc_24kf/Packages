@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: mipsel_24kc_24kf
 Installed-Size: 727040
 Filename: flashprog-snapshot_1.5-r1_mipsel_24kc_24kf.ipk
-Size: 132834
-SHA256sum: 700f94eaa7c6cc6e2d328a1cf38dbac2a3bfdda954dfd48f3ea7515e9ddde64f
+Size: 132875
+SHA256sum: 72be0206e2ee544bd87cb7d9b1bdba30fd9050f7619f1ef81e49c2193f67ad14
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -18,7 +18,8 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device.
+ and on x86 through the mainboard or a PCI device. The mainboard and PCI
+ device programmers need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

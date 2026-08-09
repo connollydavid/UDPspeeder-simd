@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: arm_arm926ej-s
 Installed-Size: 696320
 Filename: flashprog-snapshot_1.5-r1_arm_arm926ej-s.ipk
-Size: 136956
-SHA256sum: 7070877798beba4330a77e8004e450d2231ab4c1aa685d20926a360988aef299
+Size: 137003
+SHA256sum: f0bf8c86d2df42f51a82085180be159e6177db5a48df915eaf27d714488647b6
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -18,7 +18,8 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device.
+ and on x86 through the mainboard or a PCI device. The mainboard and PCI
+ device programmers need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1

@@ -8,8 +8,8 @@ URL: https://flashprog.org/
 Architecture: powerpc_8548
 Installed-Size: 798720
 Filename: flashprog-snapshot_1.5-r1_powerpc_8548.ipk
-Size: 144868
-SHA256sum: 2fde4167a5aa1e39a4cffeae3a71c3083aa016a25204ef37bd9cad594ce76818
+Size: 144916
+SHA256sum: da3b111f828a047ffa1d7f65765a0933af0490b268a3028a3f800eaf964c19e1
 Description:  flashprog identifies, reads, writes, verifies and erases flash chips over
  SPI, LPC, FWH and parallel buses. This package is offered to OpenWrt in
  https://github.com/openwrt/packages/issues/29591 and carries a name of its
@@ -18,7 +18,8 @@ Description:  flashprog identifies, reads, writes, verifies and erases flash chi
  
  This build reaches the board's own flash through MTD and spidev, and
  external chips through a serial, USB, FTDI or SEGGER J-Link programmer,
- and on x86 through the mainboard or a PCI device.
+ and on x86 through the mainboard or a PCI device. The mainboard and PCI
+ device programmers need a kernel built with CONFIG_DEVMEM.
 
 Package: flashprog-spi-snapshot
 Version: 1.5-r1
