@@ -16,6 +16,9 @@ int main() {
     printf("\n=== Packet Cook Tests ===\n");
     failures += run_packet_tests();
 
+    printf("\n=== DNS Lease Tests ===\n");
+    failures += run_dns_lease_tests();
+
     printf("\n");
     if (failures == 0)
         printf("All tests passed.\n");

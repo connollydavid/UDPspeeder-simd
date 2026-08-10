@@ -48,5 +48,6 @@ int run_fec_tests();
 int run_crc32_tests();
 int run_packet_tests();
 int run_dispatch_tests();
+int run_dns_lease_tests();
 
 #endif

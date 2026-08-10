@@ -13,3 +13,11 @@ git_version.h
 /fuzz_cook_libfuzzer
 fuzz-artifacts/
 fuzz-corpus/
+
+# TLC model checker output
+states/
+mc.out
+mc_*.out
+
+# TLC trace exploration artifacts
+spec/DNSLease_TTrace_*

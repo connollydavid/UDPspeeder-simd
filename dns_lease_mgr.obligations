@@ -1,0 +1,61 @@
+# dns_lease_mgr.obligations - disposition for every `allium plan` obligation.
+# `host-lifecycle obligations dns_lease_mgr.allium --tests bench --strict-discharge`
+# checks this is complete (no obligation undispositioned, no stale entry, every
+# test: name resolves to a `fn <name>(` in the bench sources, every test: carrying
+# an `exercises=` link references that symbol in the named function's body).
+#   <id> => test:<name> exercises=<symbol> | structural | waived: <reason>
+# structural = the spec's own `allium check`/`analyse` lane discharges it (field
+# presence, enum comparability, surface shape). Transition edges and rules are
+# behavioural and are discharged by the named test that walks the edge or rule.
+
+# --- Spec-integrity (covered by the check/analyse lane) ---
+config-default.min_ttl_ms                => structural
+config-default.max_ttl_ms                => structural
+config-default.neg_ttl_cap_ms            => structural
+config-default.query_timeout_ms          => structural
+config-default.max_retries               => structural
+config-default.stale_max_ms              => structural
+config-default.max_candidates            => structural
+enum-comparable.LeaseState               => structural
+enum-comparable.Rcode                    => structural
+entity-fields.Hostname                   => structural
+entity-fields.Lease                      => structural
+entity-fields.NegativeLease              => structural
+entity-fields.Hints                      => structural
+surface-actor.DNSLease                   => structural
+surface-provides.DNSLease                => structural
+transition-rejected.Lease.state          => structural
+
+# --- Transition edges: each walked by test_transitions (or the negative walk) ---
+transition-edge.Lease.unresolved.resolving => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.resolving.valid      => test:test_transitions exercises=dns_lease_feed_response
+transition-edge.Lease.resolving.negative   => test:test_parser_negative exercises=dns_lease_feed_response
+transition-edge.Lease.resolving.failed     => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.valid.refreshing     => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.refreshing.valid     => test:test_transitions exercises=dns_lease_feed_response
+transition-edge.Lease.refreshing.negative  => test:test_transitions exercises=dns_lease_feed_response
+transition-edge.Lease.refreshing.stale     => test:test_transitions exercises=dns_lease_feed_response
+transition-edge.Lease.stale.valid          => test:test_transitions exercises=dns_lease_feed_response
+transition-edge.Lease.stale.expired        => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.negative.resolving   => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.failed.resolving     => test:test_transitions exercises=dns_lease_tick
+transition-edge.Lease.expired.resolving    => test:test_transitions exercises=dns_lease_force_refresh
+
+# --- Behavioural rules ---
+rule-success.ResolveUnresolved            => test:test_state_machine exercises=dns_lease_tick
+rule-failure.ResolveUnresolved.1          => test:test_transitions exercises=dns_lease_tick
+rule-success.ServeHintsOnlyWhenServable   => test:test_parser_valid exercises=dns_lease_get_hints
+rule-failure.ServeHintsOnlyWhenServable.1 => test:test_state_machine exercises=dns_lease_get_hints
+rule-success.RefreshBeforeExpiry          => test:test_transitions exercises=dns_lease_tick
+rule-failure.RefreshBeforeExpiry.1        => test:test_transitions exercises=dns_lease_tick
+rule-success.EffectiveTtlClamped          => test:test_parser_valid exercises=dns_lease_feed_response
+rule-failure.EffectiveTtlClamped.1        => test:test_parser_negative exercises=dns_lease_feed_response
+rule-success.NegativeTtlCapped            => test:test_parser_negative exercises=dns_lease_feed_response
+rule-success.NoSOA_NoNegativeCache        => test:test_parser_negative exercises=dns_lease_feed_response
+rule-failure.NoSOA_NoNegativeCache.1      => test:test_parser_negative exercises=dns_lease_feed_response
+rule-entity-creation.NoSOA_NoNegativeCache.1 => test:test_parser_negative exercises=dns_lease_feed_response
+rule-success.ForceRefreshAnyState         => test:test_state_machine exercises=dns_lease_force_refresh
+rule-success.ExpiredDropsHints            => test:test_state_machine exercises=dns_lease_get_hints
+rule-success.MaxEightCandidates           => test:test_parser_edge exercises=dns_lease_feed_response
+rule-success.StaleKeepsLastKnownIP        => test:test_state_machine exercises=dns_lease_get_hints
+rule-failure.StaleKeepsLastKnownIP.1      => test:test_state_machine exercises=dns_lease_get_hints

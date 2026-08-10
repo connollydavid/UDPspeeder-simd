@@ -38,6 +38,12 @@ extern int fix_latency;
 
 extern address_t local_addr, remote_addr;
 
+/* When -r names a hostname (client mode), the DNS lease manager resolves it at
+ * runtime; the client event loop owns the dns_lease_ctx. */
+extern char remote_host_name[256];
+extern int remote_host_port;
+extern int remote_is_hostname;
+
 extern address_t *out_addr;
 extern char *out_interface;
 
@@ -65,6 +71,10 @@ int delay_send(my_time_t delay, const dest_t &dest, char *data, int len);
 int delay_send_batch(int n, my_time_t *delays, const dest_t &dest, char **data_arr, int *len_arr);
 int print_parameter();
 int handle_command(char *s);
+
+/* Force the client's DNS lease manager to refresh immediately (the FIFO
+ * dns-refresh command). Implemented in tunnel_client.cpp, which owns the ctx. */
+void client_dns_force_refresh();
 
 int unit_test();
 

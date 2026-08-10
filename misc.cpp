@@ -32,6 +32,14 @@ char *out_interface = 0;
 // char local_ip[100], remote_ip[100];
 // int local_port = -1, remote_port = -1;
 
+/* When -r names a hostname rather than an IP literal, the client resolves it
+ * through the DNS lease manager (dns_lease_mgr.h) and keeps the tunnel pointed
+ * at a live candidate. The host part is preserved here; the resolved address
+ * replaces remote_addr in the client event loop. */
+char remote_host_name[256] = "";
+int remote_host_port = 0;
+int remote_is_hostname = 0;
+
 conn_manager_t conn_manager;
 delay_manager_t delay_manager;
 fd_manager_t fd_manager;
@@ -311,6 +319,13 @@ int handle_command(char *s) {
             return -1;
         }
         g_fec_par.timeout = a * 1000;
+    } else if (strncmp(s, "dns-refresh", strlen("dns-refresh")) == 0) {
+        mylog(log_info, "got command [dns-refresh]\n");
+        if (remote_is_hostname) {
+            client_dns_force_refresh();
+        } else {
+            mylog(log_warn, "remote is an IP literal; nothing to refresh\n");
+        }
     } else {
         mylog(log_info, "unknown command\n");
     }
@@ -558,6 +573,53 @@ int unit_test() {
     return 0;
 }
 
+/* Parse -r host:port. The host may be an IP literal (the unchanged path) or, in
+ * client mode, a hostname that the DNS lease manager resolves at runtime. */
+static int parse_remote_arg(char *str, int is_client) {
+    char host[100];
+    u32_t port;
+    int bracketed = 0;
+
+    if (sscanf(str, "[%[^]]]:%u", host, &port) == 2) {
+        bracketed = 1;
+    } else if (sscanf(str, "%[^:]:%u", host, &port) == 2) {
+        /* bare host:port */
+    } else {
+        mylog(log_fatal, "failed to parse remote address [%s]\n", str);
+        myexit(-1);
+    }
+    if (port > 65535) {
+        mylog(log_fatal, "invalid port in remote address [%s]\n", str);
+        myexit(-1);
+    }
+
+    struct in_addr a4;
+    struct in6_addr a6;
+    int is_ip = inet_pton(AF_INET, host, &a4) == 1 || inet_pton(AF_INET6, host, &a6) == 1;
+    if (is_ip)
+        return remote_addr.from_str(str); /* the unchanged IP-literal path */
+
+    /* A bare (unbracketed) IPv6 such as fd00::1:443 splits at the first colon
+     * and would be misread below as the hostname "fd00": reject it. */
+    if (!bracketed) {
+        const char *first_colon = strchr(str, ':');
+        if (first_colon && strchr(first_colon + 1, ':')) {
+            mylog(log_fatal, "bare IPv6 in -r requires square brackets: [%s]\n", str);
+            myexit(-1);
+        }
+    }
+
+    if (!is_client) {
+        mylog(log_fatal, "a hostname in -r is only supported in client mode\n");
+        myexit(-1);
+    }
+
+    strcpy(remote_host_name, host);
+    remote_host_port = (int)port;
+    remote_is_hostname = 1;
+    return 0;
+}
+
 void process_arg(int argc, char *argv[]) {
     int is_client = 0, is_server = 0;
     int i, j, k;
@@ -726,7 +788,7 @@ void process_arg(int argc, char *argv[]) {
                 break;
             case 'r':
                 no_r = 0;
-                remote_addr.from_str(optarg);
+                parse_remote_arg(optarg, is_client);
                 break;
             case 'h':
                 break;
