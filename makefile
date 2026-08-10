@@ -106,7 +106,7 @@ git_version:
 
 # --- Benchmark and test targets ---
 BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp bench/bench_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
-TEST_SOURCES=bench/test_main.cpp bench/test_dispatch.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
+TEST_SOURCES=bench/test_main.cpp bench/test_dispatch.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp bench/test_dns_lease.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
 BENCH_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O2 -DBENCH_EXPOSE_INTERNALS -MMD -MP
 SAN_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O1 -g -fno-omit-frame-pointer -DBENCH_EXPOSE_INTERNALS
 

@@ -153,6 +153,57 @@ jobs:
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
 
+  # The two spec lanes the DNS lease manager carries (plan/0001). A present spec
+  # carries its full lane: the .allium requirements lane here, the .tla timing
+  # lane in the tlc job. Both gate the release below.
+  allium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install allium-cli (pinned 3.5.0)
+        run: cargo install --locked allium-cli --version 3.5.0
+
+      - name: allium check
+        run: allium check dns_lease_mgr.allium
+      - name: allium analyse
+        run: allium analyse dns_lease_mgr.allium
+      - name: allium plan (test obligations)
+        run: allium plan dns_lease_mgr.allium
+
+      - name: Install host-lifecycle (pinned)
+        run: cargo install --locked --git https://github.com/connollydavid/host-lifecycle --rev 486add7227d1cf86f16ea4462a08d4efe0fca159
+
+      - name: Lint obligations (dispositioned, exercises-linked)
+        # Every allium-plan obligation dispositioned; every test: name resolves to a
+        # fn <name>( in the bench sources; every exercises= symbol the named test
+        # references (--strict-discharge). The DNS tests run in the test job.
+        run: host-lifecycle obligations dns_lease_mgr.allium --tests bench --strict-discharge
+
+  tlc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java
+        run: sudo apt-get update && sudo apt-get install -y openjdk-17-jre-headless
+
+      - name: Download the pinned TLC model checker
+        # Hash-pinned like bench/sde.lock: a changed jar fails the build rather
+        # than being carried past it.
+        run: |
+          curl -fsSL https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar -o tla2tools.jar
+          want='936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88'
+          got=$(sha256sum tla2tools.jar | cut -d' ' -f1)
+          if [ "$want" != "$got" ]; then
+            echo "FAIL  tla2tools.jar sha256 mismatch"
+            exit 1
+          fi
+          echo "ok    tla2tools.jar matches the pin"
+
+      - name: Model-check the lease state machine
+        run: java -Djava.awt.headless=true -XX:+UseParallelGC -cp tla2tools.jar tlc2.TLC spec/DNSLease.tla -config spec/MC.cfg
+
   arch-matrix:
     name: Read the architecture map
     runs-on: ubuntu-latest
@@ -539,7 +590,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:

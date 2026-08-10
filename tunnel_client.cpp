@@ -1,5 +1,18 @@
 #include "tunnel.h"
 #include "io_uring_recv.h"
+#include "dns_lease_mgr.h"
+
+/* The DNS lease manager for a hostname -r endpoint. Owned by the client process,
+ * touched only from the libev loop (single-threaded). */
+static dns_lease_ctx_t g_dns_ctx;
+static int g_remote_ready = 0;        /* the connected remote socket exists */
+static int g_uring_available = 0;     /* io_uring is running for the client */
+static int g_remote_uring_armed = 0;  /* the remote multishot recv is armed */
+
+static void dns_log_cb(int level, const char *msg) {
+    (void)level;
+    mylog(log_info, "[dns] %s\n", msg);
+}
 
 static void client_process_local_packet(conn_info_t &conn_info, char *data, int data_len,
                                          struct sockaddr *src_addr, socklen_t src_addr_len) {
@@ -14,6 +27,11 @@ static void client_process_local_packet(conn_info_t &conn_info, char *data, int 
     dest.type = type_fd64;
     dest.inner.fd64 = remote_fd64;
     dest.cook = 1;
+
+    if (remote_fd64 == (fd64_t)-1) {
+        mylog(log_warn, "remote endpoint not resolved yet, dropping packet\n");
+        return;
+    }
 
     if (data_len == max_data_len + 1) {
         mylog(log_warn, "huge packet from upper level, data_len > %d, packet truncated, dropped\n", max_data_len);
@@ -61,6 +79,13 @@ static void client_process_remote_packet(conn_info_t &conn_info, char *data, int
     if (data_len < 0) {
         if (get_sock_errno() == ECONNREFUSED) {
             mylog(log_debug, "recv failed %d ,errno:%s\n", data_len, get_sock_error());
+            /* ICMP port-unreachable for a packet we sent to the current peer:
+             * the endpoint is dead. Force a DNS refresh so a new candidate can
+             * replace it. */
+            if (remote_is_hostname) {
+                mylog(log_warn, "remote endpoint refused; forcing DNS refresh\n");
+                dns_lease_force_refresh(&g_dns_ctx);
+            }
         }
 
         mylog(log_warn, "recv failed %d ,errno:%s\n", data_len, get_sock_error());
@@ -119,6 +144,11 @@ void data_from_local_or_fec_timeout(conn_info_t &conn_info, int is_time_out) {
     dest.type = type_fd64;
     dest.inner.fd64 = remote_fd64;
     dest.cook = 1;
+
+    if (remote_fd64 == (fd64_t)-1) {
+        mylog(log_warn, "remote endpoint not resolved yet, dropping packet\n");
+        return;
+    }
 
     if (is_time_out) {
         mylog(log_trace, "events[idx].data.u64 == conn_info.fec_encode_manager.get_timer_fd64()\n");
@@ -200,12 +230,92 @@ static void fec_encode_cb(struct ev_loop *loop, struct ev_timer *watcher, int re
     data_from_local_or_fec_timeout(conn_info, 1);
 }
 
+
+#ifdef __linux__
+static uring_ctx_t client_uring_ctx;
+static conn_info_t *client_uring_conn_info;
+static void client_uring_drain(struct ev_loop *loop);
+#endif
+
+/* Hoisted from the event loop so the deferred first-resolve arm can reach it. */
+static struct ev_io remote_watcher;
+
+/* True when the tunnel must (re)point at a candidate: there is no socket yet
+ * and hints are servable, or the current remote_addr left the candidate set.
+ * While the current IP stays a candidate we keep it (no churn). */
+static int dns_lease_need_repoint(conn_info_t &conn_info) {
+    if (conn_info.remote_fd == -1)
+        return dns_lease_get_hints(&g_dns_ctx, 0, 0) > 0;
+    int fam = remote_addr.get_type();
+    const void *addr_bytes = (fam == AF_INET) ? (const void *)&remote_addr.inner.ipv4.sin_addr
+                                              : (const void *)&remote_addr.inner.ipv6.sin6_addr;
+    int want = (fam == AF_INET) ? 4 : 16;
+    dns_lease_hint_t h[8];
+    int n = dns_lease_get_hints(&g_dns_ctx, h, 8);
+    for (int i = 0; i < n; i++) {
+        if ((int)h[i].family == fam && memcmp(h[i].addr.a6, addr_bytes, want) == 0)
+            return 0;
+    }
+    return n > 0;
+}
+
+/* Point the remote socket at the best servable hint. On the first lease this
+ * creates the connected socket and arms the recv path; on a later change it
+ * re-points the same fd with a second connect(), which keeps the io_uring
+ * multishot and the ev_io watcher valid. */
+static void on_remote_ip_resolved(conn_info_t &conn_info) {
+    dns_lease_hint_t h[8];
+    int n = dns_lease_get_hints(&g_dns_ctx, h, 8);
+    if (n <= 0)
+        return;
+    address_t a;
+    a.from_ip_port_new((int)h[0].family, (void *)&h[0].addr, remote_host_port);
+
+    if (conn_info.remote_fd == -1) {
+        assert(new_connected_socket2(conn_info.remote_fd, a, out_addr, out_interface) == 0);
+        conn_info.remote_fd64 = fd_manager.create(conn_info.remote_fd);
+        g_remote_ready = 1;
+#ifdef __linux__
+        if (g_uring_available) {
+            uring_add_multishot_recv(&client_uring_ctx, conn_info.remote_fd,
+                                     uring_tag(URING_TAG_CLIENT_REMOTE, 0));
+            uring_submit(&client_uring_ctx);
+            g_remote_uring_armed = 1;
+        }
+#endif
+        if (!g_uring_available) {
+            remote_watcher.data = &conn_info;
+            remote_watcher.u64 = conn_info.remote_fd64;
+            ev_io_init(&remote_watcher, remote_cb, conn_info.remote_fd, EV_READ);
+            ev_io_start(conn_info.loop, &remote_watcher);
+        }
+    } else {
+        assert(connect(conn_info.remote_fd, (struct sockaddr *)&a.inner, a.get_len()) == 0);
+    }
+    remote_addr = a; /* keep the global current for logs */
+}
+
+/* Force the client's DNS lease manager to refresh (FIFO dns-refresh). */
+void client_dns_force_refresh() {
+    if (!remote_is_hostname)
+        return;
+    dns_lease_force_refresh(&g_dns_ctx);
+}
+
 static void conn_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int revents) {
     assert(!(revents & EV_ERROR));
 
     uint64_t value;
 
     conn_info_t &conn_info = *((conn_info_t *)watcher->data);
+
+    /* Drive the DNS lease manager on the existing 400 ms cadence, and re-point
+     * the remote socket when the candidate set changed. */
+    if (remote_is_hostname) {
+        dns_lease_tick(&g_dns_ctx);
+        if (dns_lease_need_repoint(conn_info))
+            on_remote_ip_resolved(conn_info);
+    }
 
     // read(conn_info.timer.get_timer_fd(), &value, 8);
     conn_info.conv_manager.c.clear_inactive();
@@ -226,12 +336,6 @@ static void conn_timer_cb(struct ev_loop *loop, struct ev_timer *watcher, int re
         delay_send_batch(out_n, out_delay, dest, out_arr, out_len);
     }
 }
-
-#ifdef __linux__
-static uring_ctx_t client_uring_ctx;
-static conn_info_t *client_uring_conn_info;
-static void client_uring_drain(struct ev_loop *loop);
-#endif
 
 static void prepare_cb(struct ev_loop *loop, struct ev_prepare *watcher, int revents) {
     assert(!(revents & EV_ERROR));
@@ -345,10 +449,19 @@ int tunnel_client_event_loop() {
     int &remote_fd = conn_info.remote_fd;
     fd64_t &remote_fd64 = conn_info.remote_fd64;
 
-    assert(new_connected_socket2(remote_fd, remote_addr, out_addr, out_interface) == 0);
-    remote_fd64 = fd_manager.create(remote_fd);
-
-    mylog(log_debug, "remote_fd64=%llu\n", remote_fd64);
+    remote_fd = -1;
+    remote_fd64 = (fd64_t)-1;
+    if (!remote_is_hostname) {
+        assert(new_connected_socket2(remote_fd, remote_addr, out_addr, out_interface) == 0);
+        remote_fd64 = fd_manager.create(remote_fd);
+        g_remote_ready = 1;
+        mylog(log_debug, "remote_fd64=%llu\n", remote_fd64);
+    } else {
+        dns_lease_init(&g_dns_ctx, remote_host_name, (uint16_t)remote_host_port);
+        dns_lease_discover_nameservers(&g_dns_ctx);
+        g_dns_ctx.log_fn = dns_log_cb;
+        mylog(log_info, "remote endpoint is a hostname; resolving %s\n", remote_host_name);
+    }
 
     int use_uring = 0;
 #ifdef __linux__
@@ -361,10 +474,14 @@ int tunnel_client_event_loop() {
 
         uring_add_multishot_recvmsg(&client_uring_ctx, local_listen_fd,
                                       uring_tag(URING_TAG_CLIENT_LOCAL, 0));
-        uring_add_multishot_recv(&client_uring_ctx, remote_fd,
-                                   uring_tag(URING_TAG_CLIENT_REMOTE, 0));
+        if (g_remote_ready) {
+            uring_add_multishot_recv(&client_uring_ctx, remote_fd,
+                                       uring_tag(URING_TAG_CLIENT_REMOTE, 0));
+            g_remote_uring_armed = 1;
+        }
         uring_submit(&client_uring_ctx);
         use_uring = 1;
+        g_uring_available = 1;
         mylog(log_info, "io_uring: active for client sockets\n");
     }
 #endif
@@ -375,12 +492,13 @@ int tunnel_client_event_loop() {
     if (!use_uring)
         ev_io_start(loop, &local_listen_watcher);
 
-    struct ev_io remote_watcher;
-    remote_watcher.data = &conn_info;
-    remote_watcher.u64 = remote_fd64;
-    ev_io_init(&remote_watcher, remote_cb, remote_fd, EV_READ);
-    if (!use_uring)
-        ev_io_start(loop, &remote_watcher);
+    if (g_remote_ready) {
+        remote_watcher.data = &conn_info;
+        remote_watcher.u64 = remote_fd64;
+        ev_io_init(&remote_watcher, remote_cb, remote_fd, EV_READ);
+        if (!use_uring)
+            ev_io_start(loop, &remote_watcher);
+    }
 
     // ev.events = EPOLLIN;
     // ev.data.u64 = delay_manager.get_timer_fd();

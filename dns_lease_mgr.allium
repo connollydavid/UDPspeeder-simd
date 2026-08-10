@@ -1,0 +1,174 @@
+-- allium: 3
+-- dns_lease_mgr: a nonblocking, TTL-aware DNS Locator-Hint Cache for a migrating
+-- tunnel underlay. It resolves the `-r` hostname to candidate IPs, leases them
+-- for an effective TTL, refreshes before expiry, re-points the tunnel when the
+-- candidate set changes, and force-refreshes when the data plane signals the
+-- current candidate is dead. DNS is an untrusted hint source: the candidate IPs
+-- are locator hints the tunnel tests through its own data plane, never a trust
+-- anchor.
+
+config {
+    -- Effective-TTL floor and cap in milliseconds. The wire TTL is in seconds
+    -- and is converted and clamped into this band (RFC 2181 lowest-TTL rule).
+    min_ttl_ms: Integer = 30000
+    max_ttl_ms: Integer = 86400000
+    -- Cap on a cached negative answer (RFC 2308 guidance: one to three hours).
+    neg_ttl_cap_ms: Integer = 3600000
+    -- A query with no answer within this window is failed and retried.
+    query_timeout_ms: Integer = 2000
+    -- Retries across the nameserver list before resolution gives up.
+    max_retries: Integer = 3
+    -- How long a failed refresh keeps serving the last-known candidates, in
+    -- milliseconds. Zero means serve stale indefinitely.
+    stale_max_ms: Integer = 3600000
+    -- The candidate-set cap.
+    max_candidates: Integer = 8
+}
+
+given {
+    lease: DNSLease
+    hints: Hints
+}
+
+enum LeaseState {
+    unresolved
+    resolving
+    valid
+    refreshing
+    stale
+    negative
+    failed
+    expired
+}
+
+enum Rcode {
+    noerror
+    nxdomain
+    servfail
+    refused
+    notimp
+}
+
+entity Hostname {
+    name: String
+}
+
+entity Lease {
+    hostname: Hostname
+    candidate_count: Integer
+    effective_ttl_ms: Integer
+    expires_at: Integer
+    refresh_at: Integer
+    has_soa: Boolean
+    state: LeaseState
+    transitions state {
+        unresolved -> resolving
+        resolving -> valid
+        resolving -> negative
+        resolving -> failed
+        valid -> refreshing
+        refreshing -> valid
+        refreshing -> negative
+        refreshing -> stale
+        stale -> valid
+        stale -> expired
+        negative -> resolving
+        failed -> resolving
+        expired -> resolving
+    }
+}
+
+entity NegativeLease {
+    hostname: Hostname
+    ttl_ms: Integer
+    expires_at: Integer
+}
+
+entity Hints {
+    count: Integer
+    servable: Boolean
+}
+
+surface DNSLease {
+    provides:
+        ResolveRequested(hostname: Hostname)
+        ResolutionSucceeded(lease: Lease)
+        ResolutionFailed(hostname: Hostname, rcode: Rcode)
+        RefreshRequested(lease: Lease)
+        RefreshSucceeded(lease: Lease)
+        RefreshFailed(lease: Lease)
+        ForceRefreshRequested(hostname: Hostname)
+        HintsServed(lease: Lease, count: Integer)
+        NegativeCached(hostname: Hostname, ttl_ms: Integer)
+        Expired(lease: Lease)
+}
+
+-- The first resolve request starts a resolution.
+rule ResolveUnresolved {
+    when: ResolveRequested(hostname)
+    requires: lease.state = unresolved
+    ensures: lease.state = resolving
+}
+
+-- Hints are served only from the states that still hold a candidate set.
+rule ServeHintsOnlyWhenServable {
+    when: hints: Hints.created
+    requires: hints.servable
+    ensures: hints.count > 0
+}
+
+-- A valid lease schedules its refresh before its expiry.
+rule RefreshBeforeExpiry {
+    when: lease: Lease.created
+    requires: lease.state = valid
+    ensures: lease.refresh_at <= lease.expires_at
+}
+
+-- The effective lease TTL is the lowest TTL in the candidate set, clamped.
+rule EffectiveTtlClamped {
+    when: lease: Lease.created
+    requires: lease.candidate_count > 0
+    ensures:
+        lease.effective_ttl_ms >= min_ttl_ms
+        and lease.effective_ttl_ms <= max_ttl_ms
+}
+
+-- A cached negative answer respects the negative-TTL cap.
+rule NegativeTtlCapped {
+    when: neg: NegativeLease.created
+    ensures: neg.ttl_ms <= neg_ttl_cap_ms
+}
+
+-- A response with no SOA in authority is not cached as negative (RFC 2308 5):
+-- without it there is nothing to bound the cache, so the failure is retried.
+rule NoSOA_NoNegativeCache {
+    when: lease: Lease.created
+    requires: lease.has_soa = false
+    ensures: NegativeLease.created(hostname: lease.hostname, ttl_ms: 0)
+}
+
+-- A force refresh (the tunnel signalling the current candidate is dead) begins
+-- immediately from any state.
+rule ForceRefreshAnyState {
+    when: ForceRefreshRequested(hostname)
+    ensures: lease.state = refreshing or lease.state = resolving
+}
+
+-- An expired lease carries no servable hints.
+rule ExpiredDropsHints {
+    when: Expired(lease)
+    ensures: HintsServed(lease, count = 0)
+}
+
+-- The candidate set is bounded.
+rule MaxEightCandidates {
+    when: lease: Lease.created
+    ensures: lease.candidate_count <= max_candidates
+}
+
+-- While a refresh fails, the last-known candidates stay servable.
+rule StaleKeepsLastKnownIP {
+    when: lease: Lease.created
+    requires: lease.state = stale
+    ensures: HintsServed(lease, count > 0)
+}
