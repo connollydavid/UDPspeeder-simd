@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: powerpc64_e5500
 Installed-Size: 81920
 Filename: libftdi1_1.5-r2_powerpc64_e5500.ipk
-Size: 24103
-SHA256sum: 6dafd10f2595ee5b9e41a287882ca17019fe239081e765dd3b4e9bed61a2d0e6
+Size: 24096
+SHA256sum: c5482b821b856b8bed3e760eabead54f26ffd3310588f2370a0bbe12f3b22846
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: powerpc64_e5500
 Installed-Size: 143360
 Filename: libjaylink_0.3.1-r1_powerpc64_e5500.ipk
-Size: 24619
-SHA256sum: 417977bfb673a2e3064342656b56b4bee0704240a0c5a07ca130ad9ad7b6becd
+Size: 24637
+SHA256sum: ab3c4aa0ce486c4c46c336190299c1ba81f2843c9409ad4aabe59bf48e632865
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 

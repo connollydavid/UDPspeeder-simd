@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: aarch64_cortex-a53
 Installed-Size: 81920
 Filename: libftdi1_1.5-r2_aarch64_cortex-a53.ipk
-Size: 23053
-SHA256sum: c433b457623a7a3f58f990092c7589f8d16825e8193850da5783aeb9a30353ad
+Size: 23067
+SHA256sum: c3a71f7878ef9189c042d5666db8e5144508587530445cf9d7bbf35f0309f91c
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: aarch64_cortex-a53
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_aarch64_cortex-a53.ipk
-Size: 22424
-SHA256sum: cef0d31aea7b4f127d68602c594432f43cd33048343b65a07cb510bf008febef
+Size: 22435
+SHA256sum: b291ca185c79d29eb7f2e00f4375d62fc4ad5d0be53462360b011d85f27f8546
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 

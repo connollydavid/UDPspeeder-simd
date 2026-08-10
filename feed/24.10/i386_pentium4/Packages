@@ -63,7 +63,7 @@ Architecture: i386_pentium4
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_i386_pentium4.ipk
 Size: 21957
-SHA256sum: b8dde994b68793bcba578ccbc7adfecbbc900d8f48a3493bc02bc19e88cb0403
+SHA256sum: 7819b43dfc89cce9f0c4b0e0182f6f8418b6147e756f9bf4d6b748ba2d57fb00
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: i386_pentium4
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_i386_pentium4.ipk
-Size: 21817
-SHA256sum: fdde3f048a716f06e0d2300779e9ada0434c10fd562539d98572fdc396753c9f
+Size: 21826
+SHA256sum: 62d4f6939aac69c367442a1c7eeaa9c1cefe72f5ee3ee85916a1f1f83c33efde
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -91,8 +91,8 @@ URL: http://mj.ucw.cz/pciutils.shtml
 Architecture: i386_pentium4
 Installed-Size: 71680
 Filename: libpci_3.14.0-r2_i386_pentium4.ipk
-Size: 28753
-SHA256sum: 037fd3d14ba1a72d6a4b59e3dc6677296c9ce475c99494f06fa0f2c914c4cf71
+Size: 28746
+SHA256sum: 6de7c37e964ebd570ee12196ed6fa6e65235b2560c35424ccafccdd3fe80b902
 Description:  Linux PCI Libraries
 
 Package: libusb-1.0-0
