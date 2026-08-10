@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786233445993,
+  "lastUpdate": 1786401035919,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1155,6 +1155,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1337.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d9194b00bb060e92ebfd2870f7b7fa072ad69c15",
+          "message": "dns-lease-manager: resolve -r hostnames and keep the tunnel alive\n\nThe client's -r option now accepts a hostname. A single-header, allocation-free,\nnonblocking DNS Locator-Hint Cache (dns_lease_mgr.h) resolves it to candidate\nIPs, leases them for an effective TTL (RFC 2181 lowest-TTL rule), refreshes\nbefore expiry, keeps serving the last-known candidates while a refresh fails\n(the stale window, RFC 8767), and falls back to TCP on truncation. The client\ncreates its remote socket on the first lease and re-points it with a second\nconnect() when the candidate set changes, keeping the io_uring multishot and\nthe ev_io watcher valid. ECONNREFUSED on the remote recv path forces a refresh;\na FIFO dns-refresh command does the same by hand.\n\nThe DNS wire codec is built and parsed in the header itself (no getaddrinfo):\nRFC 1035 layout and compression pointers, RFC 2308 negative caching from the\nauthority SOA, MSB-set TTLs read as zero. Server mode is unchanged: a hostname\nin -r is rejected there.\n\nVerification: the .allium requirements lane (check/analyse/plan and the\nobligations ledger discharged by the bench tests) and the .tla timing lane\n(seven safety invariants plus a liveness property, model-checked by TLC) are\nwired into CI and gate the release job.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-10T23:25:46+01:00",
+          "tree_id": "7df55f67a384d6303ab96b63336fedc61d2bdd15",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d9194b00bb060e92ebfd2870f7b7fa072ad69c15"
+        },
+        "date": 1786401012166,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 839.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 679.8,
             "unit": "Mbps"
           }
         ]
