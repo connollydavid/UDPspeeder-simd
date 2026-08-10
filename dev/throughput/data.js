@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786401035919,
+  "lastUpdate": 1786401179979,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1189,6 +1189,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 679.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "36641bcf10eb9eb3bd3e934b1293d105316ba1d3",
+          "message": "version: bump to v1.1.0 for the DNS lease manager\n\nThe first minor bump per call/0008: the DNS lease manager feature lands as\nv1.1.0, the tag is the release.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-10T23:28:24+01:00",
+          "tree_id": "e330c0bb3445bbbfd226162049b00964bbe93b8f",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/36641bcf10eb9eb3bd3e934b1293d105316ba1d3"
+        },
+        "date": 1786401155924,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 824.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 681.6,
             "unit": "Mbps"
           }
         ]
