@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786233448901,
+  "lastUpdate": 1786401039116,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -7161,6 +7161,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 33.3613,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d9194b00bb060e92ebfd2870f7b7fa072ad69c15",
+          "message": "dns-lease-manager: resolve -r hostnames and keep the tunnel alive\n\nThe client's -r option now accepts a hostname. A single-header, allocation-free,\nnonblocking DNS Locator-Hint Cache (dns_lease_mgr.h) resolves it to candidate\nIPs, leases them for an effective TTL (RFC 2181 lowest-TTL rule), refreshes\nbefore expiry, keeps serving the last-known candidates while a refresh fails\n(the stale window, RFC 8767), and falls back to TCP on truncation. The client\ncreates its remote socket on the first lease and re-points it with a second\nconnect() when the candidate set changes, keeping the io_uring multishot and\nthe ev_io watcher valid. ECONNREFUSED on the remote recv path forces a refresh;\na FIFO dns-refresh command does the same by hand.\n\nThe DNS wire codec is built and parsed in the header itself (no getaddrinfo):\nRFC 1035 layout and compression pointers, RFC 2308 negative caching from the\nauthority SOA, MSB-set TTLs read as zero. Server mode is unchanged: a hostname\nin -r is rejected there.\n\nVerification: the .allium requirements lane (check/analyse/plan and the\nobligations ledger discharged by the bench tests) and the .tla timing lane\n(seven safety invariants plus a liveness property, model-checked by TLC) are\nwired into CI and gate the release job.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-10T23:25:46+01:00",
+          "tree_id": "7df55f67a384d6303ab96b63336fedc61d2bdd15",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d9194b00bb060e92ebfd2870f7b7fa072ad69c15"
+        },
+        "date": 1786401037978,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 11.2008,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 11.9076,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 25.3112,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 37.8155,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 649.782,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 2132.91,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 1322.66,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 3600.51,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 18.6452,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 69.7197,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 270.326,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 453.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 20.9614,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 105.593,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 453.404,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 670.346,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 4.97365,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 16.7804,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 109.45,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 164.368,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 4.66052,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 16.8026,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 124.447,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 165.773,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 159.046,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 177.591,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 292.068,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 356.582,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 37.1603,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 61.0931,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 164.912,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 229.311,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 207.787,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 202.772,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 69.0857,
             "unit": "ns/op"
           }
         ]
