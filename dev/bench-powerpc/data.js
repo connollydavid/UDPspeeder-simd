@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786233275627,
+  "lastUpdate": 1786400890969,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -6441,6 +6441,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1134.69,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d9194b00bb060e92ebfd2870f7b7fa072ad69c15",
+          "message": "dns-lease-manager: resolve -r hostnames and keep the tunnel alive\n\nThe client's -r option now accepts a hostname. A single-header, allocation-free,\nnonblocking DNS Locator-Hint Cache (dns_lease_mgr.h) resolves it to candidate\nIPs, leases them for an effective TTL (RFC 2181 lowest-TTL rule), refreshes\nbefore expiry, keeps serving the last-known candidates while a refresh fails\n(the stale window, RFC 8767), and falls back to TCP on truncation. The client\ncreates its remote socket on the first lease and re-points it with a second\nconnect() when the candidate set changes, keeping the io_uring multishot and\nthe ev_io watcher valid. ECONNREFUSED on the remote recv path forces a refresh;\na FIFO dns-refresh command does the same by hand.\n\nThe DNS wire codec is built and parsed in the header itself (no getaddrinfo):\nRFC 1035 layout and compression pointers, RFC 2308 negative caching from the\nauthority SOA, MSB-set TTLs read as zero. Server mode is unchanged: a hostname\nin -r is rejected there.\n\nVerification: the .allium requirements lane (check/analyse/plan and the\nobligations ledger discharged by the bench tests) and the .tla timing lane\n(seven safety invariants plus a liveness property, model-checked by TLC) are\nwired into CI and gate the release job.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-10T23:25:46+01:00",
+          "tree_id": "7df55f67a384d6303ab96b63336fedc61d2bdd15",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d9194b00bb060e92ebfd2870f7b7fa072ad69c15"
+        },
+        "date": 1786400865235,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 136.735,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 447.322,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1696.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 2478.58,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 38105.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 126132,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 43041.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 135418,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 135.467,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 469.089,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1804.19,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2724.32,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 145.146,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 393.272,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1395.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2049.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 150.282,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 399.462,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1414.21,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2053.49,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 775.831,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1252.61,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3174.08,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4363.46,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 472.562,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 976.425,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3005.75,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4242.31,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2207.44,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1447.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1078.28,
             "unit": "ns/op"
           }
         ]
