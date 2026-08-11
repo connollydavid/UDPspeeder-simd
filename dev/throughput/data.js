@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786445086420,
+  "lastUpdate": 1786479570720,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1325,6 +1325,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 639.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "e33aa716e475458c691cf901af4625e19d6c8926",
+          "message": "ci: run the live lane under sudo, and use the wine package\n\nThe dns-live lane needs root (bind port 53, bind-mount resolv.conf), but the\nrunner user is not root, so the whole script runs under sudo. The mingw-wine\nlane's wine64 command does not exist on Ubuntu (the package ships the loader\nunder /usr/lib/wine); the wine package provides the /usr/bin/wine wrapper.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T21:10:38+01:00",
+          "tree_id": "e242fe83f10373d29a9fbc9723d29200338ebc64",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/e33aa716e475458c691cf901af4625e19d6c8926"
+        },
+        "date": 1786479542900,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 832.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 634,
             "unit": "Mbps"
           }
         ]
