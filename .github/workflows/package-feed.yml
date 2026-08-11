@@ -1,0 +1,489 @@
+name: package feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: package-feed
+  cancel-in-progress: false
+
+env:
+  PKG_REPO: https://github.com/connollydavid/packages.git
+  PKG_DIRS: net/udpspeeder-snapshot net/udpspeeder-simd-snapshot utils/flashprog-snapshot
+  PKGS: udpspeeder-snapshot udpspeeder-simd-snapshot flashprog-snapshot flashprog-spi-snapshot
+  DEP_PKGS: libatomic1 libftdi1 libjaylink libpci libusb-1.0-0
+  FEED: https://connollydavid.github.io/UDPspeeder-simd/feed
+
+jobs:
+  matrix:
+    name: Read the architecture map
+    runs-on: ubuntu-latest
+    outputs:
+      arches: ${{ steps.read.outputs.arches }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: read
+        run: |
+          json=$(awk -F'\t' '
+          /^#/ || NF < 4 { next }
+          {
+            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"main\",\"fmt\":\"apk\"}",  sep, $1, $2; sep=","
+            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"25.12\",\"fmt\":\"apk\"}", sep, $1, $2
+            printf "%s{\"arch\":\"%s\",\"target\":\"%s\",\"release\":\"24.10\",\"fmt\":\"opkg\"}", sep, $1, $2
+          }' .github/scripts/openwrt-arch-map.tsv)
+          echo "arches={\"include\":[$json]}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: ${{ matrix.arch }} ${{ matrix.release }}
+    needs: matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.arches) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y zstd
+
+      - name: Fetch the packages
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "feed-${{ matrix.release }}" "$PKG_REPO" feed
+          git -C feed sparse-checkout set $PKG_DIRS
+          for d in $PKG_DIRS; do
+            mkdir -p "localfeed/${d%/*}"
+            cp -r "feed/$d" "localfeed/$d"
+          done
+
+      - name: Resolve the ${{ matrix.release }} SDK for ${{ matrix.target }}
+        id: sdk
+        run: |
+          if [ "${{ matrix.release }}" = main ]; then
+            base="https://downloads.openwrt.org/snapshots/targets/${{ matrix.target }}"
+          else
+            idx="https://downloads.openwrt.org/releases"
+            ver=$(wget -qO- "$idx/" \
+              | grep -oE "\"${{ matrix.release }}\.[0-9]+(-rc[0-9]+)?/\"" \
+              | tr -d '"/' | sort -V | tail -1)
+            if [ -z "$ver" ]; then echo "FAIL  no ${{ matrix.release }} release found"; exit 1; fi
+            base="$idx/$ver/targets/${{ matrix.target }}"
+          fi
+          if ! wget -qO sha256sums "$base/sha256sums"; then
+            echo "FAIL  ${{ matrix.target }} has no SDK in ${{ matrix.release }} ($base)"
+            echo "      Point this architecture at a target the release line carries."
+            exit 1
+          fi
+          sdk=$(grep -oE 'openwrt-sdk[^*]+\.tar\.zst' sha256sums | head -1)
+          if [ -z "$sdk" ]; then echo "FAIL  no SDK listed for ${{ matrix.target }} in $ver"; exit 1; fi
+          echo "ver=$ver"   >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "sdk=$sdk"   >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and verify the SDK
+        run: |
+          matched=
+          for attempt in 1 2 3; do
+            wget -qO sdk.tar.zst "${{ steps.sdk.outputs.base }}/${{ steps.sdk.outputs.sdk }}"
+            wget -qO sha256sums "${{ steps.sdk.outputs.base }}/sha256sums"
+            want=$(grep " \*\?${{ steps.sdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
+            got=$(sha256sum sdk.tar.zst | awk '{print $1}')
+            if [ -n "$want" ] && [ "$want" = "$got" ]; then matched=y; break; fi
+            echo "note    attempt $attempt read sums that no longer match the tarball"
+            echo "        recorded $want"
+            echo "        got      $got"
+            sleep 30
+          done
+          if [ -z "$matched" ]; then
+            echo "FAIL  SDK checksum mismatch for ${{ steps.sdk.outputs.sdk }}"
+            exit 1
+          fi
+          echo "ok      sha256 $got"
+          mkdir sdk && tar --zstd -xf sdk.tar.zst -C sdk --strip-components=1
+
+      - name: Build
+        run: |
+          cd sdk
+          if [ "${{ matrix.release }}" = main ]; then
+            basebranch=main; pkgbranch=master
+          else
+            basebranch=openwrt-${{ matrix.release }}; pkgbranch=openwrt-${{ matrix.release }}
+          fi
+          sed -E \
+            -e 's#^src-git-full #src-git #' \
+            -e "s#(base https://git\.openwrt\.org/openwrt/openwrt\.git).*#\1;$basebranch#" \
+            -e "s#(packages https://git\.openwrt\.org/feed/packages\.git).*#\1;$pkgbranch#" \
+            feeds.conf.default | grep -E ' (base|packages) ' > feeds.conf
+          echo "src-link localfeed $GITHUB_WORKSPACE/localfeed" >> feeds.conf
+          cat feeds.conf
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a -p localfeed
+          make defconfig
+          for p in $PKGS; do echo "CONFIG_PACKAGE_$p=m" >> .config; done
+          make defconfig
+          for s in $PKGS; do
+            grep -q "^CONFIG_PACKAGE_$s=m" .config \
+              || { echo "FAIL  defconfig dropped CONFIG_PACKAGE_$s"; exit 1; }
+          done
+          for p in package/feeds/localfeed/*; do
+            make "$p/compile" -j"$(nproc)"
+          done
+
+      - name: Collect
+        run: |
+          mkdir -p out
+          for p in $PKGS $DEP_PKGS; do
+            find sdk/bin \( -name "$p-[0-9]*.apk" -o -name "${p}_[0-9]*.ipk" \) \
+              -exec cp {} out/ \;
+          done
+          for p in $PKGS; do
+            ls out | grep -q "^$p[-_]" \
+              || { echo "FAIL  no $p package for ${{ matrix.arch }} ${{ matrix.release }}"; exit 1; }
+          done
+          ls -l out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.release }}-${{ matrix.arch }}
+          path: out/
+
+  verify:
+    name: Install on ${{ matrix.release }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: '24.10'
+            fmt: opkg
+          - release: '25.12'
+            fmt: apk
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pkg-${{ matrix.release }}-x86_64
+          path: pkgs
+
+      - name: Take the test scripts from the feed branch
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "feed-${{ matrix.release }}" "$PKG_REPO" feed
+          git -C feed sparse-checkout set $PKG_DIRS
+          cp feed/net/udpspeeder-snapshot/pre-test.sh pkgs/
+          cp feed/net/udpspeeder-snapshot/test.sh pkgs/
+          cp feed/utils/flashprog-snapshot/test.sh pkgs/flashprog-test.sh
+          cp .github/scripts/verify-in-openwrt.sh pkgs/
+
+      - name: Resolve the newest ${{ matrix.release }} rootfs image
+        id: img
+        run: |
+          api="https://hub.docker.com/v2/repositories/openwrt/rootfs/tags"
+          tag=$(wget -qO- "$api?page_size=100&name=x86-64-${{ matrix.release }}." \
+            | tr ',' '\n' \
+            | grep -oE '"x86-64-${{ matrix.release }}\.[0-9]+"' \
+            | tr -d '"' | sort -V | tail -1)
+          if [ -z "$tag" ]; then
+            echo "FAIL  no x86-64 rootfs image published for ${{ matrix.release }}"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "image openwrt/rootfs:$tag"
+
+      - name: Install the packages and run the runtime test
+        run: |
+          mkdir -p out
+          docker run --rm -v "$PWD/pkgs:/pkgs:ro" -v "$PWD/out:/out" \
+            "openwrt/rootfs:${{ steps.img.outputs.tag }}" \
+            /bin/sh /pkgs/verify-in-openwrt.sh "${{ matrix.fmt }}"
+
+      - name: The installed binaries must be hardened
+        run: sh .github/scripts/check-hardening.sh out
+
+  index:
+    name: Sign the indexes and publish
+    needs: [build, verify]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: collected
+          pattern: pkg-*
+
+      - name: Take the signing keys
+        env:
+          APK_KEY: ${{ secrets.APK_SIGNING_KEY }}
+          OPKG_KEY: ${{ secrets.OPKG_SIGNING_KEY }}
+          OPKG_PUB: ${{ secrets.OPKG_PUBLIC_KEY }}
+        run: |
+          missing=0
+          if [ -z "$APK_KEY" ]; then
+            echo "FAIL  APK_SIGNING_KEY unset; 25.12 cannot be signed"
+            echo "        openssl ecparam -name prime256v1 -genkey -noout -out private-key.pem"
+            missing=1
+          fi
+          if [ -z "$OPKG_KEY" ]; then
+            echo "FAIL  OPKG_SIGNING_KEY unset; 24.10 cannot be signed"
+            echo "        usign -G -s key-build -p key-build.pub"
+            echo "        (set the secret to the contents of key-build)"
+            missing=1
+          fi
+          if [ -z "$OPKG_PUB" ]; then
+            echo "FAIL  OPKG_PUBLIC_KEY unset; 24.10 clients could not verify the feed"
+            echo "        (set it to the contents of key-build.pub)"
+            missing=1
+          fi
+          [ "$missing" -eq 0 ] || exit 1
+          printf '%s' "$APK_KEY"  > private-key.pem; chmod 600 private-key.pem
+          printf '%s' "$OPKG_KEY" > key-build;       chmod 600 key-build
+          printf '%s' "$OPKG_PUB" > key-build.pub
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y wget zstd
+
+      - name: Resolve the SDK carrying the host tools
+        id: hostsdk
+        run: |
+          idx="https://downloads.openwrt.org/releases"
+          ver=$(wget -qO- "$idx/" | grep -oE '"25\.12\.[0-9]+(-rc[0-9]+)?/"' \
+            | tr -d '"/' | sort -V | tail -1)
+          if [ -z "$ver" ]; then echo "FAIL  no 25.12 release found"; exit 1; fi
+          base="$idx/$ver/targets/x86/64"
+          if ! wget -qO sha256sums "$base/sha256sums"; then
+            echo "FAIL  no SDK index at $base"; exit 1
+          fi
+          sdk=$(grep -oE 'openwrt-sdk[^*]+\.tar\.zst' sha256sums | head -1)
+          if [ -z "$sdk" ]; then echo "FAIL  no SDK listed in $ver"; exit 1; fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "sdk=$sdk"   >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: sdk.tar.zst
+          key: sdk-hosttools-${{ steps.hostsdk.outputs.sdk }}
+
+      - name: Take the host tools from the SDK
+        run: |
+          if [ ! -f sdk.tar.zst ]; then
+            wget -qO sdk.tar.zst "${{ steps.hostsdk.outputs.base }}/${{ steps.hostsdk.outputs.sdk }}"
+          else
+            echo "cached  ${{ steps.hostsdk.outputs.sdk }}"
+          fi
+          want=$(grep " \*\?${{ steps.hostsdk.outputs.sdk }}\$" sha256sums | awk '{print $1}')
+          got=$(sha256sum sdk.tar.zst | awk '{print $1}')
+          if [ -z "$want" ] || [ "$want" != "$got" ]; then
+            echo "FAIL  SDK checksum mismatch"
+            echo "      recorded $want"
+            echo "      got      $got"
+            exit 1
+          fi
+          mkdir sdk && tar --zstd -xf sdk.tar.zst -C sdk --strip-components=1
+          for t in apk usign mkhash; do
+            [ -x "sdk/staging_dir/host/bin/$t" ] || { echo "FAIL  the SDK has no $t"; exit 1; }
+          done
+          [ -x sdk/scripts/ipkg-make-index.sh ] || { echo "FAIL  the SDK has no ipkg-make-index.sh"; exit 1; }
+          echo "APK=$PWD/sdk/staging_dir/host/bin/apk"     >> "$GITHUB_ENV"
+          echo "USIGN=$PWD/sdk/staging_dir/host/bin/usign" >> "$GITHUB_ENV"
+          echo "MKINDEX=$PWD/sdk/scripts/ipkg-make-index.sh" >> "$GITHUB_ENV"
+          echo "MKHASH=$PWD/sdk/staging_dir/host/bin/mkhash" >> "$GITHUB_ENV"
+
+      - name: Build and sign every index
+        run: |
+          set -euo pipefail
+          [ -x "$APK" ]   || { echo "FAIL  no apk host tool";   exit 1; }
+          [ -x "$USIGN" ] || { echo "FAIL  no usign host tool"; exit 1; }
+          mkdir -p site
+          openssl ec -in private-key.pem -pubout -out site/apk-public-key.pem
+          echo pair-check > pairtest
+          "$USIGN" -S -m pairtest -s key-build
+          if ! "$USIGN" -V -q -m pairtest -p key-build.pub; then
+            echo "FAIL  OPKG_PUBLIC_KEY is not the public half of OPKG_SIGNING_KEY"
+            echo "      Regenerate both from one usign -G run and reset them."
+            exit 1
+          fi
+          rm -f pairtest pairtest.sig
+          echo "ok    usign keypair matches"
+          "$USIGN" -F -p key-build.pub > keyid.txt
+          echo "usign key fingerprint: $(cat keyid.txt)"
+          cp key-build.pub "site/usign-$(cat keyid.txt).pub"
+          for d in collected/pkg-*; do
+            rest=${d#collected/pkg-}; rel=${rest%%-*}; arch=${rest#*-}
+            dst="site/$rel/$arch"; mkdir -p "$dst"; cp "$d"/* "$dst"/
+            if [ "$rel" != "24.10" ]; then
+              (cd "$dst" && "$APK" mkndx \
+                 --allow-untrusted \
+                 --sign "$GITHUB_WORKSPACE/private-key.pem" \
+                 --output packages.adb *.apk)
+            else
+              (cd "$dst" \
+                 && "$MKINDEX" . > Packages.manifest \
+                 && grep -vE '^(Maintainer|LicenseFiles|Source|SourceName|Require|SourceDateEpoch)' \
+                      Packages.manifest > Packages \
+                 && rm -f Packages.manifest \
+                 && case "$(((64 + $(stat -L -c%s Packages)) % 128))" in \
+                      110|111) echo "  padding Packages around the usign SHA-512 bug"; \
+                               { echo ""; echo ""; } >> Packages ;; \
+                    esac \
+                 && gzip -9nc Packages > Packages.gz \
+                 && "$USIGN" -S -m Packages \
+                      -s "$GITHUB_WORKSPACE/key-build")
+            fi
+            if [ "$rel" != "24.10" ]; then
+              [ -s "$dst/packages.adb" ] \
+                || { echo "FAIL  $rel/$arch has no packages.adb"; exit 1; }
+            else
+              for f in Packages Packages.gz Packages.sig; do
+                [ -s "$dst/$f" ] || { echo "FAIL  $rel/$arch has no $f"; exit 1; }
+              done
+            fi
+            echo "ok    $rel/$arch: $(ls "$dst" | grep -cE '\.(apk|ipk)$') package(s)"
+          done
+          rm -f private-key.pem key-build key-build.pub
+
+      - name: Write the landing page
+        run: |
+          keyid=$(cat keyid.txt)
+          cat > site/index.html <<HTML
+          <!doctype html><meta charset=utf-8>
+          <title>unofficial udpspeeder packages for OpenWrt</title>
+          <style>body{font-family:ui-monospace,Menlo,monospace;max-width:46rem;
+          margin:4rem auto;padding:0 1.25rem;line-height:1.6}
+          pre{background:#8881;padding:1rem;overflow-x:auto}
+          .unofficial{border-left:3px solid currentColor;padding-left:1rem}
+          @media(prefers-color-scheme:dark){body{background:#111;color:#ddd}
+          a{color:#8bf}}</style>
+          <h1>unofficial udpspeeder packages</h1>
+          <p class=unofficial><strong>A personal feed.</strong> Built and signed
+          by David Connolly. Not affiliated with, endorsed by, or supported by
+          the OpenWrt project. Report problems at
+          <a href="https://github.com/connollydavid/UDPspeeder-simd/issues">connollydavid/UDPspeeder-simd</a>.</p>
+          <p>The libraries flashprog needs are carried here too, under the
+          names OpenWrt ships them under, so the feed installs on a system
+          whose package repository is not configured. If yours is, prefer it:
+          these are built from the release SDK and will lag.</p>
+          <p>Four packages: <code>udpspeeder-snapshot</code>, the stock
+          tunnel, <code>udpspeeder-simd-snapshot</code>, the SIMD fork, and
+          <code>flashprog-snapshot</code> with
+          <code>flashprog-spi-snapshot</code>, a flash chip programmer. Adding this
+          feed installs nothing on its own.</p>
+          <h2>OpenWrt snapshot (apk)</h2>
+          <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
+            https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
+          echo "https://connollydavid.github.io/UDPspeeder-simd/feed/main/\$(apk --print-arch)/packages.adb" \\
+            >> /etc/apk/repositories.d/customfeeds.list
+          apk update</pre>
+          <h2>OpenWrt 25.12 (apk)</h2>
+          <pre>wget -O /etc/apk/keys/udpspeeder-simd.pem \\
+            https://connollydavid.github.io/UDPspeeder-simd/feed/apk-public-key.pem
+          echo "https://connollydavid.github.io/UDPspeeder-simd/feed/25.12/\$(apk --print-arch)/packages.adb" \\
+            >> /etc/apk/repositories.d/customfeeds.list
+          apk update</pre>
+          <h2>OpenWrt 24.10 (opkg)</h2>
+          <pre>wget -O /etc/opkg/keys/$keyid \\
+            https://connollydavid.github.io/UDPspeeder-simd/feed/usign-$keyid.pub
+          . /etc/openwrt_release
+          echo "src/gz udpspeeder_simd https://connollydavid.github.io/UDPspeeder-simd/feed/24.10/\$DISTRIB_ARCH" \\
+            >> /etc/opkg/customfeeds.conf
+          opkg update</pre>
+          <h2>udpspeeder-snapshot</h2>
+          <p>The stock tunnel built from a source snapshot newer than the
+          20230206.0 the official feed carries. It is a separate package, so it
+          never wins an upgrade against OpenWrt's, and it conflicts with it
+          because both own <code>/usr/bin/udpspeeder</code>. Swap deliberately:</p>
+          <pre>apk del UDPspeeder
+          apk add udpspeeder-snapshot</pre>
+          <p>or on 24.10</p>
+          <pre>opkg remove UDPspeeder
+          opkg install udpspeeder-snapshot</pre>
+          <p>It keeps <code>/etc/config/udpspeeder</code> and
+          <code>/etc/init.d/udpspeeder</code>, so your existing settings carry
+          across the swap.</p>
+          <h2>udpspeeder-simd-snapshot</h2>
+          <p>The SIMD fork, built from a source snapshot rather than a release
+          tag, so a fix can be tested before it is tagged. It conflicts with
+          <code>udpspeeder-simd</code>, which owns the same paths, and that
+          package is not offered here: it is under review for the official feed
+          and the name belongs to OpenWrt.</p>
+          <pre>apk add udpspeeder-simd-snapshot</pre>
+          <p>or <code>opkg install udpspeeder-simd-snapshot</code> on
+          24.10.</p>
+          <p>It checksums the wire with CRC32C where <code>udpspeeder</code>
+          uses CRC-32, so the two do not interoperate. Run it at both ends of
+          the link.</p>
+          <h2>flashprog-snapshot</h2>
+          <p>flashprog identifies, reads, writes, verifies and erases flash
+          chips over SPI, LPC, FWH and parallel buses. It is offered to OpenWrt
+          in <a href="https://github.com/openwrt/packages/issues/29591">issue
+          29591</a> and carries a name of its own until that is settled.</p>
+          <pre>apk add flashprog-snapshot</pre>
+          <p>or <code>opkg install flashprog-snapshot</code> on 24.10.</p>
+          <p>It reaches the board's own flash through MTD and spidev, and
+          external chips through a serial, USB, FTDI or SEGGER J-Link
+          programmer, and on x86 through the mainboard or a PCI device.</p>
+          <h2>flashprog-spi-snapshot</h2>
+          <p>The same programmer carrying only what needs no library: MTD,
+          spidev and the serial programmers. It installs as
+          <code>flashprog-spi</code>, so it sits alongside the full build.</p>
+          <pre>apk add flashprog-spi-snapshot</pre>
+          HTML
+
+      - name: Publish under /feed on gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          destination_dir: feed
+          keep_files: false
+
+  signed-feed:
+    name: Install from the signed feed on ${{ matrix.release }}
+    needs: index
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: '24.10'
+            fmt: opkg
+          - release: '25.12'
+            fmt: apk
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve the newest ${{ matrix.release }} rootfs image
+        id: img
+        run: |
+          api="https://hub.docker.com/v2/repositories/openwrt/rootfs/tags"
+          tag=$(wget -qO- "$api?page_size=100&name=x86-64-${{ matrix.release }}." \
+            | tr ',' '\n' \
+            | grep -oE '"x86-64-${{ matrix.release }}\.[0-9]+"' \
+            | tr -d '"' | sort -V | tail -1)
+          if [ -z "$tag" ]; then
+            echo "FAIL  no x86-64 rootfs image published for ${{ matrix.release }}"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Pages to serve the new index
+        run: |
+          for i in $(seq 1 30); do
+            wget -q --spider "$FEED/${{ matrix.release }}/x86_64/packages.adb" && break
+            wget -q --spider "$FEED/${{ matrix.release }}/x86_64/Packages" && break
+            sleep 10
+          done
+          wget -q --spider "$FEED/" || { echo "FAIL  $FEED never became reachable"; exit 1; }
+
+      - name: Follow the published instructions, key and all
+        run: |
+          docker run --rm -v "$PWD/.github/scripts:/s:ro" \
+            "openwrt/rootfs:${{ steps.img.outputs.tag }}" \
+            /bin/sh /s/verify-signed-feed.sh "${{ matrix.fmt }}" "$FEED" "${{ matrix.release }}"
