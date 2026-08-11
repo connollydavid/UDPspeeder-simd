@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786487893720,
+  "lastUpdate": 1786487952776,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1427,6 +1427,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 644.9,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "4370bac6354c747004ba94e2e6e142d23f0fccab",
+          "message": "ci: drop the stale master trigger filter\n\nThe fork has no master branch (canonical is main), so the filter entry was\ndead config carried from the upstream-shaped original.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T23:32:26+01:00",
+          "tree_id": "367e6afa3913de5641c365f66f9e1e1e416e70de",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/4370bac6354c747004ba94e2e6e142d23f0fccab"
+        },
+        "date": 1786487926698,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 844.5,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 646.1,
             "unit": "Mbps"
           }
         ]
