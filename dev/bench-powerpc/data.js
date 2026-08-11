@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786401016584,
+  "lastUpdate": 1786443589391,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -6799,6 +6799,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1058.65,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8b67771deaac17e74bc9c463606c83fe4b5cac38",
+          "message": "dns-lease-manager: close the verification gaps\n\nSamira's lane is now full. The DNS response parser gets the fuzz treatment the\npacket decoder already had: bench/fuzz_dns_lease.cpp feeds mutated responses to\ndns_lease_parse_response under ASan/UBSan, as a bounded random driver and a\nlibFuzzer target (make fuzz-dns / fuzz-dns-libfuzzer), wired into CI.\n\nThe stale_max_ms == 0 sentinel (serve stale indefinitely) is now tested on\nboth lanes: a C++ case that advances the clock ten days into a stale lease and\nasserts it never gives up, and a second TLC instance (MC-stale0.cfg) with the\ngive-up transition guarded by StaleMax > 0 to match the header exactly.\n\nThe live integration lane (bench/dns-live-test.sh + bench/dns_stub.py) runs the\nreal client against real servers with a python DNS stub on port 53, exercising\nthe create-on-first-lease socket path, the re-point on a candidate change, and\nthe TCP fallback on a truncated answer. The Windows build is exercised under\nWine (make test-mingw + wine64), covering the DNS lease manager's Windows PAL\nfor the first time. Both lanes gate the release.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T11:18:02+01:00",
+          "tree_id": "19d4df217594907924c738360e6facd84e8a6097",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8b67771deaac17e74bc9c463606c83fe4b5cac38"
+        },
+        "date": 1786443563959,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 114.848,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 324.916,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1202.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1764.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 27123.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 90062.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 32214.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 98358.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 137.228,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 402.352,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1560.75,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2339.38,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 110.28,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 380.142,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1469.94,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2164.04,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 113.342,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 384.568,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1466.01,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2152.99,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 859.075,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1261.12,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3354.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4624.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 490.635,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 972.56,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3160.49,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4494.35,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2325.17,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1518.09,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1136.34,
             "unit": "ns/op"
           }
         ]
