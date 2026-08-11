@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786401179979,
+  "lastUpdate": 1786443907602,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1223,6 +1223,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 681.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8b67771deaac17e74bc9c463606c83fe4b5cac38",
+          "message": "dns-lease-manager: close the verification gaps\n\nSamira's lane is now full. The DNS response parser gets the fuzz treatment the\npacket decoder already had: bench/fuzz_dns_lease.cpp feeds mutated responses to\ndns_lease_parse_response under ASan/UBSan, as a bounded random driver and a\nlibFuzzer target (make fuzz-dns / fuzz-dns-libfuzzer), wired into CI.\n\nThe stale_max_ms == 0 sentinel (serve stale indefinitely) is now tested on\nboth lanes: a C++ case that advances the clock ten days into a stale lease and\nasserts it never gives up, and a second TLC instance (MC-stale0.cfg) with the\ngive-up transition guarded by StaleMax > 0 to match the header exactly.\n\nThe live integration lane (bench/dns-live-test.sh + bench/dns_stub.py) runs the\nreal client against real servers with a python DNS stub on port 53, exercising\nthe create-on-first-lease socket path, the re-point on a candidate change, and\nthe TCP fallback on a truncated answer. The Windows build is exercised under\nWine (make test-mingw + wine64), covering the DNS lease manager's Windows PAL\nfor the first time. Both lanes gate the release.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T11:18:02+01:00",
+          "tree_id": "19d4df217594907924c738360e6facd84e8a6097",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8b67771deaac17e74bc9c463606c83fe4b5cac38"
+        },
+        "date": 1786443880133,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 796.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 688.1,
             "unit": "Mbps"
           }
         ]
