@@ -62,6 +62,15 @@ jobs:
           sudo apt-get update && sudo apt-get install -y clang
           make fuzz-libfuzzer FUZZ_SECONDS=120
 
+      # The DNS response parser is a second untrusted-bytes face: the resolver
+      # is a locator-hint source, so its answers are attacker-shaped too.
+      - name: Fuzz the DNS response parser (bounded random)
+        run: make fuzz-dns
+
+      - name: Fuzz the DNS response parser (libFuzzer)
+        run: |
+          make fuzz-dns-libfuzzer FUZZ_SECONDS=120
+
       - name: Keep any reproducer
         if: failure()
         uses: actions/upload-artifact@v4
@@ -153,6 +162,38 @@ jobs:
           fail-on-alert: false
           benchmark-data-dir-path: dev/bench
 
+  # The Windows build, exercised under Wine. The DNS lease manager's Windows PAL
+  # (registry discovery, Winsock, QueryPerformanceCounter) would otherwise never
+  # be compiled; this lane builds the test suite with MinGW and runs it under
+  # Wine on the runner.
+  mingw-wine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW and Wine
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64-posix wine64
+
+      - name: Build the Windows test binary
+        run: make test-mingw cc_mingw_cross=x86_64-w64-mingw32-g++-posix
+
+      - name: Run the Windows test suite under Wine
+        run: wine64 ./test_udpspeeder.exe
+
+  # The live DNS integration lane: the real client against a real server with a
+  # python DNS stub on 127.0.0.1:53, exercising the create-on-first-lease, the
+  # re-point on a candidate change, and the TCP fallback on a truncated answer.
+  # The runner is root, so port 53 is bindable and resolv.conf can point at the
+  # stub (restored by the script either way).
+  dns-live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production binary
+        run: make all
+      - name: Run the live DNS integration lane
+        run: bash bench/dns-live-test.sh ./speederv2 ./speederv2
+
   # The two spec lanes the DNS lease manager carries (plan/0001). A present spec
   # carries its full lane: the .allium requirements lane here, the .tla timing
   # lane in the tlc job. Both gate the release below.
@@ -203,6 +244,12 @@ jobs:
 
       - name: Model-check the lease state machine
         run: java -Djava.awt.headless=true -XX:+UseParallelGC -cp tla2tools.jar tlc2.TLC spec/DNSLease.tla -config spec/MC.cfg
+
+      # The stale_max_ms == 0 sentinel ("serve stale indefinitely") is a second
+      # model instance: the give-up transition is disabled, so Expired is never
+      # reached that way and the invariants must still hold.
+      - name: Model-check the infinite-stale instance
+        run: java -Djava.awt.headless=true -XX:+UseParallelGC -cp tla2tools.jar tlc2.TLC spec/DNSLease.tla -config spec/MC-stale0.cfg
 
   arch-matrix:
     name: Read the architecture map
@@ -590,7 +637,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop, allium, tlc]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:

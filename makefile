@@ -159,6 +159,24 @@ fuzz-libfuzzer: git_version
 	./fuzz_cook_libfuzzer fuzz-corpus -max_total_time=${FUZZ_SECONDS} \
 	    -artifact_prefix=fuzz-artifacts/ -print_final_stats=1
 
+# The DNS response parser is a second untrusted-bytes face: the resolver is a
+# locator-hint source, so its answers are attacker-shaped too. Same two-entry
+# harness as fuzz_cook (bounded random driver + libFuzzer target).
+FUZZ_DNS_SOURCES=bench/fuzz_dns_lease.cpp
+
+fuzz-dns: git_version
+	${cc_local} -o fuzz_dns_lease -I. -Ibench ${FUZZ_DNS_SOURCES} \
+	    ${SAN_FLAGS} -fsanitize=address,undefined
+	ASAN_OPTIONS=abort_on_error=1 UBSAN_OPTIONS=halt_on_error=1 \
+	  ./fuzz_dns_lease ${FUZZ_ITERATIONS}
+
+fuzz-dns-libfuzzer: git_version
+	clang++ -o fuzz_dns_lease_libfuzzer -I. -Ibench ${FUZZ_DNS_SOURCES} \
+	    ${SAN_FLAGS} -DFUZZ_LIBFUZZER -fsanitize=fuzzer,address,undefined
+	mkdir -p fuzz-artifacts fuzz-corpus
+	./fuzz_dns_lease_libfuzzer fuzz-corpus -max_total_time=${FUZZ_SECONDS} \
+	    -artifact_prefix=fuzz-artifacts/ -print_final_stats=1
+
 
 bench-static: git_version
 	${cc_local} -o bench_udpspeeder_static -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static
@@ -171,6 +189,14 @@ bench-cross: git_version
 
 test-cross: git_version
 	${CC} -o test_udpspeeder_cross -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS} -static -lgcc_eh
+
+# The Windows (MinGW) test binary, run under Wine: exercises the DNS lease
+# manager's Windows PAL (registry discovery, Winsock, QueryPerformanceCounter)
+# and the rest of the suite on the Windows build. Override cc_mingw_cross for a
+# 64-bit toolchain (the CI lane does).
+test-mingw: git_version
+	${cc_mingw_cross} -o test_udpspeeder.exe -I. -Ibench ${TEST_SOURCES} \
+	    ${BENCH_FLAGS} -static -ggdb -lws2_32
 
 all-cross: git_version
 	${CC} -o ${NAME}_cross -I. ${SOURCES} ${FLAGS} -lrt -static -lgcc_eh -O2

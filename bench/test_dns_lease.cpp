@@ -571,6 +571,43 @@ static int test_transitions(dns_lease_ctx_t *c) {
     return failures;
 }
 
+/* The stale_max_ms == 0 sentinel: serve stale indefinitely, never give up. */
+/* fn test_stale_infinite(dns_lease_ctx_t *c) */
+static int test_stale_infinite(dns_lease_ctx_t *c) {
+    int failures = 0;
+    dns_lease_init(c, "vps.example.net", 4096);
+    c->now_fn = fake_now_fn;
+    g_fake_now = 1000;
+    c->stale_max_ms = 0;
+    const char *ns[] = {"127.0.0.1"};
+    dns_lease_set_nameservers(c, ns, 1);
+    struct wire w;
+    unsigned char a1[4] = {1, 2, 3, 4};
+
+    /* resolve to VALID, then a refresh failure sends it stale */
+    dns_lease_tick(c);
+    w_init(&w, c->pending_id, 0, 0, 1, 1, 0);
+    w_question(&w, "vps.example.net", 1);
+    w_rr(&w, 0, 0, "vps.example.net", 1, 300, a1, 4);
+    dns_lease_feed_response(c, w.buf, w.len);
+    TEST("stale0: valid", dns_lease_get_state(c) == DNS_LEASE_VALID);
+    g_fake_now += 200000;
+    dns_lease_tick(c);
+    w_init(&w, c->pending_id, 2, 0, 1, 0, 0); /* SERVFAIL */
+    w_question(&w, "vps.example.net", 1);
+    dns_lease_feed_response(c, w.buf, w.len);
+    TEST("stale0: stale", dns_lease_get_state(c) == DNS_LEASE_STALE);
+
+    /* a clock far past any finite window must not end the lease */
+    g_fake_now += 10ull * 24 * 3600 * 1000ULL; /* ten days */
+    dns_lease_tick(c);
+    TEST("stale0: never gives up", dns_lease_get_state(c) == DNS_LEASE_STALE);
+    TEST("stale0: hints still servable", dns_lease_get_hints(c, NULL, 0) == 1);
+
+    dns_lease_close(c);
+    return failures;
+}
+
 /* fn test_no_ns(dns_lease_ctx_t *c) */
 static int test_no_ns(dns_lease_ctx_t *c) {
     int failures = 0;
@@ -611,6 +648,7 @@ int run_dns_lease_tests() {
     failures += test_parser_edge(&ctx);
     failures += test_state_machine(&ctx);
     failures += test_transitions(&ctx);
+    failures += test_stale_infinite(&ctx);
     failures += test_no_ns(&ctx);
     failures += test_nameservers(&ctx);
 

@@ -152,9 +152,12 @@ StaleRetry ==
     /\ UNCHANGED <<now, hints, expire, refreshAt, negExpire, staleSince, retries, state>>
 
 (* The stale window elapses: give up and drop the hints. A stale-retry query in
- * flight is abandoned (single-flight: an abandoned query is no longer tracked). *)
+ * flight is abandoned (single-flight: an abandoned query is no longer tracked).
+ * StaleMax = 0 is the sentinel for "serve stale indefinitely": the header keeps
+ * the last-known candidates forever, so the give-up is disabled the same way. *)
 StaleGiveUp ==
     /\ state = "Stale"
+    /\ StaleMax > 0
     /\ now >= staleSince + StaleMax
     /\ state' = "Expired"
     /\ hints' = {}

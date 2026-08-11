@@ -270,6 +270,7 @@ static void on_remote_ip_resolved(conn_info_t &conn_info) {
         return;
     address_t a;
     a.from_ip_port_new((int)h[0].family, (void *)&h[0].addr, remote_host_port);
+    mylog(log_info, "remote endpoint now at %s\n", a.get_str());
 
     if (conn_info.remote_fd == -1) {
         assert(new_connected_socket2(conn_info.remote_fd, a, out_addr, out_interface) == 0);

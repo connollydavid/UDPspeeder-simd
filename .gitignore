@@ -21,3 +21,5 @@ mc_*.out
 
 # TLC trace exploration artifacts
 spec/DNSLease_TTrace_*
+/fuzz_dns_lease
+/fuzz_dns_lease_libfuzzer
