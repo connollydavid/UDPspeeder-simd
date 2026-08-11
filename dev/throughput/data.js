@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786482417535,
+  "lastUpdate": 1786487893720,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1393,6 +1393,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 843.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c5a625c6f4ccd68347bdd8da6bc9b68775d584be",
+          "message": "ci: point the trigger at feed-snapshot, not the deleted branch_libev\n\nThe split moved the feed machinery to this branch, but the ci.yml still named\nbranch_libev (deleted) and master (never present here). Both filters are dead;\nthis points them at feed-snapshot so the branch is self-consistent.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T23:33:36+01:00",
+          "tree_id": "56ce7d6e856980733f275ab1dc02614360e3188d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c5a625c6f4ccd68347bdd8da6bc9b68775d584be"
+        },
+        "date": 1786487869686,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 828.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 644.9,
             "unit": "Mbps"
           }
         ]
