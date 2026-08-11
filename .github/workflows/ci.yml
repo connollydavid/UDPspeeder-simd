@@ -172,13 +172,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install MinGW and Wine
-        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64-posix wine64
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64-posix wine
 
       - name: Build the Windows test binary
         run: make test-mingw cc_mingw_cross=x86_64-w64-mingw32-g++-posix
 
       - name: Run the Windows test suite under Wine
-        run: wine64 ./test_udpspeeder.exe
+        run: wine ./test_udpspeeder.exe
 
   # The live DNS integration lane: the real client against a real server with a
   # python DNS stub on 127.0.0.1:53, exercising the create-on-first-lease, the
@@ -192,7 +192,9 @@ jobs:
       - name: Build the production binary
         run: make all
       - name: Run the live DNS integration lane
-        run: bash bench/dns-live-test.sh ./speederv2 ./speederv2
+        # The lane binds port 53 and bind-mounts a private resolv.conf; the
+        # runner user is not root, so the whole script runs under sudo.
+        run: sudo bash bench/dns-live-test.sh ./speederv2 ./speederv2
 
   # The two spec lanes the DNS lease manager carries (plan/0001). A present spec
   # carries its full lane: the .allium requirements lane here, the .tla timing
