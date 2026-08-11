@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     # release.yml carried this trigger before its job moved here. Without it
     # the release job's ref test can never be true and a tag publishes nothing.
     tags: ['v*']
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
