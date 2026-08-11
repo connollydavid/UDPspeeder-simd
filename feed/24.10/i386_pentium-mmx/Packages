@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: i386_pentium-mmx
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_i386_pentium-mmx.ipk
-Size: 22517
-SHA256sum: bb8edc5e038168365b32fc83165ced25019af362ef44b5d7c0ea5dd0e4e39fd0
+Size: 22523
+SHA256sum: e1b3cdc8f1bed6bb8f7352930a692dc69b0484711d783b94b1494f4955ef9d81
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: i386_pentium-mmx
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_i386_pentium-mmx.ipk
-Size: 22201
-SHA256sum: 8ac87831822f931dbdfc82e88013300dd78aa59a624eb93a2fbff007ded5e424
+Size: 22200
+SHA256sum: e0b9f4648262cb11226850423e21f13cd3d4703868436fff134a1f924ba5c131
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -91,8 +91,8 @@ URL: http://mj.ucw.cz/pciutils.shtml
 Architecture: i386_pentium-mmx
 Installed-Size: 71680
 Filename: libpci_3.14.0-r2_i386_pentium-mmx.ipk
-Size: 29251
-SHA256sum: f1cb9dc0aaad8618b239e966f355533b2b0df114f13fdee46dd1507a73a8a267
+Size: 29247
+SHA256sum: 150336647a20a2063103ee85fecdde0d879be9a15d2b3dff22b492d625ce6146
 Description:  Linux PCI Libraries
 
 Package: libusb-1.0-0

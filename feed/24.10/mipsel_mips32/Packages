@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: mipsel_mips32
 Installed-Size: 81920
 Filename: libftdi1_1.5-r2_mipsel_mips32.ipk
-Size: 21738
-SHA256sum: 559be1993bf6a78e0014524265d33c6dd8f9f01126fb58f75f3277f9b3a5deef
+Size: 21739
+SHA256sum: 537c63fc894800ff4f5dde6c17ccf35e2bca3f765e8a0550b6901e2458c986b4
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: mipsel_mips32
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_mipsel_mips32.ipk
-Size: 21182
-SHA256sum: e643a46cfbfe3e4085a2c63dd1127b968bc736a9bd1b2e5771c391dd300887f3
+Size: 21184
+SHA256sum: 76c88472b67e6267fe55d283340ba497cef005ec2028785e69ea604004479b76
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
