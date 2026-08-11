@@ -24,9 +24,9 @@ cleanup() {
     kill "${RECV_PIDS[@]}" 2>/dev/null
     kill "${STUB_PIDS[@]}" "${SERVER_PIDS[@]}" "${CLIENT_PIDS[@]}" 2>/dev/null
     wait 2>/dev/null
-    if [ -n "${RESOLV_CONF_BAK:-}" ] && [ -f "$RESOLV_CONF_BAK" ]; then
-        cp "$RESOLV_CONF_BAK" /etc/resolv.conf
-    fi
+    # Tear down the resolv.conf bind mount, then restore the original file.
+    umount /etc/resolv.conf 2>/dev/null || true
+    cp "$RESOLV_CONF_BAK" /etc/resolv.conf 2>/dev/null || true
     rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -40,11 +40,14 @@ CLIENT_PIDS=()
 # unshare) 127.0.0.1 is unreachable until lo is up. No-op on a normal host.
 ip link set lo up 2>/dev/null || true
 
-# Point resolv.conf at the stub. The header reads it at client startup.
-# Restored in cleanup, whether the run passes or fails.
+# Point resolv.conf at the stub. The header reads it at client startup. Bind
+# mount a private file over /etc/resolv.conf so systemd-resolved (which manages
+# the real file on a GitHub runner) cannot rewrite it mid-test. Needs root, as
+# the whole lane does. Torn down and the original restored in cleanup.
 RESOLV_CONF_BAK="$WORK/resolv.conf.bak"
 cp /etc/resolv.conf "$RESOLV_CONF_BAK"
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
+printf 'nameserver 127.0.0.1\n' > "$WORK/resolv.conf"
+mount --bind "$WORK/resolv.conf" /etc/resolv.conf
 
 # A receiver on a UDP port: collects seq-numbered packets and writes its
 # valid/invalid counts to the result file every 0.5 s, so the driver reads the

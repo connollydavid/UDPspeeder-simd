@@ -1,3 +1,8 @@
+/* Guards the whole file, comment included: without HAVE_PPC_SPE this must
+ * assemble to nothing on every other target (the Windows/MinGW build included),
+ * and a stray comment outside the guard is enough to make the assembler choke. */
+#ifdef HAVE_PPC_SPE
+
 /*
  * xor_spe.S — SPE-accelerated XOR for PowerPC e500v2
  *
@@ -16,8 +21,6 @@
  * rather than '@progbits': on 32-bit ARM '@' begins a line comment, and
  * gas accepts '%' for the ELF section type on every target. */
 .section .note.GNU-stack,"",%progbits
-
-#ifdef HAVE_PPC_SPE
 
 .section .text
 .globl xor_tile_spe
