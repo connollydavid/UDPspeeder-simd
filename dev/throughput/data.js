@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786479570720,
+  "lastUpdate": 1786482417535,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1359,6 +1359,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 634,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "david@connol.ly",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "845df573c827382ba751d7e52d26a7f8066adcf1",
+          "message": "ci: run on main now that the canonical branch is renamed\n\nbranch_libev becomes main. The push/pull_request trigger filters and the\nbenchmark-storage conditions follow the canonical branch by name, so a rename\nsilently stops CI and the dashboards unless they move with it.\n\nCo-Authored-By: DeepSeek V4 Flash 0731 <noreply@www.deepseek.com>",
+          "timestamp": "2026-08-11T21:59:57+01:00",
+          "tree_id": "a122804f7b6cef0b4a9cd5c893832333174d3530",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/845df573c827382ba751d7e52d26a7f8066adcf1"
+        },
+        "date": 1786482392434,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1079.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 843.3,
             "unit": "Mbps"
           }
         ]
