@@ -107,13 +107,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: i386_pentium4
 Installed-Size: 81920
 Filename: libusb-1.0-0_1.0.27-r1_i386_pentium4.ipk
-Size: 33513
-SHA256sum: 0c9ae4894ccd75b757e4e6f5cbec7c976c1a9b50c44a3084133c651681f29a07
+Size: 33535
+SHA256sum: 4ea9507b7de353f8db48c37a7d799aa34c00ea0b2e333080530ddaaa76c456e8
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.0.6-r1
+Version: 1.1.0-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -121,9 +121,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: i386_pentium4
 Installed-Size: 174080
-Filename: udpspeeder-simd-snapshot_1.0.6-r1_i386_pentium4.ipk
-Size: 62448
-SHA256sum: 283afd38a9ae6decea68d1d909b75a55e1367c8ba38860877726410e1ce6aba3
+Filename: udpspeeder-simd-snapshot_1.1.0-r1_i386_pentium4.ipk
+Size: 67090
+SHA256sum: 7999c1832139fd916a8b8702cc56941117658aba0ff41f0317c708bbb65d89a0
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

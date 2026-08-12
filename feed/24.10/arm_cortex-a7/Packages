@@ -94,23 +94,23 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: arm_cortex-a7
 Installed-Size: 71680
 Filename: libusb-1.0-0_1.0.27-r1_arm_cortex-a7.ipk
-Size: 30177
-SHA256sum: e8bb2c4697a0610d513e46f7d991955ba715f82d343103031920996f34bd3566
+Size: 30173
+SHA256sum: 1cc9d43666e6740d895baf0d85d1d30024b8cb7da6f6b306423806f6a6893e92
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.0.6-r1
+Version: 1.1.0-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
 Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_cortex-a7
-Installed-Size: 153600
-Filename: udpspeeder-simd-snapshot_1.0.6-r1_arm_cortex-a7.ipk
-Size: 62742
-SHA256sum: fcf683e5c63b0adaeb29ae9842606abffb2aaab93f7f9b4efe85ce1f09fa0d37
+Installed-Size: 163840
+Filename: udpspeeder-simd-snapshot_1.1.0-r1_arm_cortex-a7.ipk
+Size: 68342
+SHA256sum: a4c619a1506bb18728f10dcd3a066ff5dd245fedc528857de931d0724fd3b630
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
