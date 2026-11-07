@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786487952776,
+  "lastUpdate": 1794082350518,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1461,6 +1461,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 646.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "bce0f3c90b50475c5c4d2a6e7062daaf9627e0b1",
+          "message": "bench: make dns-live-test.sh executable\n\nThe usage line documents ./bench/dns-live-test.sh as the invocation, but\nthe file was recorded 100644, so a fresh clone fails with exit 126 before\nthe lane starts. Set the executable bit the documented interface promises.\n\nCo-Authored-By: GLM-5.3 <https://chat.z.ai>",
+          "timestamp": "2026-11-07T20:06:08Z",
+          "tree_id": "fbf98ae97f964bcb23e2c3f478a021b44da04dbb",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/bce0f3c90b50475c5c4d2a6e7062daaf9627e0b1"
+        },
+        "date": 1794082346377,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 716.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 609.4,
             "unit": "Mbps"
           }
         ]
