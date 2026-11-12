@@ -204,15 +204,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install allium-cli (pinned 3.5.0)
-        run: cargo install --locked allium-cli --version 3.5.0
+      - name: Install allium-cli (pinned 3.5.3)
+        run: cargo install --locked allium-cli --version 3.5.3
 
       - name: allium check
-        run: allium check dns_lease_mgr.allium
+        run: |
+          allium check dns_lease_mgr.allium
+          allium check socket_marks.allium
       - name: allium analyse
-        run: allium analyse dns_lease_mgr.allium
+        run: |
+          allium analyse dns_lease_mgr.allium
+          allium analyse socket_marks.allium
       - name: allium plan (test obligations)
-        run: allium plan dns_lease_mgr.allium
+        run: |
+          allium plan dns_lease_mgr.allium
+          allium plan socket_marks.allium
 
       - name: Install host-lifecycle (pinned)
         run: cargo install --locked --git https://github.com/connollydavid/host-lifecycle --rev 486add7227d1cf86f16ea4462a08d4efe0fca159

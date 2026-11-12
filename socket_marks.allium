@@ -1,0 +1,126 @@
+-- allium: 3
+-- socket_marks: the operator's per-packet classification of the tunnel's own
+-- outer traffic. Three independent marks -- a routing mark (fwmark), a packet
+-- filter cookie, and a differentiated-services code point (dscp) -- can be
+-- stamped on the tunnel's data sockets so external policy (routing tables,
+-- packet filters, traffic classes) treats the tunnel's packets differently
+-- from everything else. A mark is a claim about packets on the wire: a
+-- nonzero mark the host cannot stamp refuses startup rather than carry
+-- traffic that silently looks unmarked. Marks are host-local: they change
+-- nothing in the wire protocol and the two tunnel ends need not agree.
+
+config {
+    -- Routing mark for policy routing. 0 leaves the socket untouched.
+    fwmark: Integer = 0
+    -- Opaque cookie for packet-filter matching. 0 leaves the socket untouched.
+    cookie: Integer = 0
+    -- Differentiated-services code point, 0 to 63. 0 (best effort) leaves
+    -- the socket untouched.
+    dscp: Integer = 0
+}
+
+given {
+    host: HostCapabilities
+}
+
+enum SocketRole {
+    listening
+    connected
+}
+
+entity HostCapabilities {
+    can_stamp_routing_mark: Boolean
+    can_stamp_filter_cookie: Boolean
+    can_stamp_dscp: Boolean
+}
+
+entity TunnelSocket {
+    role: SocketRole
+    routing_mark: Integer
+    filter_cookie: Integer
+    dscp: Integer
+    carried_traffic: Boolean
+}
+
+entity ResolverSocket {
+    routing_mark: Integer
+    filter_cookie: Integer
+    dscp: Integer
+}
+
+surface SocketMarks {
+    provides:
+        StartupRequested(fwmark: Integer, cookie: Integer, dscp: Integer)
+        InvalidMarkArgument(name: String, value: String)
+        MarkRefused(name: String)
+        MarksApplied(socket: TunnelSocket)
+        EffectiveMarksStated(fwmark: Integer, cookie: Integer, dscp: Integer)
+        TunnelRepointed(socket: TunnelSocket)
+}
+
+-- Every data socket, whatever its role or address family, carries the
+-- configured marks before it first carries traffic.
+rule DataSocketsCarryConfiguredMarks {
+    when: socket: TunnelSocket.carried_traffic
+    ensures:
+        socket.routing_mark = fwmark
+        and socket.filter_cookie = cookie
+        and socket.dscp = dscp
+}
+
+-- A mark of zero is the untouched socket, not a stamp of the value zero.
+rule ZeroMeansUntouched {
+    when: socket: TunnelSocket.created
+    requires: fwmark = 0 and cookie = 0 and dscp = 0
+    ensures:
+        socket.routing_mark = 0
+        and socket.filter_cookie = 0
+        and socket.dscp = 0
+}
+
+-- A nonzero mark the host cannot stamp refuses startup: no data socket ever
+-- carries traffic under a claim the wire does not hold.
+rule UnstampableMarkRefusesStartup {
+    when: StartupRequested(fwmark, cookie, dscp)
+    requires:
+        (fwmark != 0 and host.can_stamp_routing_mark = false)
+        or (cookie != 0 and host.can_stamp_filter_cookie = false)
+        or (dscp != 0 and host.can_stamp_dscp = false)
+    ensures: MarkRefused(name)
+}
+
+-- Sockets the tunnel uses to resolve its remote endpoint carry none of the
+-- marks: marked resolver traffic can be routed by the very policy the marks
+-- install, losing the endpoint the tunnel is resolving for.
+rule ResolverSocketsCarryNoMarks {
+    when: rsocket: ResolverSocket.created
+    ensures:
+        rsocket.routing_mark = 0
+        and rsocket.filter_cookie = 0
+        and rsocket.dscp = 0
+}
+
+-- When the tunnel re-points to a new remote endpoint, the new data sockets
+-- carry the same marks as the old ones.
+rule MarksRideTheRepoint {
+    when: TunnelRepointed(socket)
+    ensures:
+        socket.routing_mark = fwmark
+        and socket.filter_cookie = cookie
+        and socket.dscp = dscp
+}
+
+-- A mark argument that is not a plain non-negative integer, or a code point
+-- outside 0 to 63, refuses startup before any socket is created.
+rule GarbageMarkRefusesStartup {
+    when: InvalidMarkArgument(name, value)
+    ensures: MarkRefused(name)
+}
+
+-- Startup states the effective marks once, so a misbehaving policy is
+-- diagnosable from the log alone.
+rule EffectiveMarksStatedAtStartup {
+    when: MarksApplied(socket)
+    requires: socket.role = listening
+    ensures: EffectiveMarksStated(fwmark, cookie, dscp)
+}
