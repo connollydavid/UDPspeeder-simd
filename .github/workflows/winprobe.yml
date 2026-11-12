@@ -87,8 +87,8 @@ jobs:
               return 0;
           }
           EOF
-          gcc -o /tmp/w/probe.exe /tmp/w/probe.c -lws2_32 -lqwave
-          /tmp/w/probe.exe || true
+          gcc -o /tmp/probe.exe /tmp/probe.c -lws2_32 -lqwave
+          /tmp/probe.exe || true
 
   exe:
     # Build the real windows exe as an artifact for the host-side proof.
@@ -96,8 +96,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: f0b6e51
       - name: Install the mingw cross
         run: sudo apt-get update && sudo apt-get install -y mingw-w64
       - name: Build the exe
