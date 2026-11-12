@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794463906992,
+  "lastUpdate": 1794464400542,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1767,6 +1767,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 726.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "f0f3c9ddbe7c46708c1e1738f7f08b20a24d7c8b",
+          "message": "ci: a native Windows lane beside the mingw-wine cross\n\nThe mingw-wine job proves the code compiles and links for Windows;\nthis lane runs it on real WinSock, which wine cannot promise, and is\nthe host the qWAVE dscp machinery will be exercised on. MSYS2 pinned\nby commit; the suite builds with the native mingw-w64 g++ and the\nmakefile's test target needs no -lrt.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:13:49Z",
+          "tree_id": "551770d63e57ae80576e5e4ec41ba81ca9b7d625",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/f0f3c9ddbe7c46708c1e1738f7f08b20a24d7c8b"
+        },
+        "date": 1794464396635,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 743.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 583.7,
             "unit": "Mbps"
           }
         ]
