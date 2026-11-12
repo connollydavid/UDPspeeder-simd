@@ -126,6 +126,9 @@ developer options:
     --delay-capacity      <number>        max number of delayed packets
     --disable-fec         <number>        completely disable fec, turn the program into a normal udp tunnel
     --sock-buf            <number>        buf size for socket, >=10 and <=10240, unit: kbyte, default: 1024
+    --fwmark              <number>        firewall mark (SO_MARK) on the tunnel's sockets, for policy routing. Linux, needs root or CAP_NET_ADMIN. decimal or 0x hex, default: 0 (off)
+    --cookie              <number>        packet-filter cookie (SO_USER_COOKIE) on the tunnel's sockets, for ipfw matching. FreeBSD. decimal or 0x hex, default: 0 (off)
+    --dscp                <number>        differentiated-services code point of the tunnel's packets, 0-63. Not offered on Windows (see the marks note). default: 0 (off)
 log and help options:
     --log-level           <number>        0: never    1: fatal   2: error   3: warn 
                                           4: info (default)      5: debug   6: trace
@@ -144,6 +147,24 @@ echo queue-len 100 > fifo.file
 echo mode 0 > fifo.file
 ```
 
+
+# Socket marks
+
+The three marks are host-local: they change how the tunnel's own outer
+packets are treated (routed, filtered, queued) and nothing about the wire
+protocol, so the two ends of a tunnel need not agree on them.
+
+`--fwmark` drives policy routing on Linux: mark the outer packets, route
+them by the mark, and they can never recurse through the tunnel itself.
+It needs root or CAP_NET_ADMIN. `--cookie` is the ipfw-side equivalent
+on FreeBSD. On Wi-Fi, `--dscp` reaches the driver's WMM access
+categories through the stack's DSCP mapping, so a voice-like value (46)
+gets voice-like airtime with no further configuration. On Windows,
+`--dscp` is refused at startup: the socket option there succeeds without
+marking anything, and the supported answers are Policy-based QoS or
+`New-NetQosPolicy`, which mark by executable or port without any code.
+A mark the host cannot stamp is always refused at startup, never
+silently dropped.
 
 # wiki
 Check wiki for more info:

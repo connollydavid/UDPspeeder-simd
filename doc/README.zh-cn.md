@@ -147,6 +147,9 @@ developer options:
     --delay-capacity      <number>        max number of delayed packets
     --disable-fec         <number>        completely disable fec, turn the program into a normal udp tunnel
     --sock-buf            <number>        buf size for socket, >=10 and <=10240, unit: kbyte, default: 1024
+    --fwmark              <number>        给隧道套接字设置防火墙标记（SO_MARK），用于策略路由。仅 Linux，需要 root 或 CAP_NET_ADMIN。十进制或 0x 十六进制，默认 0（关闭）
+    --cookie              <number>        给隧道套接字设置包过滤 cookie（SO_USER_COOKIE），供 ipfw 匹配。仅 FreeBSD。十进制或 0x 十六进制，默认 0（关闭）
+    --dscp                <number>        设置隧道报文的差异化服务代码点，0-63。Windows 不提供（见下方说明）。默认 0（关闭）
 log and help options:
     --log-level           <number>        0: never    1: fatal   2: error   3: warn 
                                           4: info (default)      5: debug   6: trace
@@ -222,6 +225,12 @@ https://github.com/wangyu-/UDPspeeder/wiki/使用经验
 暂时先参考udp2raw的这篇教程，几乎一样的过程。
 
 https://github.com/wangyu-/udp2raw-tunnel/blob/master/doc/build_guide.zh-cn.md
+
+# 套接字标记 (socket marks)
+
+三个标记都只作用于本机：它们改变的是隧道自身外层报文被路由、过滤、排队的方式，不改变线协议，隧道两端无需一致。
+
+`--fwmark` 用于 Linux 策略路由：给外层报文打标记，再按标记路由，外层报文就不会绕回隧道自身。需要 root 或 CAP_NET_ADMIN。`--cookie` 是 FreeBSD 上 ipfw 侧的等价物。在 Wi-Fi 上，`--dscp` 经内核栈的 DSCP 映射进入驱动的 WMM 接入类别，语音级别的值（46）无需其他配置即可获得语音级别的空口优先级。Windows 上 `--dscp` 会在启动时被拒绝：该平台的套接字选项会"成功"但什么也不标记，受支持的做法是策略 QoS 或 `New-NetQosPolicy`（按可执行文件或端口打标，无需代码）。本机打不上的标记一律在启动时拒绝，绝不静默丢弃。
 
 # wiki
 
