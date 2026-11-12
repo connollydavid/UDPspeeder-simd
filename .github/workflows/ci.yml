@@ -95,7 +95,10 @@ jobs:
       - name: Build the exe
         run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
       - name: Smoke
-        run: wine ./udpspeeder-simd.exe --version
+        # The banner prints before any argument handling, and the
+        # program exits nonzero by design on bad options; the smoke
+        # asserts the banner, not the exit code.
+        run: wine ./udpspeeder-simd.exe -h 2>/dev/null | grep -q "v1.2.1"
       - uses: actions/upload-artifact@v4
         with:
           name: udpspeeder-windows-x86_64
@@ -106,7 +109,10 @@ jobs:
     # The other arm world: MSYS2's CLANGARM64 toolchain builds the
     # aarch64 exe; Windows 11 on the x86_64 runner executes it under
     # emulation for the smoke.
-    runs-on: windows-latest
+    # The native arm host: CLANGARM64's compiler binaries are
+    # aarch64-native, so the build needs an arm machine, and GitHub's
+    # windows-11-arm runner is one; the smoke runs natively too.
+    runs-on: windows-11-arm
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -114,13 +120,12 @@ jobs:
         with:
           msystem: CLANGARM64
           update: false
-          install: mingw-w64-clang-aarch64-gcc make
+          install: make
       - name: Build and smoke the arm64 exe
         shell: msys2 {0}
         run: |
-          set -e
           make mingw_cross cc_mingw_cross=clang++
-          ./udpspeeder-simd.exe --version
+          ./udpspeeder-simd.exe -h | grep -q "v1.2.1"
       - uses: actions/upload-artifact@v4
         with:
           name: udpspeeder-windows-aarch64
