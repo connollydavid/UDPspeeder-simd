@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794464764819,
+  "lastUpdate": 1794465328317,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -10200,6 +10200,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1058.15,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "aea551a78453521368761826f388306bbcf9bced",
+          "message": "marks: the Windows dscp tier rides qWAVE\n\nThe per-socket TOS option on Windows succeeds without marking\nanything, so dscp there is dressed through the qWAVE flow API instead:\nthe connected socket joins a flow to its destination and the flow\ncarries the DSCP value. The support answer is probed, not assumed --\nwine ships no qWAVE service, and a claimed support the host cannot\nback would break honor-or-refuse exactly where it matters -- so a\ntunnel re-point re-tracks by construction, the flow test is dual-mode\nthe same way the fwmark test is, and the parse-time refusal fires\nwherever qWAVE cannot be reached.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:34:17Z",
+          "tree_id": "c2c0d7b2785548996bbe86c90b18f939515ad4ad",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/aea551a78453521368761826f388306bbcf9bced"
+        },
+        "date": 1794465323631,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 83.5143,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 263.903,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 940.502,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1371.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 20965.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 101588,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 24860.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 76320.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 85.6654,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 311.231,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1203.22,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1800.61,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 85.2721,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 293.951,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1133.54,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1664.45,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 88.6237,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 298.37,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1137.18,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1670.31,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 631.134,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 975.405,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2594.99,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3584.81,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 363.902,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 751.318,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2445.34,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3480.13,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1810.88,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1172.94,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 881.554,
             "unit": "ns/op"
           }
         ]
