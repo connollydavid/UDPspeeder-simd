@@ -59,8 +59,21 @@ jobs:
           usesh: true
           prepare: pkg install -y gmake
           run: |
+            set -e
             cd "$GITHUB_WORKSPACE" || exit 1
             gmake test cc_local=clang++
+            # The wire-level dscp proof on FreeBSD: the suite shows the
+            # socket carries the value, tcpdump on lo0 shows the byte.
+            clang++ -std=c++11 -I. -o /tmp/wire_sender bench/marks_wire_sender.cpp socket_marks.cpp
+            tcpdump -c 3 -i lo0 -w /tmp/marks.pcap 'udp port 57009' &
+            capture=$!
+            sleep 2
+            /tmp/wire_sender
+            wait $capture
+            tcpdump -r /tmp/marks.pcap -vv > /tmp/marks.txt
+            cat /tmp/marks.txt
+            grep -q 'tos 0xb8' /tmp/marks.txt
+            echo "ok    dscp 46 observed on the wire (tos 0xb8)"
 
   test:
     runs-on: ubuntu-latest
@@ -92,6 +105,25 @@ jobs:
       # honestly), and the runner's passwordless sudo exercises the stamp side.
       - name: Run correctness tests (privileged marks)
         run: sudo ./test_udpspeeder
+
+      # The wire-level dscp proof: the suite shows the socket carries the
+      # value, this shows the kernel puts the byte on the wire. The sender
+      # goes through apply_socket_marks exactly as the tunnel does, and the
+      # capture must read tos 0xb8 (dscp 46) back off the loopback wire.
+      - name: The dscp byte reaches the wire
+        run: |
+          set -e
+          sudo apt-get install -y -q tcpdump
+          g++ -std=c++11 -I. -o /tmp/wire_sender bench/marks_wire_sender.cpp socket_marks.cpp
+          sudo tcpdump -c 3 -i lo -w /tmp/marks.pcap 'udp port 57009' &
+          capture=$!
+          sleep 2
+          /tmp/wire_sender
+          wait $capture
+          sudo tcpdump -r /tmp/marks.pcap -vv > /tmp/marks.txt
+          cat /tmp/marks.txt
+          grep -q 'tos 0xb8' /tmp/marks.txt
+          echo "ok    dscp 46 observed on the wire (tos 0xb8)"
 
       # The same suite under AddressSanitizer and UndefinedBehaviorSanitizer.
       # Nearly everything this fork added is what these two catch: lane-width
