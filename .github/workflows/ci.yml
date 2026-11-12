@@ -179,6 +179,48 @@ jobs:
             grep -q 'tos 0xb8' /tmp/marks.txt
             echo "ok    dscp 46 observed on the wire (tos 0xb8)"
 
+  windows-exe:
+    # The windows production binary, x86_64: mingw cross, smoke under wine.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the mingw cross and wine
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 wine
+      - name: Build the exe
+        run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
+      - name: Smoke
+        # The banner prints before argument handling and bad options exit
+        # nonzero by design; the smoke asserts the banner text.
+        run: wine ./udpspeeder-simd.exe -h 2>/dev/null | grep -q "v1."
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-windows-x86_64
+          path: udpspeeder-simd.exe
+
+  windows-arm64-exe:
+    # The other arm world: the native arm host. CLANGARM64's compiler
+    # binaries are aarch64-native, so the build needs an arm machine;
+    # the smoke runs natively too.
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: CLANGARM64
+          update: false
+          install: mingw-w64-clang-aarch64-toolchain make
+      - name: Build and smoke the arm64 exe
+        shell: msys2 {0}
+        run: |
+          make mingw_cross cc_mingw_cross=clang++ LIBS_EXTRA=-lwinpthread
+          ./udpspeeder-simd.exe -h | grep -q "v1."
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-windows-aarch64
+          path: udpspeeder-simd.exe
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -836,7 +878,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe, windows-arm64-exe, macos-universal]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -862,16 +904,35 @@ jobs:
             for cand in "artifacts/udpspeeder-$name/udpspeeder-simd_cross" \
                         "artifacts/udpspeeder-$name/udpspeeder-simd"; do
               if [ -f "$cand" ]; then
-                cp "$cand" "release/udpspeeder-simd_linux_$name"
-                chmod +x "release/udpspeeder-simd_linux_$name"
+                cp "$cand" "release/udpspeeder-simd.$name"
+                chmod +x "release/udpspeeder-simd.$name"
                 break
               fi
             done
-            if [ ! -f "release/udpspeeder-simd_linux_$name" ]; then
+            if [ ! -f "release/udpspeeder-simd.$name" ]; then
               echo "FAIL  no production binary in the $name artifact"
               exit 1
             fi
           done < bench/arch-map.tsv
+          # The naming scheme says what the download is, no more: the
+          # extension names windows, the arch token names the machine,
+          # and the mac exec carries no annotation because there is only
+          # one mac download and it is the program's own name.
+          for w in "udpspeeder-windows-x86_64/udpspeeder-simd.exe udpspeeder-simd.x86_64.exe" \
+                   "udpspeeder-windows-aarch64/udpspeeder-simd.exe udpspeeder-simd.aarch64.exe"; do
+            set -- $w
+            if [ -f "artifacts/$1" ]; then
+              cp "artifacts/$1" "release/$2"
+            else
+              echo "FAIL  no windows artifact $1"
+              exit 1
+            fi
+          done
+          if [ -f artifacts/udpspeeder-macos-universal/udpspeeder-simd ]; then
+            cp artifacts/udpspeeder-macos-universal/udpspeeder-simd release/udpspeeder-simd
+          else
+            echo "note  no mac exec this run (the macOS pool starves the lane; best-effort)"
+          fi
           ls -l release/
           echo "sha256:"; sha256sum release/*
 
