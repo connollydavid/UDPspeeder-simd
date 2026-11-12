@@ -199,8 +199,11 @@ static int test_dscp_flow_windows() {
     dscp = 46;
     memset(&dest, 0, sizeof(dest));
     dest.sin_family = AF_INET;
-    dest.sin_port = htons(9);
-    dest.sin_addr.s_addr = htonl(0x7f000001);
+    dest.sin_port = htons(53);
+    /* A routable destination: qWAVE refuses loopback flows (no path to
+     * estimate, adaptive or not) and admits non-adaptive flows to real
+     * destinations everywhere we probed. */
+    dest.sin_addr.s_addr = htonl(0x08080808);
 
     if (mark_supported("dscp")) {
         fd = socket(AF_INET, SOCK_DGRAM, 0);
