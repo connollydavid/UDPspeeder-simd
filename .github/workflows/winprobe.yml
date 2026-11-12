@@ -1,9 +1,10 @@
 name: windows qwave probe
 
-# Experiment three: why does AddSocketToFlow answer ERROR_NOT_SUPPORTED
-# on the hosted runner even with the service running and ms_pacer bound?
-# The remaining suspects: a disabled dependency of QWAVE (its admission
-# machinery half-alive), or a reason named in the QoS event log.
+# Experiment four: the working reference (a verified Cygwin qWAVE patch)
+# differs from our failing call in three ways -- it passes
+# QOS_NON_ADAPTIVE_FLOW (skipping the estimation machinery whose refusal
+# we hit), a NULL destination (whole-socket flow), and it runs elevated.
+# This probe runs the full matrix and names which cell works.
 
 on:
   workflow_dispatch:
@@ -15,37 +16,13 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
-      - name: QWAVE service configuration and dependencies
+      - name: Start the qWAVE service, honestly
         shell: powershell
         run: |
-          sc.exe qc QWAVE
-          Write-Output "=== dependency states"
-          $cfg = (sc.exe qc QWAVE | Select-String 'DEPENDENCIES') -replace '.*:\s*',''
-          $cfg
-          foreach ($n in ($cfg -split '/')) {
-            $n = $n.Trim()
-            if ($n) {
-              Get-Service $n -ErrorAction SilentlyContinue | Format-Table Name, Status, StartType
-              $cs = Get-CimInstance Win32_Service -Filter "Name='$n'" -ErrorAction SilentlyContinue
-              if ($cs -and $cs.StartMode -eq 'Disabled') {
-                Write-Output "enabling and starting $n"
-                Set-Service $n -StartupType Manual
-                Start-Service $n -ErrorAction Continue
-              }
-            }
-          }
-          Write-Output "=== pacer driver"
-          Get-CimInstance Win32_SystemDriver -Filter "Name='qospaced'" -ErrorAction SilentlyContinue | Format-List Name, State, StartMode, PathName
-          Get-CimInstance Win32_SystemDriver -Filter "Name='pacer'" -ErrorAction SilentlyContinue | Format-List Name, State, StartMode, PathName
-          Start-Service QWAVE -ErrorAction Continue
+          try { Start-Service QWAVE -ErrorAction Stop; "service started" }
+          catch { "service start: $($_.Exception.Message)" }
           Get-Service QWAVE | Format-Table Name, Status
-
-      - name: The QoS operational log, before
-        shell: powershell
-        run: |
-          Get-WinEvent -ListLog *QoS*,*qWAVE* -ErrorAction SilentlyContinue | Format-Table LogName, RecordCount
-          Get-WinEvent -LogName 'Microsoft-Windows-QoS/Operational' -MaxEvents 20 -ErrorAction SilentlyContinue |
-            Format-Table TimeCreated, Id, LevelDisplayName, Message -Wrap
+          whoami /groups | Select-String 'S-1-5-32-544|High|High Mandatory' | ForEach-Object { "elevation token: $_" }
 
       - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
@@ -53,7 +30,7 @@ jobs:
           update: false
           install: mingw-w64-x86_64-gcc
 
-      - name: Ask for flows
+      - name: Write the matrix probe
         shell: msys2 {0}
         run: |
           set -e
@@ -69,36 +46,55 @@ jobs:
           extern WINBOOL WINAPI QOSCreateHandle(const qwave_version_t *, HANDLE *);
           extern WINBOOL WINAPI QOSAddSocketToFlow(HANDLE, SOCKET, const void *, int, unsigned long, qwave_flow_id_t *);
           extern WINBOOL WINAPI QOSSetFlow(HANDLE, qwave_flow_id_t, int, unsigned long, void *, unsigned long, void *);
+          static int cell(HANDLE h, const char *label, const void *dest, unsigned long flags) {
+              qwave_flow_id_t flow = 0;
+              DWORD value = 46;
+              SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
+              printf("%-28s ", label);
+              fflush(stdout);
+              if (!QOSAddSocketToFlow(h, s, dest, 0, flags, &flow)) {
+                  printf("addflow FAILED gle=%lu\n", (unsigned long)GetLastError());
+                  return 1;
+              }
+              if (!QOSSetFlow(h, flow, 2, sizeof(value), &value, 0, 0)) {
+                  printf("setdscp FAILED gle=%lu\n", (unsigned long)GetLastError());
+                  return 2;
+              }
+              printf("OK flow=%u\n", flow);
+              return 0;
+          }
           int main(void) {
               WSADATA w;
               HANDLE h = INVALID_HANDLE_VALUE;
               const qwave_version_t v = { 1, 0 };
-              qwave_flow_id_t flow = 0;
               struct sockaddr_in dest;
-              DWORD value = 46;
-              SOCKET s;
+              int rc = 0;
               if (WSAStartup(MAKEWORD(2,2), &w) != 0) { printf("WSAStartup failed\n"); return 1; }
               if (!QOSCreateHandle(&v, &h)) { printf("handle FAILED gle=%lu\n", (unsigned long)GetLastError()); return 1; }
-              printf("handle ok\n");
-              s = socket(AF_INET, SOCK_DGRAM, 0);
+              printf("handle ok; elevation=%s\n", getenv("QW_ELEVATED") ? "yes" : "no");
               memset(&dest, 0, sizeof(dest));
               dest.sin_family = AF_INET; dest.sin_port = htons(53);
               dest.sin_addr.s_addr = inet_addr("8.8.8.8");
-              if (!QOSAddSocketToFlow(h, s, &dest, 0, 0, &flow)) { printf("addflow FAILED gle=%lu\n", (unsigned long)GetLastError()); return 2; }
-              printf("addflow ok flow=%u\n", flow);
-              if (!QOSSetFlow(h, flow, 2, sizeof(value), &value, 0, 0)) { printf("setdscp FAILED gle=%lu\n", (unsigned long)GetLastError()); return 3; }
-              printf("setdscp ok\nPROBE SUCCESS\n");
+              rc |= cell(h, "adaptive+routable:", &dest, 0);
+              rc |= cell(h, "nonadaptive+null:", NULL, 2 /* QOS_NON_ADAPTIVE_FLOW */);
+              printf(rc == 0 ? "MATRIX ALL OK\n" : "MATRIX PARTIAL rc=%d\n", rc);
               return 0;
           }
           EOF
           gcc -o /tmp/probe.exe /tmp/probe.c -lws2_32 -lqwave
-          /tmp/probe.exe || true
 
-      - name: The QoS operational log, after
+      - name: Run the matrix, plain then elevated
         shell: powershell
         run: |
-          Get-WinEvent -LogName 'Microsoft-Windows-QoS/Operational' -MaxEvents 20 -ErrorAction SilentlyContinue |
-            Format-Table TimeCreated, Id, LevelDisplayName, Message -Wrap
+          Write-Output "=== plain (runner shell)"
+          C:\msys64\usr\bin\bash.exe -lc "/tmp/probe.exe" 2>&1 | Write-Output
+          Write-Output "=== elevated (scheduled task, highest run level)"
+          $action = New-ScheduledTaskAction -Execute "C:\msys64\usr\bin\bash.exe" -Argument "-lc 'QW_ELEVATED=1 /tmp/probe.exe > /tmp/elevated.txt 2>&1'"
+          Register-ScheduledTask -TaskName qwavetest -Action $action -RunLevel Highest -User $env:USERNAME -Force | Out-Null
+          Start-ScheduledTask -TaskName qwavetest
+          Start-Sleep -Seconds 12
+          Get-Content C:\msys64\tmp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
+          Unregister-ScheduledTask -TaskName qwavetest -Confirm:$false -ErrorAction SilentlyContinue
 
   exe:
     runs-on: ubuntu-latest
@@ -112,4 +108,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: udpspeeder-simd-windows
-          path: speederv2.exe
+          path: udpspeeder-simd.exe
