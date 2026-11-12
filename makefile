@@ -39,7 +39,7 @@ freebsd:git_version
 
 mingw:git_version
 	rm -f ${NAME}
-	${cc_local}   -o ${NAME}          -I. ${SOURCES} ${FLAGS}  -ggdb -static -O2 -lws2_32 -lqwave
+	${cc_local}   -o ${NAME}          -I. ${SOURCES} ${FLAGS}  -ggdb -static -O2 -Wno-narrowing -lws2_32 -lqwave
 
 mingw_wepoll:git_version    #to compile you need a patched version of libev with wepoll backend
 	rm -f ${NAME}
@@ -82,7 +82,7 @@ debug2: git_version
 #targets for cross compile windows targets on linux 
 
 mingw_cross:git_version   #to build this and the below one you need 'mingw-w64' installed (the cross compile version on linux)
-	${cc_mingw_cross}   -o ${NAME}.exe          -I. ${SOURCES} ${FLAGS}  -ggdb -static -O2 -lws2_32 -lqwave
+	${cc_mingw_cross}   -o ${NAME}.exe          -I. ${SOURCES} ${FLAGS}  -ggdb -static -O2 -Wno-narrowing -lws2_32 -lqwave
 
 mingw_cross_wepoll:git_version    #to compile you need a patched version of libev with wepoll backend installed
 	${cc_mingw_cross}   -o ${NAME}_wepoll.exe       -I. ${SOURCES0} ${FLAGS}  -ggdb -static -O2   -DNO_LIBEV_EMBED -D_WIN32 -lev -lws2_32
