@@ -15,6 +15,25 @@ permissions:
   deployments: write
 
 jobs:
+  windows:
+    # The native Windows lane: real WinSock where mingw-wine only emulates,
+    # and the only host where the qWAVE dscp machinery can be exercised.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: MINGW64
+          update: false
+          install: mingw-w64-x86_64-gcc make
+      - name: Build and run the test suite
+        shell: msys2 {0}
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE"
+          make test
+
   freebsd:
     # The host-OS inversion lane for socket marks: --cookie applies for real
     # (SO_USER_COOKIE) and --fwmark refuses, where ubuntu sees the opposite.
