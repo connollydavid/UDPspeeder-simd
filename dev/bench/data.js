@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794449349982,
+  "lastUpdate": 1794449777848,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -9947,6 +9947,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 69.1241,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "079c3af965c57385fb36bc895d59c66206cf3b07",
+          "message": "ci: the marks tests start WinSock, the FreeBSD lane takes an Intel host\n\nThe Windows test binary never called WSAStartup, so every socket the\nmarks tests made under Wine failed to exist; the suite initializer\nstarts WinSock on that platform now. The FreeBSD VM lane pins\nmacos-13: macos-latest is an arm64 image and the action's rsync into\nan amd64 FreeBSD VM dies with an unexpected end of file on it.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T02:10:12Z",
+          "tree_id": "b645856603a70e354a43ff6832f8115b60f1328c",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/079c3af965c57385fb36bc895d59c66206cf3b07"
+        },
+        "date": 1794449777308,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 6.16852,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 6.84554,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 12.4846,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 22.6818,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 412.546,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1372.6,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 740.143,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2126.14,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 11.0541,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 45.1578,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 217.033,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 333.312,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 12.4386,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 77.4559,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 327.596,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 695.499,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 4.71669,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 17.7588,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 81.8426,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 90.8053,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 2.55759,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 8.02932,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 52.4709,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 89.1854,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 206.826,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 217.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 295.348,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 343.795,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 25.5615,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 46.0037,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 117.719,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 160.852,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 110.507,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 223.869,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 25.669,
             "unit": "ns/op"
           }
         ]
