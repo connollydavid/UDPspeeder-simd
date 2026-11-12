@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794082546469,
+  "lastUpdate": 1794447340153,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -8231,6 +8231,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 889.45,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "14ef9c1954382f2ff2c4be5ddc152a547095fd33",
+          "message": "spec: socket marks, honor or refuse\n\nsocket_marks.allium specifies the operator's per-packet classification\nof the tunnel's outer traffic: a routing mark, a filter cookie and a\ndifferentiated-services code point. The contract is honor-or-refuse: a\nnonzero mark the host cannot stamp refuses startup, resolver sockets\ncarry no marks, marks ride a tunnel re-point, and zero means untouched.\nThe allium lane checks, analyses and plans the second spec beside\ndns_lease_mgr, and the cli pin follows the ecosystem to 3.5.3.\n\nServes plan/0002 (Diego's shaping story, sdanfa's request).\n\nCo-Authored-By: GLM-5.3 <https://chat.z.ai>",
+          "timestamp": "2026-11-12T01:34:17Z",
+          "tree_id": "b0126decd725d52a7b04d87926e3ac4824d4eba3",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/14ef9c1954382f2ff2c4be5ddc152a547095fd33"
+        },
+        "date": 1794447335470,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 135.442,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 445.481,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1691.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 2525.43,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 38301.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 125392,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 43077.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 135899,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 140.852,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 470.56,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1807.43,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2690.01,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 147.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 394.951,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1403.27,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 3058.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 160.505,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 621.607,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 2212.26,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2596.56,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 876.16,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 2023.93,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3269.23,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4404.38,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 473.492,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 973.637,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2999.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4238.63,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2215.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1449.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1057.66,
             "unit": "ns/op"
           }
         ]
