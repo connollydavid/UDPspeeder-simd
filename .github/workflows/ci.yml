@@ -142,7 +142,8 @@ jobs:
     # (SO_USER_COOKIE) and --fwmark refuses, where ubuntu sees the opposite.
     # Pinned by commit; the arm64 macOS runner hosts an arm64 FreeBSD VM
     # (Intel macos-13 runners queue for a long time and are retiring).
-    runs-on: macos-latest
+    # macos-15: same pool story as the mac lanes above.
+    runs-on: macos-15
     timeout-minutes: 25
     # Non-gating with its sibling below: the VM host rides the same macOS
     # pool that is starving this repository, and a queued-then-cancelled
