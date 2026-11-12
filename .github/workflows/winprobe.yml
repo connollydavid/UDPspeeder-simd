@@ -1,0 +1,91 @@
+name: windows qwave probe
+
+# Experiment two: ms_pacer (the QoS Packet Scheduler filter) is already
+# bound on the hosted runner, the service starts, and every failure so
+# far asked for a flow to 127.0.0.1 -- which has no network path for
+# qWAVE to estimate. This probe asks for a flow to a routable
+# destination instead.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci-winprobe]
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Start the qWAVE service
+        shell: powershell
+        run: |
+          Start-Service QWAVE -ErrorAction Continue
+          Get-Service QWAVE | Format-Table
+          Get-NetAdapterBinding -ComponentID ms_pacer | Format-Table
+
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: MINGW64
+          update: false
+          install: mingw-w64-x86_64-gcc
+
+      - name: Ask for flows, loopback and routable
+        shell: msys2 {0}
+        run: |
+          set -e
+          cat > /tmp/probe.c <<'EOF'
+          #include <winsock2.h>
+          #include <ws2tcpip.h>
+          #include <stdio.h>
+          #ifndef _WIN32_WINNT
+          #define _WIN32_WINNT 0x0600
+          #endif
+          #ifdef __cplusplus
+          extern "C" {
+          #endif
+          typedef struct { unsigned short MajorVersion, MinorVersion; } qwave_version_t;
+          typedef unsigned int qwave_flow_id_t;
+          extern WINBOOL WINAPI QOSCreateHandle(const qwave_version_t *, HANDLE *);
+          extern WINBOOL WINAPI QOSAddSocketToFlow(HANDLE, SOCKET, const void *, int, unsigned long, qwave_flow_id_t *);
+          extern WINBOOL WINAPI QOSSetFlow(HANDLE, qwave_flow_id_t, int, unsigned long, void *, unsigned long, void *);
+          #ifdef __cplusplus
+          }
+          #endif
+          static int try_dest(HANDLE h, const char *label, const char *ip) {
+              qwave_flow_id_t flow = 0;
+              struct sockaddr_in dest;
+              DWORD value = 46;
+              SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
+              memset(&dest, 0, sizeof(dest));
+              dest.sin_family = AF_INET; dest.sin_port = htons(53);
+              dest.sin_addr.s_addr = inet_addr(ip);
+              printf("%s (%s): ", label, ip);
+              if (!QOSAddSocketToFlow(h, s, &dest, 0, 0, &flow)) {
+                  printf("addflow FAILED gle=%lu\n", (unsigned long)GetLastError());
+                  return 1;
+              }
+              printf("addflow ok flow=%u", flow);
+              if (!QOSSetFlow(h, flow, 2, sizeof(value), &value, 0, 0)) {
+                  printf(" setdscp FAILED gle=%lu\n", (unsigned long)GetLastError());
+                  return 2;
+              }
+              printf(" setdscp ok\n");
+              return 0;
+          }
+          int main(void) {
+              WSADATA w;
+              HANDLE h = INVALID_HANDLE_VALUE;
+              const qwave_version_t v = { 1, 0 };
+              int rc = 0;
+              if (WSAStartup(MAKEWORD(2,2), &w) != 0) { printf("WSAStartup failed\n"); return 1; }
+              if (!QOSCreateHandle(&v, &h)) { printf("handle FAILED gle=%lu\n", (unsigned long)GetLastError()); return 1; }
+              printf("handle ok\n");
+              rc |= try_dest(h, "loopback", "127.0.0.1");
+              rc |= try_dest(h, "routable", "8.8.8.8");
+              rc |= try_dest(h, "gateway", "192.168.1.1");
+              printf(rc == 0 ? "PROBE SUCCESS\n" : "PROBE PARTIAL/FAILED rc=%d\n", rc);
+              return 0;
+          }
+          EOF
+          gcc -o /tmp/probe.exe /tmp/probe.c -lws2_32 -lqwave
+          /tmp/probe.exe || true
