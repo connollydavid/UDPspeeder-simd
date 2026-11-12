@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794463057679,
+  "lastUpdate": 1794463468224,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1699,6 +1699,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 585,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c134db1fd9fc1004e1a8a9a31bb6a1793e8a9eba",
+          "message": "ci: the FreeBSD lane syncs the workspace over scp\n\nThe action's default rsync into the VM dies with an unexpected end of\nfile on every host tried, arm64 and amd64 alike, so the lane names the\nscp transport the action documents as an alternative.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T05:58:26Z",
+          "tree_id": "20388244c2ffd67dc824996dcb1d91238e66b9ee",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c134db1fd9fc1004e1a8a9a31bb6a1793e8a9eba"
+        },
+        "date": 1794463464055,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1096.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 872.1,
             "unit": "Mbps"
           }
         ]
