@@ -125,7 +125,7 @@ jobs:
       - name: Build and smoke the arm64 exe
         shell: msys2 {0}
         run: |
-          make mingw_cross cc_mingw_cross=clang++
+          make mingw_cross cc_mingw_cross=clang++ LIBS_EXTRA=-lwinpthread
           ./udpspeeder-simd.exe -h | grep -q "v1.2.1"
       - uses: actions/upload-artifact@v4
         with:
