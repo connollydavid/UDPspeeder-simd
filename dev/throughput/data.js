@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794082350518,
+  "lastUpdate": 1794447627845,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1495,6 +1495,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 609.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "14ef9c1954382f2ff2c4be5ddc152a547095fd33",
+          "message": "spec: socket marks, honor or refuse\n\nsocket_marks.allium specifies the operator's per-packet classification\nof the tunnel's outer traffic: a routing mark, a filter cookie and a\ndifferentiated-services code point. The contract is honor-or-refuse: a\nnonzero mark the host cannot stamp refuses startup, resolver sockets\ncarry no marks, marks ride a tunnel re-point, and zero means untouched.\nThe allium lane checks, analyses and plans the second spec beside\ndns_lease_mgr, and the cli pin follows the ecosystem to 3.5.3.\n\nServes plan/0002 (Diego's shaping story, sdanfa's request).\n\nCo-Authored-By: GLM-5.3 <https://chat.z.ai>",
+          "timestamp": "2026-11-12T01:34:17Z",
+          "tree_id": "b0126decd725d52a7b04d87926e3ac4824d4eba3",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/14ef9c1954382f2ff2c4be5ddc152a547095fd33"
+        },
+        "date": 1794447623962,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 742.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 600.1,
             "unit": "Mbps"
           }
         ]
