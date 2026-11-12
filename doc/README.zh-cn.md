@@ -1,4 +1,4 @@
-# UDPspeeder
+# udpspeeder
 ![image0](/images/cn/speedercn.PNG)
 
 双边网络加速工具，软件本身的功能是加速UDP；不过，配合vpn可以加速全流量(包括TCP/UDP/ICMP)。通过合理配置，可以加速游戏，降低游戏的丢包和延迟；也可以加速下载和看视频这种大流量的应用。用1.5倍的流量，就可以把10%的丢包率降低到万分之一以下。跟 kcptun/finalspeed/BBR 等现有方案比，主要优势是可以加速 UDP 和 ICMP，现有方案几乎都只能加速 TCP。
@@ -17,7 +17,7 @@
 
 ##### 提示
 
-如果你嫌UDPspeeder+OpenVPN麻烦，你可以尝试tinyfecVPN，一个集成了UDPspeeder功能的VPN：
+如果你嫌udpspeeder+OpenVPN麻烦，你可以尝试tinyfecVPN，一个集成了udpspeeder功能的VPN：
 
 tinyfecVPN的repo:
 
@@ -95,7 +95,7 @@ https://github.com/wangyu-/UDPspeeder/releases
 
 ##### 提示
 
-对于某些运营商，UDPspeeder跟udp2raw配合可以达到更好的速度，udp2raw负责把UDP伪装成TCP，来绕过运营商的UDP限速。
+对于某些运营商，udpspeeder跟udp2raw配合可以达到更好的速度，udp2raw负责把UDP伪装成TCP，来绕过运营商的UDP限速。
 
 udp2raw的repo:
 
@@ -107,7 +107,7 @@ https://github.com/wangyu-/udp2raw-tunnel
 ```host-lint:ignore
 udpspeeder-simd v1.0.6
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
-repository: https://github.com/connollydavid/UDPspeeder-simd
+repository: https://github.com/connollydavid/udpspeeder-simd
 based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
 
 usage:
@@ -208,10 +208,10 @@ echo mode 0 > fifo.file
 ### 以下设置两端必须相同。 
 
 ##### `-k`选项
-指定一个字符串，server/client间所有收发的包都会被异或，改变协议特征，防止UDPspeeder的协议被运营商针对。
+指定一个字符串，server/client间所有收发的包都会被异或，改变协议特征，防止udpspeeder的协议被运营商针对。
 
 ##### `--disable-obscure`
-UDPspeeder默认情况下会对每个发出的数据包随机填充和异或一些字节(4~32字节)，这样通过抓包难以发现你发了冗余数据，防止VPS被封。这个功能只是为了小心谨慎，即使你关掉这个功能，基本上也没问题，关掉可以省一些带宽和CPU。`--disable-obscure`可以关掉这个功能。
+udpspeeder默认情况下会对每个发出的数据包随机填充和异或一些字节(4~32字节)，这样通过抓包难以发现你发了冗余数据，防止VPS被封。这个功能只是为了小心谨慎，即使你关掉这个功能，基本上也没问题，关掉可以省一些带宽和CPU。`--disable-obscure`可以关掉这个功能。
 
 # 推荐参数
 

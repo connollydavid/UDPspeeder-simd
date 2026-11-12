@@ -1,8 +1,8 @@
-# UDPspeeder
+# udpspeeder
 
 A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction.
 
-When used alone, UDPspeeder improves only UDP connection. Nevertheless, if you used UDPspeeder + any UDP-based VPN together,
+When used alone, udpspeeder improves only UDP connection. Nevertheless, if you used udpspeeder + any UDP-based VPN together,
 you can improve any traffic(include TCP/UDP/ICMP), currently OpenVPN/L2TP/ShadowVPN are confirmed to be supported。
 
 ![](/images/en/udpspeeder.PNG)
@@ -11,7 +11,7 @@ or
 
 ![image_vpn](/images/en/udpspeeder+openvpn3.PNG)
 
-Assume your local network to your server is lossy. Just establish a VPN connection to your server with UDPspeeder + any UDP-based VPN, access your server via this VPN connection, then your connection quality will be significantly improved. With well-tuned parameters , you can easily reduce IP or UDP/ICMP packet-loss-rate to less than 0.01% . Besides reducing packet-loss-rate, UDPspeeder can also significantly improve your TCP latency and TCP single-thread download speed.
+Assume your local network to your server is lossy. Just establish a VPN connection to your server with udpspeeder + any UDP-based VPN, access your server via this VPN connection, then your connection quality will be significantly improved. With well-tuned parameters , you can easily reduce IP or UDP/ICMP packet-loss-rate to less than 0.01% . Besides reducing packet-loss-rate, udpspeeder can also significantly improve your TCP latency and TCP single-thread download speed.
 
 [UDPspeeder Wiki](https://github.com/wangyu-/UDPspeeder/wiki)
 
@@ -33,7 +33,7 @@ For Windows and MacOS You can run UDPspeeder inside [this](https://github.com/wa
 
 # How does it work
 
-UDPspeeder uses FEC(Forward Error Correction) to reduce packet loss rate, at the cost of additional bandwidth. The algorithm for FEC is called Reed-Solomon.
+udpspeeder uses FEC(Forward Error Correction) to reduce packet loss rate, at the cost of additional bandwidth. The algorithm for FEC is called Reed-Solomon.
 
 ![image0](/images/en/fec.PNG)
 
@@ -67,7 +67,7 @@ Assume your server ip is 44.55.66.77, you have a service listening on udp port 7
 ./udpspeeder-simd -c -l0.0.0.0:3333  -r44.55.66.77:4096 -f20:10 -k "passwd"
 ```
 
-Now connecting to UDP port 3333 at the client side is equivalent to connecting to port 7777 at the server side, and the connection has been boosted by UDPspeeder.
+Now connecting to UDP port 3333 at the client side is equivalent to connecting to port 7777 at the server side, and the connection has been boosted by udpspeeder.
 
 ##### Note
 
@@ -76,7 +76,7 @@ Now connecting to UDP port 3333 at the client side is equivalent to connecting t
 `-k` enables simple XOR encryption
 
 
-# Improves all traffic with OpenVPN + UDPspeeder
+# Improves all traffic with OpenVPN + udpspeeder
 
 See [UDPspeeder + openvpn config guide](https://github.com/wangyu-/UDPspeeder/wiki/UDPspeeder-openvpn-config-guide).
 
@@ -86,7 +86,7 @@ See [UDPspeeder + openvpn config guide](https://github.com/wangyu-/UDPspeeder/wi
 ```host-lint:ignore
 udpspeeder-simd v1.0.6
 git version: 3e248b414c    build date: Aug  5 2018 21:59:52
-repository: https://github.com/connollydavid/UDPspeeder-simd
+repository: https://github.com/connollydavid/udpspeeder-simd
 based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
 
 usage:
@@ -173,10 +173,10 @@ https://github.com/wangyu-/UDPspeeder/wiki
 
 # Related repo
 
-You can also try tinyfecVPN, a lightweight high-performance VPN with UDPspeeder's function built-in, repo:
+You can also try tinyfecVPN, a lightweight high-performance VPN with udpspeeder's function built-in, repo:
 
 https://github.com/wangyu-/tinyfecVPN
 
-You can use udp2raw with UDPspeeder together to get better speed on some ISP with UDP QoS(UDP throttling), repo: 
+You can use udp2raw with udpspeeder together to get better speed on some ISP with UDP QoS(UDP throttling), repo: 
 
 https://github.com/wangyu-/udp2raw-tunnel

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Profile UDPspeeder on target hardware.
+# Profile udpspeeder on target hardware.
 # Usage: ./profile.sh [results_dir]
 #
 # Expects bench_udpspeeder_static and test_udpspeeder_static in the
@@ -27,7 +27,7 @@ if [ -z "$BENCH_BIN" ]; then
     exit 1
 fi
 
-echo "=== UDPspeeder Profiling ==="
+echo "=== udpspeeder Profiling ==="
 echo "Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "Host: $(hostname 2>/dev/null || echo unknown)"
 echo ""

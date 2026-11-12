@@ -1,7 +1,7 @@
 #!/bin/bash
 # bench/interop.sh — Cross-architecture interop test
 #
-# Runs a UDPspeeder tunnel between two (possibly different-arch) binaries
+# Runs a udpspeeder tunnel between two (possibly different-arch) binaries
 # and verifies data integrity. Both binaries can be prefixed with QEMU.
 #
 # Usage: ./bench/interop.sh --server-cmd CMD --client-cmd CMD [options]
