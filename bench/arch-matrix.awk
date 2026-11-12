@@ -21,11 +21,11 @@ BEGIN { FS = "\t"; printf "[" }
         pkgs = ""; url = ""; args = ""
         bt = "bench-static"; tt = "test-static"; pt = "all"
         bb = "bench_udpspeeder_static"; tb = "test_udpspeeder_static"
-        pb = "speederv2"
+        pb = "udpspeeder-simd"
     } else {
         bt = "bench-cross"; tt = "test-cross"; pt = "all-cross"
         bb = "bench_udpspeeder_cross"; tb = "test_udpspeeder_cross"
-        pb = "speederv2_cross"
+        pb = "udpspeeder-simd_cross"
         if (tc ~ /^apt:/) {
             p = substr(tc, 5)
             url = ""; pkgs = p " qemu-user-static"

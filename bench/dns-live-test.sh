@@ -15,8 +15,8 @@
 # GitHub Actions runner). Usage: ./bench/dns-live-test.sh [SERVER_BIN] [CLIENT_BIN]
 set -u
 
-SERVER_BIN=${1:-./speederv2}
-CLIENT_BIN=${2:-./speederv2}
+SERVER_BIN=${1:-./udpspeeder-simd}
+CLIENT_BIN=${2:-./udpspeeder-simd}
 WORK=$(mktemp -d)
 FAIL=0
 

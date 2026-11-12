@@ -200,7 +200,7 @@ jobs:
       - name: Screen the emitted x86 code
         run: |
           bash bench/isa-screen-selftest.sh
-          bash bench/isa-screen.sh speederv2
+          bash bench/isa-screen.sh udpspeeder-simd
 
       # Both runs emit --json, which throughput.sh documents as being for
       # github-action-benchmark. Without it the numbers were measured on every
@@ -209,8 +209,8 @@ jobs:
       - name: Throughput test
         run: |
           set -o pipefail
-          { bash bench/throughput.sh ./speederv2 --iterations 3 --duration 5 --json
-            UDPSPEEDER_NO_URING=1 bash bench/throughput.sh ./speederv2 \
+          { bash bench/throughput.sh ./udpspeeder-simd --iterations 3 --duration 5 --json
+            UDPSPEEDER_NO_URING=1 bash bench/throughput.sh ./udpspeeder-simd \
               --iterations 3 --duration 5 --json \
               | sed 's|"throughput/|"baseline/throughput/|'
           } | python3 -c 'import sys, json; print(json.dumps(
@@ -279,7 +279,7 @@ jobs:
       - name: Run the live DNS integration lane
         # The lane binds port 53 and bind-mounts a private resolv.conf; the
         # runner user is not root, so the whole script runs under sudo.
-        run: sudo bash bench/dns-live-test.sh ./speederv2 ./speederv2
+        run: sudo bash bench/dns-live-test.sh ./udpspeeder-simd ./udpspeeder-simd
 
   # The two spec lanes the DNS lease manager carries (plan/0001). A present spec
   # carries its full lane: the .allium requirements lane here, the .tla timing
@@ -470,7 +470,7 @@ jobs:
           objdump=$(find /tmp/openwrt-toolchain -name '*-objdump' -path '*/bin/*' | sort | head -1)
           rc=0
           check() { # cpu wanted
-            # NAME keeps this off speederv2_cross, which the artifact step wants
+            # NAME keeps this off udpspeeder-simd_cross, which the artifact step wants
             make cross_cxx NAME=spe_probe CXX="${OPENWRT_GXX}" \
               CXXFLAGS="-Os -mcpu=$1" > /dev/null
             n=$("$objdump" -d spe_probe_cross | grep -cE '\bev(ldd|stdd|xor)\b' || true)
@@ -578,8 +578,8 @@ jobs:
             make test-cross CC="$gxx -march=$2"
             mv test_udpspeeder_cross "test.$3"
             make all-cross CC="$gxx -march=$2"
-            mv speederv2_cross "speederv2.$3"
-            file "test.$3" "speederv2.$3"
+            mv udpspeeder-simd_cross "udpspeeder-simd.$3"
+            file "test.$3" "udpspeeder-simd.$3"
           }
           build x86-geode   pentium-mmx pentium-mmx
           build x86-generic pentium4    pentium4
@@ -658,7 +658,7 @@ jobs:
           path: bin/riscv64
 
       - name: Set executable permissions
-        run: chmod +x bin/*/speederv2 bin/*/speederv2_cross
+        run: chmod +x bin/*/udpspeeder-simd bin/*/udpspeeder-simd_cross
 
       - name: Run cross-architecture interop tests
         run: |
@@ -666,11 +666,11 @@ jobs:
           PASS=0
           FAIL=0
 
-          X86="bin/x86_64/speederv2"
-          ARM="qemu-aarch64-static bin/aarch64/speederv2_cross"
-          MIPS="qemu-mips-static bin/mips/speederv2_cross"
-          PPC="qemu-ppc-static -cpu e500v2 bin/powerpc/speederv2_cross"
-          RV64="qemu-riscv64-static bin/riscv64/speederv2_cross"
+          X86="bin/x86_64/udpspeeder-simd"
+          ARM="qemu-aarch64-static bin/aarch64/udpspeeder-simd_cross"
+          MIPS="qemu-mips-static bin/mips/udpspeeder-simd_cross"
+          PPC="qemu-ppc-static -cpu e500v2 bin/powerpc/udpspeeder-simd_cross"
+          RV64="qemu-riscv64-static bin/riscv64/udpspeeder-simd_cross"
 
           TESTS=(
             "x86-server_arm-client|$X86|$ARM"
@@ -745,7 +745,7 @@ jobs:
         with:
           path: artifacts
 
-      # Named for the project rather than for speederv2, upstream's binary
+      # Named for the project rather than for udpspeeder-simd, upstream's binary
       # name, which is what the package installs as /usr/bin/udpspeeder-simd.
       # v1.0.3 shipped the old names and releases are immutable, so this
       # starts at the next tag.
@@ -755,8 +755,8 @@ jobs:
           mkdir -p release
           while IFS=$'\t' read -r name _; do
             case "$name" in \#*|"") continue ;; esac
-            for cand in "artifacts/udpspeeder-$name/speederv2_cross" \
-                        "artifacts/udpspeeder-$name/speederv2"; do
+            for cand in "artifacts/udpspeeder-$name/udpspeeder-simd_cross" \
+                        "artifacts/udpspeeder-$name/udpspeeder-simd"; do
               if [ -f "$cand" ]; then
                 cp "$cand" "release/udpspeeder-simd_linux_$name"
                 chmod +x "release/udpspeeder-simd_linux_$name"

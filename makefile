@@ -5,7 +5,7 @@ cc_mac_cross=o64-clang++ -stdlib=libc++
 
 SOURCES0=main.cpp log.cpp socket_marks.cpp common.cpp lib/fec.cpp lib/rs.cpp packet.cpp packet_cook.cpp delay_manager.cpp fd_manager.cpp connection.cpp fec_manager.cpp misc.cpp tunnel_client.cpp tunnel_server.cpp io_uring_recv.cpp xor_spe.S
 SOURCES=${SOURCES0} my_ev.cpp -isystem libev
-NAME=speederv2
+NAME=udpspeeder-simd
 
 
 FLAGS= -std=c++11   -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -MMD -MP ${OPT}
