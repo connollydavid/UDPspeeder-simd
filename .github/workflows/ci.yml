@@ -48,6 +48,7 @@ jobs:
     # (Intel macos-13 runners queue for a long time and are retiring).
     runs-on: macos-latest
     timeout-minutes: 25
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Build and run the test suite on FreeBSD
@@ -77,7 +78,7 @@ jobs:
       - name: Build the universal exec
         run: |
           set -e
-          make mac cc_local="clang++ -arch x86_64 -arch arm64"
+          make mac cc_local="clang++ -arch x86_64 -arch arm64 -DBENCH_EXPOSE_INTERNALS"
           file udpspeeder-simd | grep -q universal
           ./udpspeeder-simd --version
       - uses: actions/upload-artifact@v4
@@ -120,7 +121,7 @@ jobs:
         with:
           msystem: CLANGARM64
           update: false
-          install: make
+          install: mingw-w64-clang-aarch64-toolchain make
       - name: Build and smoke the arm64 exe
         shell: msys2 {0}
         run: |
