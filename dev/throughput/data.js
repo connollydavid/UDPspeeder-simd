@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794496967113,
+  "lastUpdate": 1794497912729,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2481,6 +2481,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 560.9,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "aecbe20bd70b0d49fe211ca3c4a6554dcfa1d026",
+          "message": "ci: the freebsd lane does not gate while the macOS pool starves\n\nThe freebsd VM rides a macOS runner as its host, and the pool that\ncancels the macos lane without a runner cancels it too -- main's\nmatrix went red on exactly that. The lane was green hours before (run\n43212123044) and nothing in the software changed; continue-on-error\ncarries it until the pool grants capacity again, alongside macos.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T15:32:30Z",
+          "tree_id": "01fe68c287fbf13dd8d0d2e21cb31ee521a11d37",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/aecbe20bd70b0d49fe211ca3c4a6554dcfa1d026"
+        },
+        "date": 1794497908146,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1170.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1006.8,
             "unit": "Mbps"
           }
         ]
