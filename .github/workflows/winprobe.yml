@@ -12,6 +12,12 @@ on:
     branches: [ci-winprobe2]
 
 jobs:
+  macecho:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - run: uname -a && sw_vers
+
   probe:
     runs-on: windows-latest
     timeout-minutes: 15
