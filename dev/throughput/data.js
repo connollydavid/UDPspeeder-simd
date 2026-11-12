@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794449346663,
+  "lastUpdate": 1794449775413,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1631,6 +1631,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 526.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "079c3af965c57385fb36bc895d59c66206cf3b07",
+          "message": "ci: the marks tests start WinSock, the FreeBSD lane takes an Intel host\n\nThe Windows test binary never called WSAStartup, so every socket the\nmarks tests made under Wine failed to exist; the suite initializer\nstarts WinSock on that platform now. The FreeBSD VM lane pins\nmacos-13: macos-latest is an arm64 image and the action's rsync into\nan amd64 FreeBSD VM dies with an unexpected end of file on it.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T02:10:12Z",
+          "tree_id": "b645856603a70e354a43ff6832f8115b60f1328c",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/079c3af965c57385fb36bc895d59c66206cf3b07"
+        },
+        "date": 1794449771329,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1118.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 952.4,
             "unit": "Mbps"
           }
         ]
