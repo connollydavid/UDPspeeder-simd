@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794493282728,
+  "lastUpdate": 1794496664768,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -13243,6 +13243,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 981.467,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3f14365597f9e3d09bc1071dbfeb5eb70cd296c8",
+          "message": "ci: the macos lane does not gate while macOS runners starve\n\nThe lane as written fails every run: macOS runners are not being\ngranted to this repository, so the job queues past ten minutes and is\ncancelled without a runner, twice observed on both macos-latest and\nmacos-14 with a trivial workload. continue-on-error carries the lane\nwithout gating releases on a platform capacity fact; the flag comes\noff the day this lane goes green once.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T15:16:22Z",
+          "tree_id": "05f1c6b5369ac56175e2405eb5760fab31b10f9a",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3f14365597f9e3d09bc1071dbfeb5eb70cd296c8"
+        },
+        "date": 1794496654186,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 54.9888,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 173.033,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 633.095,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 912.81,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 14070.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 46106.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 16705.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 50914.6,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 52.6332,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 176.859,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 653.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1005.56,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 63.492,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 229.022,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 915.256,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1335.26,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 67.6153,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 234.357,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 899.67,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1328.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 409.024,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 682.002,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 1833.41,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 2472.43,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 232.49,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 519.633,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 1695.58,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 2420.36,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1446.95,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 736.047,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 516.361,
             "unit": "ns/op"
           }
         ]
