@@ -215,6 +215,15 @@ static int test_repoint_mark_persistence() {
 int run_socket_marks_tests() {
     int failures = 0;
 
+#ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        printf("=== Socket Marks Tests ===\n");
+        printf("  FAIL: WSAStartup\n");
+        return 1;
+    }
+#endif
+
     printf("=== Socket Marks Tests ===\n");
     failures += test_mark_parse_accept();
     failures += test_mark_parse_reject();

@@ -18,8 +18,9 @@ jobs:
   freebsd:
     # The host-OS inversion lane for socket marks: --cookie applies for real
     # (SO_USER_COOKIE) and --fwmark refuses, where ubuntu sees the opposite.
-    # Pinned by commit; the macOS runner hosts the FreeBSD VM.
-    runs-on: macos-latest
+    # Pinned by commit; an Intel macOS runner hosts the FreeBSD VM (the arm64
+    # macos-latest image kills the action's rsync into the VM).
+    runs-on: macos-13
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
