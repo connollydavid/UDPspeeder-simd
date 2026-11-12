@@ -15,6 +15,24 @@ permissions:
   deployments: write
 
 jobs:
+  freebsd:
+    # The host-OS inversion lane for socket marks: --cookie applies for real
+    # (SO_USER_COOKIE) and --fwmark refuses, where ubuntu sees the opposite.
+    # Pinned by commit; the macOS runner hosts the FreeBSD VM.
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run the test suite on FreeBSD
+        uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
+        with:
+          release: "14.2"
+          usesh: true
+          prepare: pkg install -y gmake gcc libev
+          run: |
+            cd "$GITHUB_WORKSPACE" || exit 1
+            gmake test
+
   test:
     runs-on: ubuntu-latest
     steps:
