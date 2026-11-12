@@ -19,6 +19,9 @@ int main() {
     printf("\n=== DNS Lease Tests ===\n");
     failures += run_dns_lease_tests();
 
+    printf("\n=== Socket Marks Tests ===\n");
+    failures += run_socket_marks_tests();
+
     printf("\n");
     if (failures == 0)
         printf("All tests passed.\n");
