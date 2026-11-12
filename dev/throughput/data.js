@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794467675280,
+  "lastUpdate": 1794468114669,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2039,6 +2039,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 590.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "9c0a963fc8448f2f90371366cc52fb92c498ffc6",
+          "message": "marks: wine is Windows without qWAVE, and the tests say so\n\nThe middle-branch assertions assumed _WIN32 means qWAVE present, but\nwine is _WIN32 with an honestly-absent service, so the probe answers\nno there. The branches now assert what is always true on that\nplatform: dscp rides flows, never a per-socket stamp, and apply is a\nno-op for it.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T07:15:42Z",
+          "tree_id": "98b2626fa732a74ae55a7ea5ec1c278eaa646a6b",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/9c0a963fc8448f2f90371366cc52fb92c498ffc6"
+        },
+        "date": 1794468110168,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 675.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 591.1,
             "unit": "Mbps"
           }
         ]
