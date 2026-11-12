@@ -105,6 +105,9 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len);
  * prototypes reference a QOS_FLOWID the same header never declares, so it
  * does not compile under those toolchains at all; the surface we need is
  * declared here, ABI-exact, against qwave.lib directly. */
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef struct { unsigned short MajorVersion, MinorVersion; } qwave_version_t;
 typedef unsigned int qwave_flow_id_t;
 #define QWAVE_BEST_EFFORT 0
@@ -112,6 +115,9 @@ typedef unsigned int qwave_flow_id_t;
 extern WINBOOL WINAPI QOSCreateHandle(const qwave_version_t *, HANDLE *);
 extern WINBOOL WINAPI QOSAddSocketToFlow(HANDLE, SOCKET, const void *, int, unsigned long, qwave_flow_id_t *);
 extern WINBOOL WINAPI QOSSetFlow(HANDLE, qwave_flow_id_t, int, unsigned long, void *, unsigned long, void *);
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 #ifdef __cplusplus
