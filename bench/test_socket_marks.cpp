@@ -11,22 +11,25 @@
  * the support test asserts the refusal is honest.
  */
 #include "bench_common.h"
+#include "socket_marks.h"
 
 #include <cstdio>
 #include <cstring>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <unistd.h>
+#endif
 
-/* The designed surface, declared here so the link failure is the red.
- * u32_t is `unsigned int` in common.h; the same type, spelled plainly. */
-extern unsigned int fwmark;
-extern unsigned int filter_cookie;
-extern unsigned int dscp;
-extern "C" int parse_mark_value(const char *s, unsigned int max, unsigned int *out);
-extern "C" int apply_socket_marks(int fd, int family);
-extern "C" int mark_supported(const char *name);
+/* The designed surface: socket_marks.h declares it, so the tests and the
+ * program can never disagree on a symbol or an expectation macro. */
+#ifdef _WIN32
+#define MARK_CLOSE(fd) closesocket(fd)
+#else
+#define MARK_CLOSE(fd) close(fd)
+#endif
 
 #define TEST(name, expr) do { \
     if (!(expr)) { printf("  FAIL: %s\n", name); failures++; } \
@@ -72,19 +75,19 @@ static int test_zero_leaves_untouched() {
     TEST("socket created", fd >= 0);
     if (fd < 0) return failures + 1;
     TEST("apply is a no-op", apply_socket_marks(fd, AF_INET) == 0);
-#ifdef SO_MARK
+#ifdef MARKS_HAVE_FWMARK
     unsigned int got = 1;
     socklen_t n = sizeof(got);
     TEST("mark is zero", getsockopt(fd, SOL_SOCKET, SO_MARK, &got, &n) == 0 && got == 0);
 #endif
-    close(fd);
+    MARK_CLOSE(fd);
     return failures;
 }
 
 /* fn test_fwmark_applied(...) */
 static int test_fwmark_applied() {
     int failures = 0;
-#ifdef SO_MARK
+#ifdef MARKS_HAVE_FWMARK
     fwmark = 0x2;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     TEST("socket created", fd >= 0);
@@ -104,7 +107,7 @@ static int test_fwmark_applied() {
     } else {
         TEST("unprivileged: apply refuses", apply_socket_marks(fd, AF_INET) == -1);
     }
-    close(fd);
+    MARK_CLOSE(fd);
 #else
     TEST("fwmark unsupported here", mark_supported("fwmark") == 0);
 #endif
@@ -115,7 +118,7 @@ static int test_fwmark_applied() {
 /* fn test_dscp_applied_v4(...) */
 static int test_dscp_applied_v4() {
     int failures = 0;
-#ifdef IP_TOS
+#ifdef MARKS_HAVE_DSCP
     dscp = 46;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     TEST("socket created", fd >= 0);
@@ -125,7 +128,7 @@ static int test_dscp_applied_v4() {
     socklen_t n = sizeof(tos);
     TEST("tos carries ef",
          getsockopt(fd, IPPROTO_IP, IP_TOS, &tos, &n) == 0 && tos == (46 << 2));
-    close(fd);
+    MARK_CLOSE(fd);
 #else
     TEST("dscp unsupported here", mark_supported("dscp") == 0);
 #endif
@@ -136,7 +139,7 @@ static int test_dscp_applied_v4() {
 /* fn test_dscp_applied_v6(...) */
 static int test_dscp_applied_v6() {
     int failures = 0;
-#ifdef IPV6_TCLASS
+#if defined(MARKS_HAVE_DSCP) && defined(IPV6_TCLASS)
     dscp = 46;
     int fd = socket(AF_INET6, SOCK_DGRAM, 0);
     TEST("socket created", fd >= 0);
@@ -146,7 +149,7 @@ static int test_dscp_applied_v6() {
     socklen_t n = sizeof(tc);
     TEST("tclass carries ef",
          getsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tc, &n) == 0 && tc == (46 << 2));
-    close(fd);
+    MARK_CLOSE(fd);
 #else
     TEST("dscp v6 unsupported here", mark_supported("dscp") == 0);
 #endif
@@ -157,17 +160,17 @@ static int test_dscp_applied_v6() {
 /* fn test_mark_support_honest(...) */
 static int test_mark_support_honest() {
     int failures = 0;
-#ifdef SO_MARK
+#ifdef MARKS_HAVE_FWMARK
     TEST("fwmark supported", mark_supported("fwmark") == 1);
 #else
     TEST("fwmark refused", mark_supported("fwmark") == 0);
 #endif
-#ifdef SO_USER_COOKIE
+#ifdef MARKS_HAVE_COOKIE
     TEST("cookie supported", mark_supported("cookie") == 1);
 #else
     TEST("cookie refused", mark_supported("cookie") == 0);
 #endif
-#ifdef IP_TOS
+#ifdef MARKS_HAVE_DSCP
     TEST("dscp supported", mark_supported("dscp") == 1);
 #else
     TEST("dscp refused", mark_supported("dscp") == 0);
@@ -182,7 +185,7 @@ static int test_repoint_mark_persistence() {
      * dscp needs no privilege, so the persistence claim is checked where it
      * can always be checked. */
     dscp = 46;
-#ifdef IP_TOS
+#ifdef MARKS_HAVE_DSCP
     int a = socket(AF_INET, SOCK_DGRAM, 0);
     int b = socket(AF_INET, SOCK_DGRAM, 0);
     TEST("both sockets created", a >= 0 && b >= 0);
@@ -195,12 +198,12 @@ static int test_repoint_mark_persistence() {
         n = sizeof(tb);
         getsockopt(b, IPPROTO_IP, IP_TOS, &tb, &n);
         TEST("both marked", ta == (46 << 2) && tb == (46 << 2));
-        close(a);
-        close(b);
+        MARK_CLOSE(a);
+        MARK_CLOSE(b);
     } else {
         failures++;
-        if (a >= 0) close(a);
-        if (b >= 0) close(b);
+        if (a >= 0) MARK_CLOSE(a);
+        if (b >= 0) MARK_CLOSE(b);
     }
 #else
     TEST("dscp unsupported on re-point", mark_supported("dscp") == 0);

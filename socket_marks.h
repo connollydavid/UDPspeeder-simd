@@ -7,12 +7,22 @@
  * and apply_socket_marks dresses every data socket before first traffic.
  *
  * Self-contained by design: the bench test build links socket_marks.cpp
- * alone, so this header includes nothing but the C library and never drags
- * the event loop behind it. C linkage throughout so the bench declarations
- * and the program agree on symbols.
+ * alone, so this header includes nothing beyond the sockets API and never
+ * drags the event loop behind it. C linkage throughout so the bench
+ * declarations and the program agree on symbols.
  */
 #ifndef SOCKET_MARKS_H
 #define SOCKET_MARKS_H
+
+#include <string.h>
+#include <stdlib.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +32,18 @@ extern "C" {
 extern unsigned int fwmark;
 extern unsigned int filter_cookie;
 extern unsigned int dscp;
+
+/* What this host can stamp, as macros: the bench tests ask them so their
+ * expectations can never disagree with the implementation's gates. */
+#if defined(SO_MARK)
+#define MARKS_HAVE_FWMARK 1
+#endif
+#if defined(SO_USER_COOKIE)
+#define MARKS_HAVE_COOKIE 1
+#endif
+#if !defined(_WIN32) && (defined(IP_TOS) || defined(IPV6_TCLASS))
+#define MARKS_HAVE_DSCP 1
+#endif
 
 /*
  * Parse a mark value: decimal or 0x hex, at most `max`. Returns 0 and stores
@@ -53,11 +75,7 @@ int apply_socket_marks(int fd, int family);
 
 #ifdef SOCKET_MARKS_IMPLEMENTATION
 
-#include <string.h>
-#include <stdlib.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,15 +98,15 @@ int parse_mark_value(const char *s, unsigned int max, unsigned int *out) {
 }
 
 int mark_supported(const char *name) {
-#if defined(SO_MARK)
+#ifdef MARKS_HAVE_FWMARK
     if (strcmp(name, "fwmark") == 0)
         return 1;
 #endif
-#if defined(SO_USER_COOKIE)
+#ifdef MARKS_HAVE_COOKIE
     if (strcmp(name, "cookie") == 0)
         return 1;
 #endif
-#if !defined(_WIN32) && (defined(IP_TOS) || defined(IPV6_TCLASS))
+#ifdef MARKS_HAVE_DSCP
     if (strcmp(name, "dscp") == 0)
         return 1;
 #endif
@@ -97,18 +115,18 @@ int mark_supported(const char *name) {
 
 int apply_socket_marks(int fd, int family) {
     if (fwmark
-#ifdef SO_MARK
+#ifdef MARKS_HAVE_FWMARK
         && setsockopt(fd, SOL_SOCKET, SO_MARK, &fwmark, sizeof(fwmark)) < 0
 #endif
     )
         return -1;
     if (filter_cookie
-#ifdef SO_USER_COOKIE
+#ifdef MARKS_HAVE_COOKIE
         && setsockopt(fd, SOL_SOCKET, SO_USER_COOKIE, &filter_cookie, sizeof(filter_cookie)) < 0
 #endif
     )
         return -1;
-#if !defined(_WIN32) && (defined(IP_TOS) || defined(IPV6_TCLASS))
+#ifdef MARKS_HAVE_DSCP
     if (dscp) {
         int v = (int)(dscp << 2);
         if (family == AF_INET6) {
