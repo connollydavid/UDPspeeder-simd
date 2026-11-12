@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794448794942,
+  "lastUpdate": 1794449346663,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1597,6 +1597,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 629.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8b1691b1f6647c4d14dac34d87fce4d9a777ab31",
+          "message": "marks: the header owns the platform gates\n\nThe socket includes and the MARKS_HAVE macros live in the declaration\nhalf of socket_marks.h now, so a consumer that includes only the header\nsees the same gates the implementation uses; the bench tests ask the\nmacros instead of the raw constants, and MinGW builds against winsock\ninstead of sys/socket.h. The v6 apply test requires both the dscp and\nthe traffic-class gates, and socket closes go through closesocket on\nWindows.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T02:02:49Z",
+          "tree_id": "bff477888de4a26b1a0e637677975a23e6f2852d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8b1691b1f6647c4d14dac34d87fce4d9a777ab31"
+        },
+        "date": 1794449342525,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 675.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 526.6,
             "unit": "Mbps"
           }
         ]
