@@ -32,7 +32,8 @@ jobs:
         run: |
           set -e
           cd "$GITHUB_WORKSPACE"
-          make test
+          make test-mingw cc_mingw_cross=g++
+          ./test_udpspeeder.exe
 
   freebsd:
     # The host-OS inversion lane for socket marks: --cookie applies for real
