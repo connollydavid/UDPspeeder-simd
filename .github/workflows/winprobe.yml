@@ -71,7 +71,7 @@ jobs:
               int rc = 0;
               if (WSAStartup(MAKEWORD(2,2), &w) != 0) { printf("WSAStartup failed\n"); return 1; }
               if (!QOSCreateHandle(&v, &h)) { printf("handle FAILED gle=%lu\n", (unsigned long)GetLastError()); return 1; }
-              printf("handle ok; elevation=%s\n", getenv("QW_ELEVATED") ? "yes" : "no");
+              printf("handle ok\n");
               memset(&dest, 0, sizeof(dest));
               dest.sin_family = AF_INET; dest.sin_port = htons(53);
               dest.sin_addr.s_addr = inet_addr("8.8.8.8");
@@ -83,17 +83,21 @@ jobs:
           EOF
           gcc -o /tmp/probe.exe /tmp/probe.c -lws2_32 -lqwave
 
-      - name: Run the matrix, plain then elevated
+      - name: Run the matrix, plain
+        shell: msys2 {0}
+        run: |
+          echo "=== plain (runner shell)"
+          /tmp/probe.exe || true
+
+      - name: Run the matrix, elevated
         shell: powershell
         run: |
-          Write-Output "=== plain (runner shell)"
-          C:\msys64\usr\bin\bash.exe -lc "/tmp/probe.exe" 2>&1 | Write-Output
           Write-Output "=== elevated (scheduled task, highest run level)"
-          $action = New-ScheduledTaskAction -Execute "C:\msys64\usr\bin\bash.exe" -Argument "-lc 'QW_ELEVATED=1 /tmp/probe.exe > /tmp/elevated.txt 2>&1'"
+          $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c C:\msys64	mp\probe.exe > C:\msys64	mp\elevated.txt 2>&1"
           Register-ScheduledTask -TaskName qwavetest -Action $action -RunLevel Highest -User $env:USERNAME -Force | Out-Null
           Start-ScheduledTask -TaskName qwavetest
           Start-Sleep -Seconds 12
-          Get-Content C:\msys64\tmp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
+          Get-Content C:\msys64	mp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
           Unregister-ScheduledTask -TaskName qwavetest -Confirm:$false -ErrorAction SilentlyContinue
 
   exe:
