@@ -132,13 +132,16 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len) {
     QOS_FLOWID flow = 0;
     DWORD value;
     (void)dest_len;
+    /* Stage-coded so a failure names where qWAVE gave up: -1 no service
+     * behind the handle, -2 the socket never joined a flow, -3 the flow
+     * would not carry the value. */
     if (qos == INVALID_HANDLE_VALUE)
         return -1;
     if (QOSAddSocketToFlow(qos, fd, (PSOCKADDR)dest, QOSTrafficTypeBestEffort, 0, &flow) == 0)
-        return -1;
+        return -2;
     value = dscp;
     if (QOSSetFlow(qos, flow, QOSSetOutgoingDSCPValue, sizeof(value), &value, 0, 0) == 0)
-        return -1;
+        return -3;
     return 0;
 }
 #endif

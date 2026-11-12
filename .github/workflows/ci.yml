@@ -27,6 +27,12 @@ jobs:
           msystem: MINGW64
           update: false
           install: mingw-w64-x86_64-gcc make
+      - name: Start the qWAVE service
+        # Server keeps QWAVE demand-start; a created handle alone does not
+        # start it, and the flow calls then fail. The runner is admin.
+        shell: powershell
+        run: Start-Service QWAVE -ErrorAction Continue
+
       - name: Build and run the test suite
         shell: msys2 {0}
         run: |

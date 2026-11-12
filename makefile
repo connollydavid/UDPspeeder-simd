@@ -196,7 +196,7 @@ test-cross: git_version
 # 64-bit toolchain (the CI lane does).
 test-mingw: git_version
 	${cc_mingw_cross} -o test_udpspeeder.exe -I. -Ibench ${TEST_SOURCES} \
-	    ${BENCH_FLAGS} -static -ggdb -lws2_32 -lqwave
+	    ${BENCH_FLAGS} -static -ggdb -D_WIN32_WINNT=0x0600 -lws2_32 -lqwave
 
 all-cross: git_version
 	${CC} -o ${NAME}_cross -I. ${SOURCES} ${FLAGS} -lrt -static -lgcc_eh -O2

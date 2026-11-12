@@ -130,6 +130,10 @@ static int test_dscp_applied_v4() {
          getsockopt(fd, IPPROTO_IP, IP_TOS, &tos, &n) == 0 && tos == (46 << 2));
     MARK_CLOSE(fd);
 #else
+#elif defined(_WIN32)
+    /* qWAVE dresses flows, not sockets; the dedicated windows test owns it. */
+    TEST("dscp supported here", mark_supported("dscp") == 1);
+#else
     TEST("dscp unsupported here", mark_supported("dscp") == 0);
 #endif
     dscp = 0;
@@ -150,6 +154,9 @@ static int test_dscp_applied_v6() {
     TEST("tclass carries ef",
          getsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tc, &n) == 0 && tc == (46 << 2));
     MARK_CLOSE(fd);
+#else
+#elif defined(_WIN32)
+    TEST("dscp v6 supported here", mark_supported("dscp") == 1);
 #else
     TEST("dscp v6 unsupported here", mark_supported("dscp") == 0);
 #endif
@@ -198,8 +205,10 @@ static int test_dscp_flow_windows() {
         fd = socket(AF_INET, SOCK_DGRAM, 0);
         TEST("qwave present: socket created", fd != INVALID_SOCKET);
         if (fd != INVALID_SOCKET) {
-            TEST("qwave present: flow carries dscp",
-                 track_dscp_socket(fd, (struct sockaddr *)&dest, sizeof(dest)) == 0);
+            int st = track_dscp_socket(fd, (struct sockaddr *)&dest, sizeof(dest));
+            if (st != 0)
+                printf("  qwave stage: %d (last error %lu)\n", st, (unsigned long)GetLastError());
+            TEST("qwave present: flow carries dscp", st == 0);
             MARK_CLOSE(fd);
         } else {
             failures++;
@@ -239,6 +248,9 @@ static int test_repoint_mark_persistence() {
         if (a >= 0) MARK_CLOSE(a);
         if (b >= 0) MARK_CLOSE(b);
     }
+#else
+#elif defined(_WIN32)
+    TEST("dscp re-point rides flows here", mark_supported("dscp") == 1);
 #else
     TEST("dscp unsupported on re-point", mark_supported("dscp") == 0);
 #endif
