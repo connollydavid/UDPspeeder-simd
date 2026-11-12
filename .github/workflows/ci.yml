@@ -114,6 +114,13 @@ jobs:
     # (Intel macos-13 runners queue for a long time and are retiring).
     runs-on: macos-latest
     timeout-minutes: 25
+    # Non-gating with its sibling below: the VM host rides the same macOS
+    # pool that is starving this repository, and a queued-then-cancelled
+    # job would fail every run through no fault of the software. The lane
+    # proved itself green repeatedly before the starvation began (run
+    # 43212123044 among others); the flag comes off when the pool grants
+    # capacity again.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Build and run the test suite on FreeBSD
