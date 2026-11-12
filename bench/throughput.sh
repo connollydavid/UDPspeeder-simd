@@ -1,7 +1,7 @@
 #!/bin/bash
 # bench/throughput.sh — Measure end-to-end UDP tunnel throughput
 #
-# Usage: ./bench/throughput.sh <speederv2_binary> [options]
+# Usage: ./bench/throughput.sh <udpspeeder-simd_binary> [options]
 #   --duration N     seconds per iteration (default: 5)
 #   --fec X:Y        FEC parameter (default: disabled)
 #   --disable-fec    explicitly disable FEC
@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$BINARY" ]]; then
-    echo "Usage: $0 <speederv2_binary> [--duration N] [--fec X:Y] [--json]" >&2
+    echo "Usage: $0 <udpspeeder-simd_binary> [--duration N] [--fec X:Y] [--json]" >&2
     exit 1
 fi
 
