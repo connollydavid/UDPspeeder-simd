@@ -14,7 +14,51 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
+
 int main(void) {
+#ifdef _WIN32
+    WSADATA w;
+    struct sockaddr_in dest;
+    const char payload[] = "marks-wire-proof";
+    SOCKET fd;
+    int i;
+
+    if (WSAStartup(MAKEWORD(2, 2), &w) != 0) {
+        fprintf(stderr, "WSAStartup failed\n");
+        return 1;
+    }
+    dscp = 46; /* EF; qWAVE dresses the flow, and the byte on the wire is 0xb8 */
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd == INVALID_SOCKET) {
+        fprintf(stderr, "socket failed\n");
+        return 1;
+    }
+    memset(&dest, 0, sizeof(dest));
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(57009);
+    dest.sin_addr.s_addr = inet_addr("8.8.8.8");
+    if (track_dscp_socket(fd, (struct sockaddr *)&dest, sizeof(dest)) != 0) {
+        fprintf(stderr, "track_dscp_socket failed\n");
+        return 1;
+    }
+    for (i = 0; i < 5; i++) {
+        if (sendto(fd, payload, sizeof(payload), 0,
+                   (struct sockaddr *)&dest, sizeof(dest)) == SOCKET_ERROR) {
+            fprintf(stderr, "sendto failed\n");
+            return 1;
+        }
+    }
+    printf("sent 5 datagrams to 8.8.8.8:57009 through a dscp-46 flow\n");
+    return 0;
+#else
     int fd;
     struct sockaddr_in dest;
     const char payload[] = "marks-wire-proof";
@@ -43,4 +87,5 @@ int main(void) {
     }
     printf("sent 5 datagrams to loopback:57009 with dscp %u\n", dscp);
     return 0;
+#endif
 }

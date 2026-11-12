@@ -15,6 +15,31 @@ permissions:
   deployments: write
 
 jobs:
+  macos:
+    # The fourth host: Darwin carries IP_TOS and IPV6_TCLASS like the other
+    # unices and refuses both marks it has no mechanism for. Its lane mirrors
+    # the freebsd one -- suite, then the loopback wire capture.
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run the suite, then the wire proof
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE"
+          make test cc_local=clang++
+          ./test_udpspeeder
+          clang++ -std=c++11 -I. -o /tmp/wire_sender bench/marks_wire_sender.cpp socket_marks.cpp
+          sudo tcpdump -c 3 -i lo0 -w /tmp/marks.pcap 'udp port 57009' &
+          capture=$!
+          sleep 2
+          /tmp/wire_sender
+          wait $capture
+          sudo tcpdump -r /tmp/marks.pcap -vv > /tmp/marks.txt
+          cat /tmp/marks.txt
+          grep -q 'tos 0xb8' /tmp/marks.txt
+          echo "ok    dscp 46 observed on the wire (tos 0xb8)"
+
   windows:
     # The native Windows lane: real WinSock where mingw-wine only emulates,
     # and the only host where the qWAVE dscp machinery can be exercised.
@@ -40,6 +65,40 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           make test-mingw cc_mingw_cross=g++
           ./test_udpspeeder.exe
+          g++ -std=c++11 -D_WIN32_WINNT=0x0600 -I. -o /tmp/wire_sender.exe bench/marks_wire_sender.cpp socket_marks.cpp -lws2_32 -lqwave
+
+      # The wire-level dscp proof on Windows: the flow is dressed through
+      # qWAVE (sockets carry no stamp there), pktmon captures, and the DSCP
+      # byte is read straight out of the converted pcapng.
+      - name: The dscp byte reaches the wire (pktmon)
+        shell: powershell
+        run: |
+          $msys = Join-Path $env:RUNNER_TEMP "msys64"
+          pktmon filter remove 2>$null
+          pktmon filter add M1 -p 57009
+          pktmon start --capture --pkt-size 128 -f "$env:TEMP\marks.etl" | Out-Null
+          & "$msys\tmp\wire_sender.exe"
+          Start-Sleep -Seconds 4
+          pktmon stop | Out-Null
+          pktmon etl2pcapng "$env:TEMP\marks.etl" -o "$env:TEMP\marks.pcapng" | Out-Null
+          $found = python3 - @'
+          import struct, sys
+          data = open(sys.argv[1], 'rb').read()
+          off, marked = 0, 0
+          while off + 12 <= len(data):
+              btype, blen = struct.unpack_from('<II', data, off)
+              if blen < 12 or off + blen > len(data): break
+              if btype == 6:  # enhanced packet block
+                  caplen = struct.unpack_from('<I', data, off + 20)[0]
+                  pkt = data[off + 28 : off + 28 + caplen]
+                  if len(pkt) >= 34 and pkt[12:14] == b'\x08\x00' and pkt[23] == 17:
+                      if pkt[15] == 0xb8: marked += 1
+              off += blen
+          print(f"packets with dscp 46 (tos 0xb8): {marked}")
+          sys.exit(0 if marked >= 3 else 1)
+          '@ "$env:TEMP\marks.pcapng"
+          if ($LASTEXITCODE -ne 0) { throw "no marked packets captured" }
+          Write-Output "ok    dscp 46 observed on the wire (pktmon)"
 
   freebsd:
     # The host-OS inversion lane for socket marks: --cookie applies for real
