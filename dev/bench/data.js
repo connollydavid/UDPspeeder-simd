@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794464404041,
+  "lastUpdate": 1794464781737,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -10942,6 +10942,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 69.0819,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "6564bd1efb0db908775b7b9d091c05356f53ce49",
+          "message": "docs: the three socket marks, both languages\n\nUsage lines with defaults and platform notes, and one prose section\neach: the marks are host-local, fwmark is policy routing on Linux and\nwants root or CAP_NET_ADMIN, cookie is ipfw's side on FreeBSD, dscp\nreaches WMM access categories through the stack's mapping on Wi-Fi,\nand Windows dscp is refused rather than silently unmarked, with\nNew-NetQosPolicy named as the supported answer there.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:18:55Z",
+          "tree_id": "e136c8810c68152d3a89c5922cb9964a22fe96c4",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/6564bd1efb0db908775b7b9d091c05356f53ce49"
+        },
+        "date": 1794464781105,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 8.94697,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 10.4197,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 25.0202,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 40.7062,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 684.94,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 2248.27,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 1146.94,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 3479.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 14.9141,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 62.4898,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 274.737,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 470.707,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 16.688,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 91.3856,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 447.134,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 672.263,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 5.4214,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 13.517,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 77.1986,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 126.762,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 5.52259,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 13.5981,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 76.788,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 129.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 303.816,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 311.024,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 429.247,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 501.271,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 35.5285,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 60.663,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 164.221,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 223.74,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 194.382,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 316.379,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 40.2452,
             "unit": "ns/op"
           }
         ]
