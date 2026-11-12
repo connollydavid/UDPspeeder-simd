@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794483874797,
+  "lastUpdate": 1794484394589,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2345,6 +2345,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 775,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "f8678ef182078be723d50b8443ec63535339a6af",
+          "message": "marks: the windows flow test asks a routable destination\n\nqWAVE refuses loopback flows outright -- there is no path to estimate\n-- so the flow test's destination moves to a routable one, matching\nthe shape the probe matrix proved admitted on hosted runners.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:47:08Z",
+          "tree_id": "10ff7f29482afe75cd714459d89b9f0d64aeb36e",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/f8678ef182078be723d50b8443ec63535339a6af"
+        },
+        "date": 1794484389917,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 943.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 756.6,
             "unit": "Mbps"
           }
         ]
