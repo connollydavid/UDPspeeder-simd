@@ -129,7 +129,6 @@ static int test_dscp_applied_v4() {
     TEST("tos carries ef",
          getsockopt(fd, IPPROTO_IP, IP_TOS, &tos, &n) == 0 && tos == (46 << 2));
     MARK_CLOSE(fd);
-#else
 #elif defined(_WIN32)
     /* qWAVE dresses flows, not sockets; the dedicated windows test owns it. */
     TEST("dscp supported here", mark_supported("dscp") == 1);
@@ -154,7 +153,6 @@ static int test_dscp_applied_v6() {
     TEST("tclass carries ef",
          getsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tc, &n) == 0 && tc == (46 << 2));
     MARK_CLOSE(fd);
-#else
 #elif defined(_WIN32)
     TEST("dscp v6 supported here", mark_supported("dscp") == 1);
 #else
@@ -248,7 +246,6 @@ static int test_repoint_mark_persistence() {
         if (a >= 0) MARK_CLOSE(a);
         if (b >= 0) MARK_CLOSE(b);
     }
-#else
 #elif defined(_WIN32)
     TEST("dscp re-point rides flows here", mark_supported("dscp") == 1);
 #else
