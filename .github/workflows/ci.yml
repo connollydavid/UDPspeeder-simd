@@ -25,7 +25,11 @@ jobs:
     # runners ran freely), so the lane would fail every run through no
     # fault of the software. The flag comes off the day this lane goes
     # green once.
-    runs-on: macos-latest
+    # Pinned to the macos-15 pool: macos-latest maps to the macos-26
+    # arm64 image whose pool is capacity-starved platform-wide (Nov 2026
+    # community reports; the 15-minute scheduler timeout cancels queued
+    # jobs outright), while macos-15 picks up instantly.
+    runs-on: macos-15
     timeout-minutes: 25
     continue-on-error: true
     steps:
@@ -53,7 +57,11 @@ jobs:
     # download and it runs wherever you put it. Best-effort while the
     # macOS pool starves this repository; the artifact feeds the
     # publisher of the next release, and can be attached to an open one.
-    runs-on: macos-latest
+    # Pinned to the macos-15 pool: macos-latest maps to the macos-26
+    # arm64 image whose pool is capacity-starved platform-wide (Nov 2026
+    # community reports; the 15-minute scheduler timeout cancels queued
+    # jobs outright), while macos-15 picks up instantly.
+    runs-on: macos-15
     timeout-minutes: 25
     continue-on-error: true
     steps:
