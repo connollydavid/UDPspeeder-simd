@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794481187342,
+  "lastUpdate": 1794481635796,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2209,6 +2209,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 980.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5f7ee105ffe3abdd942e973d28d7f82d7415407e",
+          "message": "build: the windows exe targets tolerate libev's narrowing\n\nThe embedded libev win32 backend initializes SOCKET members from -1\nin braced lists, which C++11 makes a hard error, so no modern compiler\ncan build the main windows exe; no lane built it, which is how it\nstayed broken. The legacy-compatible downgrade joins both exe targets\nbeside the qwave link fix.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:00:55Z",
+          "tree_id": "c3fcbc2e1781d175babc628a007d1e3c3d88daa5",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5f7ee105ffe3abdd942e973d28d7f82d7415407e"
+        },
+        "date": 1794481631312,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 743.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 614.2,
             "unit": "Mbps"
           }
         ]
