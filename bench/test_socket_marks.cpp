@@ -170,13 +170,47 @@ static int test_mark_support_honest() {
 #else
     TEST("cookie refused", mark_supported("cookie") == 0);
 #endif
-#ifdef MARKS_HAVE_DSCP
+#if defined(MARKS_HAVE_DSCP)
     TEST("dscp supported", mark_supported("dscp") == 1);
+#elif defined(_WIN32)
+    /* Windows dscp rides qWAVE and is probed, not assumed; the dedicated
+     * windows test owns that behaviour end to end. */
 #else
     TEST("dscp refused", mark_supported("dscp") == 0);
 #endif
     return failures;
 }
+
+#ifdef _WIN32
+/* fn test_dscp_flow_windows(...) */
+static int test_dscp_flow_windows() {
+    int failures = 0;
+    struct sockaddr_in dest;
+    SOCKET fd;
+
+    dscp = 46;
+    memset(&dest, 0, sizeof(dest));
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(9);
+    dest.sin_addr.s_addr = htonl(0x7f000001);
+
+    if (mark_supported("dscp")) {
+        fd = socket(AF_INET, SOCK_DGRAM, 0);
+        TEST("qwave present: socket created", fd != INVALID_SOCKET);
+        if (fd != INVALID_SOCKET) {
+            TEST("qwave present: flow carries dscp",
+                 track_dscp_socket(fd, (struct sockaddr *)&dest, sizeof(dest)) == 0);
+            MARK_CLOSE(fd);
+        } else {
+            failures++;
+        }
+    } else {
+        TEST("qwave absent: dscp refused", mark_supported("dscp") == 0);
+    }
+    dscp = 0;
+    return failures;
+}
+#endif
 
 /* fn test_repoint_mark_persistence(...) */
 static int test_repoint_mark_persistence() {
@@ -233,5 +267,8 @@ int run_socket_marks_tests() {
     failures += test_dscp_applied_v6();
     failures += test_mark_support_honest();
     failures += test_repoint_mark_persistence();
+#ifdef _WIN32
+    failures += test_dscp_flow_windows();
+#endif
     return failures;
 }

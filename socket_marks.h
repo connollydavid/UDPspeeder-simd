@@ -64,8 +64,26 @@ int mark_supported(const char *name);
  * Stamp the configured marks on one socket. Returns 0 when the socket is
  * dressed (or nothing is configured), -1 when a stamp the host seemed to
  * offer fails; callers treat -1 as fatal. `family` is the socket's AF_*.
+ *
+ * On Windows the routing mark and the filter cookie have no mechanism and
+ * are refused at parse time; dscp has no per-socket stamp either (the
+ * socket option there succeeds without marking anything), so it rides the
+ * qWAVE flow API instead -- see track_dscp_destination, which the caller
+ * invokes with the connected socket's destination.
  */
 int apply_socket_marks(int fd, int family);
+
+#ifdef _WIN32
+/*
+ * Dress the connected socket with the configured dscp through the qWAVE
+ * flow API: the socket joins a flow to `dest` and the flow carries the
+ * DSCP value, because the per-socket option on Windows succeeds without
+ * marking anything. Returns 0 when the flow carries the value, -1 when
+ * qWAVE cannot be reached. Called at every connected-socket creation, so
+ * a tunnel re-point re-tracks the new destination by construction.
+ */
+int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len);
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -77,8 +95,49 @@ int apply_socket_marks(int fd, int family);
 
 #include <errno.h>
 
+#ifdef _WIN32
+#include <qos2.h>
+/* qwave.lib provides the QOS2 API; MinGW-w64 ships the import library. */
+#pragma comment(lib, "qwave.lib")
+#endif
+
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef _WIN32
+/* The qWAVE handle is created lazily and left to process exit, which the
+ * OS reaps; there is no teardown path that outlives the tunnel. */
+static HANDLE windows_qos_handle(void) {
+    static HANDLE qos = INVALID_HANDLE_VALUE;
+    static int probed = 0;
+    QOS_VERSION v = { 1, 0 };
+    if (!probed) {
+        probed = 1;
+        if (QOSCreateHandle(&v, &qos) == 0)
+            qos = INVALID_HANDLE_VALUE;
+    }
+    return qos;
+}
+
+static int windows_qwave_available(void) {
+    return windows_qos_handle() != INVALID_HANDLE_VALUE;
+}
+
+int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len) {
+    HANDLE qos = windows_qos_handle();
+    QOS_FLOWID flow = 0;
+    DWORD value;
+    (void)dest_len;
+    if (qos == INVALID_HANDLE_VALUE)
+        return -1;
+    if (QOSAddSocketToFlow(qos, fd, (PSOCKADDR)dest, QOSTrafficTypeBestEffort, 0, &flow) == 0)
+        return -1;
+    value = dscp;
+    if (QOSSetFlow(qos, flow, QOSSetOutgoingDSCPValue, sizeof(value), &value, 0, 0) == 0)
+        return -1;
+    return 0;
+}
 #endif
 
 int parse_mark_value(const char *s, unsigned int max, unsigned int *out) {
@@ -106,9 +165,17 @@ int mark_supported(const char *name) {
     if (strcmp(name, "cookie") == 0)
         return 1;
 #endif
-#ifdef MARKS_HAVE_DSCP
+#if defined(MARKS_HAVE_DSCP)
     if (strcmp(name, "dscp") == 0)
         return 1;
+#endif
+#if defined(_WIN32)
+    /* dscp rides qWAVE here, and the answer is probed rather than assumed:
+     * wine ships no qWAVE service, and a claimed support the host cannot
+     * back would break the honor-or-refuse contract exactly where it
+     * matters. */
+    if (strcmp(name, "dscp") == 0)
+        return windows_qwave_available();
 #endif
     return 0;
 }

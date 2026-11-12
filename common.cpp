@@ -894,6 +894,12 @@ int new_connected_socket2(int &fd, address_t &addr, address_t *bind_addr, char *
         mylog(log_fatal, "socket mark error=%s\n", get_sock_error());
         myexit(1);
     }
+#ifdef _WIN32
+    if (dscp && track_dscp_socket(fd, (struct sockaddr *)&addr.inner, addr.get_len()) != 0) {
+        mylog(log_fatal, "dscp flow error: qWAVE could not dress the tunnel socket\n");
+        myexit(1);
+    }
+#endif
 
     mylog(log_debug, "[%s]created new udp_fd %d\n", addr.get_str(), fd);
     int ret = connect(fd, (struct sockaddr *)&addr.inner, addr.get_len());
