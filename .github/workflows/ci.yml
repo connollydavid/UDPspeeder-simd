@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, release-v1.2.1]
+    branches: [main, release-v121-final]
     # release.yml carried this trigger before its job moved here. Without it
     # the release job's ref test can never be true and a tag publishes nothing.
     tags: ['v*']
