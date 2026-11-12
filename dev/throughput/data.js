@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794463468224,
+  "lastUpdate": 1794463906992,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1733,6 +1733,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 872.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "62dea558477f870a17bb7de714ea7b861d748a2d",
+          "message": "ci: the FreeBSD lane builds with the base clang\n\nThe gcc port's libstdc++ demands the port's libgcc_s symbol versions\nwhile the loader prefers the base one, and the build dies before a\nsource is read. FreeBSD carries clang in base, so the lane drops the\ngcc port and builds with cc_local=clang++; the test sources need no\nlibev, and git_version falls back to an empty string without git.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:05:34Z",
+          "tree_id": "1d8db3051af1a2d7a22825c41137a30915d36eef",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/62dea558477f870a17bb7de714ea7b861d748a2d"
+        },
+        "date": 1794463901653,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 986,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 726.8,
             "unit": "Mbps"
           }
         ]
