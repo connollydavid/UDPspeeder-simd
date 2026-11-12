@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794484394589,
+  "lastUpdate": 1794491256529,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2379,6 +2379,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 756.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "389ad596f49646439ac377497bcefb6d2265eb59",
+          "message": "ci: the windows wire proof via pktmon, and the macos lane\n\nThe windows wire sender dresses a flow through qWAVE to a routable\ndestination (sockets carry no stamp there), pktmon captures on the\nfilter, and the DSCP byte is read straight out of the converted\npcapng by a small parser -- no tshark install. Darwin was the missing\nrung on the host ladder: it carries IP_TOS and IPV6_TCLASS like the\nother unices, refuses fwmark and cookie honestly, and its lane runs\nthe suite plus the same loopback capture the linux and freebsd lanes\nassert. The evidence ladder is now four hosts with wire proof on\nthree of them and the fourth one capture away from complete.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T13:41:00Z",
+          "tree_id": "fd5a7158e1594905f21fdea043e25280945a7387",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/389ad596f49646439ac377497bcefb6d2265eb59"
+        },
+        "date": 1794491253378,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 2098.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1467.3,
             "unit": "Mbps"
           }
         ]
