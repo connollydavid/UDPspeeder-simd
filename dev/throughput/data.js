@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794465621399,
+  "lastUpdate": 1794466074629,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1903,6 +1903,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 929.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "1f214e78dd45ec30726a229af60dec3fe86da6a2",
+          "message": "marks: set the Vista floor before winsock for the qWAVE declarations\n\nSome MinGW headers gate QOS_FLOWID and its kin behind _WIN32_WINNT\n0x0600, and the cross build never set it, so the tier failed to\ncompile there while the native lane was fine. The floor goes in before\nwinsock loads; the MSVC-only pragma comment goes away entirely, since\nthe makefile links qwave by name.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:41:25Z",
+          "tree_id": "a2fc61599fa0192d5b6478e9aae70ef6aec21dbb",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/1f214e78dd45ec30726a229af60dec3fe86da6a2"
+        },
+        "date": 1794466062531,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 683.8,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 627.7,
             "unit": "Mbps"
           }
         ]
