@@ -3,7 +3,7 @@ cc_mingw_cross=i686-w64-mingw32-g++-posix
 cc_mac_cross=o64-clang++ -stdlib=libc++
 
 
-SOURCES0=main.cpp log.cpp common.cpp lib/fec.cpp lib/rs.cpp packet.cpp packet_cook.cpp delay_manager.cpp fd_manager.cpp connection.cpp fec_manager.cpp misc.cpp tunnel_client.cpp tunnel_server.cpp io_uring_recv.cpp xor_spe.S
+SOURCES0=main.cpp log.cpp socket_marks.cpp common.cpp lib/fec.cpp lib/rs.cpp packet.cpp packet_cook.cpp delay_manager.cpp fd_manager.cpp connection.cpp fec_manager.cpp misc.cpp tunnel_client.cpp tunnel_server.cpp io_uring_recv.cpp xor_spe.S
 SOURCES=${SOURCES0} my_ev.cpp -isystem libev
 NAME=speederv2
 
@@ -106,7 +106,7 @@ git_version:
 
 # --- Benchmark and test targets ---
 BENCH_SOURCES=bench/bench_main.cpp bench/bench_fec.cpp bench/bench_crc32.cpp bench/bench_packet.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
-TEST_SOURCES=bench/test_main.cpp bench/test_dispatch.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp bench/test_dns_lease.cpp bench/test_socket_marks.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
+TEST_SOURCES=bench/test_main.cpp bench/test_dispatch.cpp bench/test_fec.cpp bench/test_crc32.cpp bench/test_packet.cpp bench/test_dns_lease.cpp bench/test_socket_marks.cpp socket_marks.cpp lib/fec.cpp lib/rs.cpp crc32/Crc32.cpp packet_cook.cpp xor_spe.S
 BENCH_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O2 -DBENCH_EXPOSE_INTERNALS -MMD -MP
 SAN_FLAGS=-std=c++11 -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers -O1 -g -fno-omit-frame-pointer -DBENCH_EXPOSE_INTERNALS
 

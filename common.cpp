@@ -6,6 +6,7 @@
  */
 
 #include "common.h"
+#include "socket_marks.h"
 #include "log.h"
 
 #include <random>
@@ -830,6 +831,10 @@ int new_connected_socket(int &fd,u32_t ip,int port)
         }
         setnonblocking(fd);
         set_buf_size(fd, socket_buf_size);
+        if (apply_socket_marks(fd, AF_INET) != 0) {
+            mylog(log_fatal, "socket mark error=%s\n", get_sock_error());
+            myexit(1);
+        }
 
         mylog(log_debug, "[%s]created new udp_fd %d\n", ip_port, fd);
         int ret = connect(fd, (struct sockaddr *) &remote_addr_in, slen);
@@ -853,6 +858,10 @@ int new_listen_socket2(int &fd, address_t &addr) {
     }
     setnonblocking(fd);
     set_buf_size(fd, socket_buf_size);
+    if (apply_socket_marks(fd, addr.get_type()) != 0) {
+        mylog(log_fatal, "socket mark error=%s\n", get_sock_error());
+        myexit(1);
+    }
 
     mylog(log_debug, "local_listen_fd=%d\n", fd);
 
@@ -881,6 +890,10 @@ int new_connected_socket2(int &fd, address_t &addr, address_t *bind_addr, char *
 
     setnonblocking(fd);
     set_buf_size(fd, socket_buf_size);
+    if (apply_socket_marks(fd, addr.get_type()) != 0) {
+        mylog(log_fatal, "socket mark error=%s\n", get_sock_error());
+        myexit(1);
+    }
 
     mylog(log_debug, "[%s]created new udp_fd %d\n", addr.get_str(), fd);
     int ret = connect(fd, (struct sockaddr *)&addr.inner, addr.get_len());

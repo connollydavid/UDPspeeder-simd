@@ -6,6 +6,7 @@
  */
 
 #include "misc.h"
+#include "socket_marks.h"
 
 char fifo_file[1000] = "";
 
@@ -644,6 +645,9 @@ void process_arg(int argc, char *argv[]) {
             {"mode", required_argument, 0, 1},
             {"timeout", required_argument, 0, 1},
             {"decode-buf", required_argument, 0, 1},
+            {"fwmark", required_argument, 0, 1},
+            {"cookie", required_argument, 0, 1},
+            {"dscp", required_argument, 0, 1},
             {"queue-len", required_argument, 0, 'q'},
             {"fec", required_argument, 0, 'f'},
             {"jitter", required_argument, 0, 'j'},
@@ -856,6 +860,36 @@ void process_arg(int argc, char *argv[]) {
                         myexit(-1);
                     }
                     mylog(log_info, "decode-buf=%d\n", fec_buff_num);
+                } else if (strcmp(long_options[option_index].name, "fwmark") == 0) {
+                    if (!mark_supported("fwmark")) {
+                        mylog(log_fatal, "--fwmark is not supported on this platform\n");
+                        myexit(-1);
+                    }
+                    if (parse_mark_value(optarg, 0xffffffffu, &fwmark) != 0) {
+                        mylog(log_fatal, "fwmark value must be a number between 0 and 4294967295\n");
+                        myexit(-1);
+                    }
+                    mylog(log_info, "fwmark=%u\n", fwmark);
+                } else if (strcmp(long_options[option_index].name, "cookie") == 0) {
+                    if (!mark_supported("cookie")) {
+                        mylog(log_fatal, "--cookie is not supported on this platform\n");
+                        myexit(-1);
+                    }
+                    if (parse_mark_value(optarg, 0xffffffffu, &filter_cookie) != 0) {
+                        mylog(log_fatal, "cookie value must be a number between 0 and 4294967295\n");
+                        myexit(-1);
+                    }
+                    mylog(log_info, "cookie=%u\n", filter_cookie);
+                } else if (strcmp(long_options[option_index].name, "dscp") == 0) {
+                    if (!mark_supported("dscp")) {
+                        mylog(log_fatal, "--dscp is not supported on this platform\n");
+                        myexit(-1);
+                    }
+                    if (parse_mark_value(optarg, 63, &dscp) != 0) {
+                        mylog(log_fatal, "dscp value must be a number between 0 and 63\n");
+                        myexit(-1);
+                    }
+                    mylog(log_info, "dscp=%u\n", dscp);
                 } else if (strcmp(long_options[option_index].name, "mode") == 0) {
                     sscanf(optarg, "%d", &g_fec_par.mode);
                     if (g_fec_par.mode != 0 && g_fec_par.mode != 1) {

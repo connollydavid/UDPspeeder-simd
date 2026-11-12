@@ -58,6 +58,12 @@ jobs:
       - name: Run correctness tests
         run: make test
 
+      # The same suite privileged: the fwmark apply test is dual-mode (a
+      # privileged host must carry the stamp, an unprivileged one must refuse
+      # honestly), and the runner's passwordless sudo exercises the stamp side.
+      - name: Run correctness tests (privileged marks)
+        run: sudo ./test_udpspeeder
+
       # The same suite under AddressSanitizer and UndefinedBehaviorSanitizer.
       # Nearly everything this fork added is what these two catch: lane-width
       # arithmetic in the vector kernels, the tails that finish a loop a few

@@ -89,11 +89,21 @@ static int test_fwmark_applied() {
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     TEST("socket created", fd >= 0);
     if (fd < 0) return failures + 1;
-    TEST("apply succeeds", apply_socket_marks(fd, AF_INET) == 0);
-    unsigned int got = 0;
-    socklen_t n = sizeof(got);
-    TEST("mark is on the socket",
-         getsockopt(fd, SOL_SOCKET, SO_MARK, &got, &n) == 0 && got == 0x2);
+    /* Dual mode: a privileged host must carry the stamp; an unprivileged
+     * one must refuse honestly (SO_MARK wants CAP_NET_ADMIN). Both are the
+     * contract, and both are assertions. */
+    unsigned int probe = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_MARK, &probe, sizeof(probe)) == 0) {
+        unsigned int m = 0x2;
+        setsockopt(fd, SOL_SOCKET, SO_MARK, &m, sizeof(m));
+        TEST("privileged: apply succeeds", apply_socket_marks(fd, AF_INET) == 0);
+        unsigned int got = 0;
+        socklen_t n = sizeof(got);
+        TEST("privileged: mark is on the socket",
+             getsockopt(fd, SOL_SOCKET, SO_MARK, &got, &n) == 0 && got == 0x2);
+    } else {
+        TEST("unprivileged: apply refuses", apply_socket_marks(fd, AF_INET) == -1);
+    }
     close(fd);
 #else
     TEST("fwmark unsupported here", mark_supported("fwmark") == 0);
@@ -168,21 +178,23 @@ static int test_mark_support_honest() {
 /* fn test_repoint_mark_persistence(...) */
 static int test_repoint_mark_persistence() {
     int failures = 0;
-    /* A re-point is a new socket for the same tunnel; both carry the marks. */
-    fwmark = 0x2;
-#ifdef SO_MARK
+    /* A re-point is a new socket for the same tunnel; both carry the marks.
+     * dscp needs no privilege, so the persistence claim is checked where it
+     * can always be checked. */
+    dscp = 46;
+#ifdef IP_TOS
     int a = socket(AF_INET, SOCK_DGRAM, 0);
     int b = socket(AF_INET, SOCK_DGRAM, 0);
     TEST("both sockets created", a >= 0 && b >= 0);
     if (a >= 0 && b >= 0) {
         TEST("first carries", apply_socket_marks(a, AF_INET) == 0);
         TEST("second carries", apply_socket_marks(b, AF_INET) == 0);
-        unsigned int ga = 0, gb = 0;
-        socklen_t n = sizeof(ga);
-        getsockopt(a, SOL_SOCKET, SO_MARK, &ga, &n);
-        n = sizeof(gb);
-        getsockopt(b, SOL_SOCKET, SO_MARK, &gb, &n);
-        TEST("both marked", ga == 0x2 && gb == 0x2);
+        int ta = 0, tb = 0;
+        socklen_t n = sizeof(ta);
+        getsockopt(a, IPPROTO_IP, IP_TOS, &ta, &n);
+        n = sizeof(tb);
+        getsockopt(b, IPPROTO_IP, IP_TOS, &tb, &n);
+        TEST("both marked", ta == (46 << 2) && tb == (46 << 2));
         close(a);
         close(b);
     } else {
@@ -191,9 +203,9 @@ static int test_repoint_mark_persistence() {
         if (b >= 0) close(b);
     }
 #else
-    TEST("fwmark refused on re-point", mark_supported("fwmark") == 0);
+    TEST("dscp unsupported on re-point", mark_supported("dscp") == 0);
 #endif
-    fwmark = 0;
+    dscp = 0;
     return failures;
 }
 
