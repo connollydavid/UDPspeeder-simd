@@ -1,0 +1,33 @@
+# socket_marks.obligations - disposition for every `allium plan` obligation.
+# `host-lifecycle obligations socket_marks.allium --tests bench --strict-discharge`
+# checks this is complete (no obligation undispositioned, no stale entry, every
+# test: name resolves to a fn <name>( marker in the bench sources, every test:
+# carrying an exercises= link references that symbol in the named function's
+# body).
+#   <id> => test:<name> exercises=<symbol> | structural | waived: <reason>
+# structural = the spec's own `allium check`/`analyse` lane discharges it (field
+# presence, enum comparability, surface shape). Rules are behavioural and are
+# discharged by the named test that walks the rule.
+
+# --- Spec-integrity (covered by the check/analyse lane) ---
+config-default.fwmark                      => structural
+config-default.cookie                      => structural
+config-default.dscp                        => structural
+entity-fields.HostCapabilities             => structural
+entity-fields.ResolverSocket               => structural
+entity-fields.TunnelSocket                 => structural
+enum-comparable.SocketRole                 => structural
+surface-actor.SocketMarks                  => structural
+surface-provides.SocketMarks               => structural
+
+# --- Rules (behavioural, discharged by the bench tests) ---
+rule-success.DataSocketsCarryConfiguredMarks => test:test_fwmark_applied exercises=apply_socket_marks
+rule-success.ZeroMeansUntouched             => test:test_zero_leaves_untouched exercises=apply_socket_marks
+rule-failure.ZeroMeansUntouched.1           => test:test_dscp_applied_v4 exercises=apply_socket_marks
+rule-success.GarbageMarkRefusesStartup      => test:test_mark_parse_reject exercises=parse_mark_value
+rule-success.MarksRideTheRepoint            => test:test_repoint_mark_persistence exercises=apply_socket_marks
+rule-success.ResolverSocketsCarryNoMarks    => waived: resolver sockets are the libc resolver's own, created inside res_query; the tunnel's creators never touch them, so no bench-callable surface can carry a mark for a test to observe. The rule guards a future refactor, not a current code path.
+rule-success.UnstampableMarkRefusesStartup  => test:test_mark_support_honest exercises=mark_supported
+rule-failure.UnstampableMarkRefusesStartup.1 => test:test_fwmark_applied exercises=apply_socket_marks
+rule-success.EffectiveMarksStatedAtStartup  => waived: the statement is a mylog line inside the process_arg branches; the harness asserts the parsed values it prints through the parse tests, and process_arg itself is not part of the bench build.
+rule-failure.EffectiveMarksStatedAtStartup.1 => waived: the statement's precondition (a listening socket) and the statement itself both live in process_arg's logging, which the bench build does not contain.

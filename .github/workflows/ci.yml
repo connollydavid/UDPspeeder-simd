@@ -251,7 +251,9 @@ jobs:
         # Every allium-plan obligation dispositioned; every test: name resolves to a
         # fn <name>( in the bench sources; every exercises= symbol the named test
         # references (--strict-discharge). The DNS tests run in the test job.
-        run: host-lifecycle obligations dns_lease_mgr.allium --tests bench --strict-discharge
+        run: |
+          host-lifecycle obligations dns_lease_mgr.allium --tests bench --strict-discharge
+          host-lifecycle obligations socket_marks.allium --tests bench --strict-discharge
 
   tlc:
     runs-on: ubuntu-latest
