@@ -87,5 +87,22 @@ jobs:
               return 0;
           }
           EOF
-          gcc -o /tmp/probe.exe /tmp/probe.c -lws2_32 -lqwave
-          /tmp/probe.exe || true
+          gcc -o /tmp/w/probe.exe /tmp/w/probe.c -lws2_32 -lqwave
+          /tmp/w/probe.exe || true
+
+  exe:
+    # Build the real windows exe as an artifact for the host-side proof.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f0b6e51
+      - name: Install the mingw cross
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64
+      - name: Build the exe
+        run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-simd-windows
+          path: speederv2.exe
