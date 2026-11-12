@@ -76,7 +76,7 @@ jobs:
               dest.sin_family = AF_INET; dest.sin_port = htons(53);
               dest.sin_addr.s_addr = inet_addr("8.8.8.8");
               rc |= cell(h, "adaptive+routable:", &dest, 0);
-              rc |= cell(h, "nonadaptive+null:", NULL, 2 /* QOS_NON_ADAPTIVE_FLOW */);
+              rc |= cell(h, "nonadaptive+routable:", &dest, 2 /* QOS_NON_ADAPTIVE_FLOW */);
               printf(rc == 0 ? "MATRIX ALL OK\n" : "MATRIX PARTIAL rc=%d\n", rc);
               return 0;
           }
@@ -93,11 +93,12 @@ jobs:
         shell: powershell
         run: |
           Write-Output "=== elevated (scheduled task, highest run level)"
-          $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c C:\msys64\tmp\probe.exe > C:\msys64\tmp\elevated.txt 2>&1"
+          $msys = Join-Path $env:RUNNER_TEMP "msys64"
+          $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c $msys\tmp\probe.exe > $msys\tmp\elevated.txt 2>&1"
           Register-ScheduledTask -TaskName qwavetest -Action $action -RunLevel Highest -User $env:USERNAME -Force | Out-Null
           Start-ScheduledTask -TaskName qwavetest
           Start-Sleep -Seconds 12
-          Get-Content C:\msys64\tmp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
+          Get-Content (Join-Path $env:RUNNER_TEMP "msys64\tmp\elevated.txt") -ErrorAction SilentlyContinue | Write-Output
           Unregister-ScheduledTask -TaskName qwavetest -Confirm:$false -ErrorAction SilentlyContinue
 
   exe:
