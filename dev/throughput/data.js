@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794447627845,
+  "lastUpdate": 1794448731766,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1529,6 +1529,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 600.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "9c807064093580402026d435d451d1d7165f9c2b",
+          "message": "marks: fwmark, cookie and dscp on the tunnel sockets\n\nThe socket_marks surface, per socket_marks.allium: parse_mark_value\ntakes decimal or 0x hex and refuses everything else (empty, garbage,\ntrailing characters, a sign, leading space, above the maximum);\nmark_supported answers from the platform headers before any socket\nexists, so a mark the host cannot stamp refuses startup; and\napply_socket_marks dresses every socket the tunnel creates, both\ncreators and both families, after the buffer size and beside the\ninterface binding. Zero means untouched. dscp rides IP_TOS and\nIPV6_TCLASS shifted into the TOS field; on Windows the whole stamp is\nrefused at parse time, where the deprecated socket option would\notherwise succeed vacuously.\n\nThe fwmark test is dual-mode, because SO_MARK wants CAP_NET_ADMIN: a\nprivileged run asserts the stamp, an unprivileged one asserts the honest\nrefusal. The lane runs the suite twice on the runner, plain and under\nsudo, so both sides of that mode are someone's green assertion. The\nidea and the first prototype are sdanfa's (udpspeeder-simd issue 1).\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T01:52:45Z",
+          "tree_id": "a25f49647b1be64cb2b80f9ffc4c90eea7563031",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/9c807064093580402026d435d451d1d7165f9c2b"
+        },
+        "date": 1794448726422,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 978.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 716,
             "unit": "Mbps"
           }
         ]
