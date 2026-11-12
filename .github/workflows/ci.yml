@@ -62,6 +62,25 @@ jobs:
             cd "$GITHUB_WORKSPACE" || exit 1
             gmake test cc_local=clang++
 
+  windows-exe:
+    # The windows production binary. mingw-wine proves the suite runs;
+    # this job builds the exe itself, smoke-runs its --version under the
+    # same wine, and hands it to the release publisher.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the mingw cross and wine
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 wine64
+      - name: Build the exe
+        run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
+      - name: Smoke: the exe runs
+        run: wine64 ./speederv2.exe --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-windows
+          path: speederv2.exe
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -700,7 +719,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -736,6 +755,12 @@ jobs:
               exit 1
             fi
           done < bench/arch-map.tsv
+          if [ -f artifacts/udpspeeder-windows/speederv2.exe ]; then
+            cp artifacts/udpspeeder-windows/speederv2.exe release/udpspeeder-simd_windows_x86-64.exe
+          else
+            echo "FAIL  no windows exe artifact"
+            exit 1
+          fi
           ls -l release/
           echo "sha256:"; sha256sum release/*
 
