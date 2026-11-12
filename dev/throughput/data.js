@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794464779364,
+  "lastUpdate": 1794464948269,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1835,6 +1835,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 958.5,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "ed680f85148e38bcf6bb20d709e73c8c97dcd548",
+          "message": "ci: the Windows lane builds the mingw test target\n\nThe plain test target links no winsock library and dies on\n__imp_socket; the makefile's test-mingw target already carries\n-lws2_32, so the lane builds it with the native MSYS2 g++ standing in\nas the cross compiler and runs the exe.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:21:57Z",
+          "tree_id": "3296ba189755ba1587684903b17824496a237b34",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/ed680f85148e38bcf6bb20d709e73c8c97dcd548"
+        },
+        "date": 1794464944018,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 975.8,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 692.7,
             "unit": "Mbps"
           }
         ]
