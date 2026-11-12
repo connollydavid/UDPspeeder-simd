@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794464400542,
+  "lastUpdate": 1794464779364,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1801,6 +1801,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 583.7,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "6564bd1efb0db908775b7b9d091c05356f53ce49",
+          "message": "docs: the three socket marks, both languages\n\nUsage lines with defaults and platform notes, and one prose section\neach: the marks are host-local, fwmark is policy routing on Linux and\nwants root or CAP_NET_ADMIN, cookie is ipfw's side on FreeBSD, dscp\nreaches WMM access categories through the stack's mapping on Wi-Fi,\nand Windows dscp is refused rather than silently unmarked, with\nNew-NetQosPolicy named as the supported answer there.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:18:55Z",
+          "tree_id": "e136c8810c68152d3a89c5922cb9964a22fe96c4",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/6564bd1efb0db908775b7b9d091c05356f53ce49"
+        },
+        "date": 1794464773955,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1235.8,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 958.5,
             "unit": "Mbps"
           }
         ]
