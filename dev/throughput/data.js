@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794464948269,
+  "lastUpdate": 1794465621399,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1869,6 +1869,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 692.7,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "aea551a78453521368761826f388306bbcf9bced",
+          "message": "marks: the Windows dscp tier rides qWAVE\n\nThe per-socket TOS option on Windows succeeds without marking\nanything, so dscp there is dressed through the qWAVE flow API instead:\nthe connected socket joins a flow to its destination and the flow\ncarries the DSCP value. The support answer is probed, not assumed --\nwine ships no qWAVE service, and a claimed support the host cannot\nback would break honor-or-refuse exactly where it matters -- so a\ntunnel re-point re-tracks by construction, the flow test is dual-mode\nthe same way the fwmark test is, and the parse-time refusal fires\nwherever qWAVE cannot be reached.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:34:17Z",
+          "tree_id": "c2c0d7b2785548996bbe86c90b18f939515ad4ad",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/aea551a78453521368761826f388306bbcf9bced"
+        },
+        "date": 1794465616093,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1098,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 929.2,
             "unit": "Mbps"
           }
         ]
