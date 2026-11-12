@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794491256529,
+  "lastUpdate": 1794493588701,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2413,6 +2413,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1467.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "7876c3e9af82f0953fb0fdba4fd362074aeaaf80",
+          "message": "docs: a plain-language guide to the socket marks\n\nWritten for Diego, who runs the tunnel and never reads C++: what each\nmark is for in one sentence, the OpenWrt config that sets it, the\nmarked-or-refuse promise, why resolver traffic stays unmarked, and a\nskeptic's account of the wire-level testing -- capture the packets,\nread the byte back, fail the build if it differs.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T14:20:11Z",
+          "tree_id": "63343dd8e9eac9b8f40fc1f2ef3c449c9f0a3953",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/7876c3e9af82f0953fb0fdba4fd362074aeaaf80"
+        },
+        "date": 1794493584498,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 683.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 527.3,
             "unit": "Mbps"
           }
         ]
