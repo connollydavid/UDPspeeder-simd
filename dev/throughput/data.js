@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794466074629,
+  "lastUpdate": 1794466722963,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1937,6 +1937,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 627.7,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "218c836be506f5c0de47bd3968685c16214ccdb8",
+          "message": "marks: repair the preprocessor chains the last edit broke\n\nThree #else lines survived above the inserted #elif branches, which no\ncompiler accepts; the chains read ifdef / elif / else again, and the\nlocal build gates the commit this time.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:52:30Z",
+          "tree_id": "18d58ee9f8393a1a1d5055f4835fdf2de490986d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/218c836be506f5c0de47bd3968685c16214ccdb8"
+        },
+        "date": 1794466719148,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 691.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 589.7,
             "unit": "Mbps"
           }
         ]
