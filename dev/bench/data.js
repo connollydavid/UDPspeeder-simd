@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794468544327,
+  "lastUpdate": 1794480908033,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -12733,6 +12733,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 69.775,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5cf333b0fb0773032ccb46b4d3c5ae316599f01e",
+          "message": "ci: the dscp byte reaches the wire, observed on loopback\n\nThe suite proves the socket carries the value; the capture proves the\nkernel puts the byte on the wire. A small sender dresses a socket\nthrough apply_socket_marks exactly as the tunnel does and emits five\ndatagrams to loopback; tcpdump must read tos 0xb8 (dscp 46) back off\nthe wire. Ubuntu runs it under the sudo pass, FreeBSD inside the VM\nwith the base tcpdump on lo0.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T10:48:53Z",
+          "tree_id": "f44b2597b4a779ab360325bf3be64503ac84611d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5cf333b0fb0773032ccb46b4d3c5ae316599f01e"
+        },
+        "date": 1794480907481,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 7.50252,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 8.11238,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 19.6127,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 31.7921,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 528.633,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1738.12,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 873.567,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2699.22,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 12.4464,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 51.9605,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 228.46,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 391.693,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 13.8218,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 76.1536,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 371.868,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 560.18,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 4.49031,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 11.3503,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 64.2584,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 105.327,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 4.601,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 11.6474,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 64.0328,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 105.496,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 258.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 279.251,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 363.155,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 416.432,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 29.4243,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 52.7294,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 135.313,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 186.239,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 161.802,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 262.984,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 33.674,
             "unit": "ns/op"
           }
         ]
