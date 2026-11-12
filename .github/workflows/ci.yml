@@ -800,8 +800,24 @@ jobs:
               exit 1
             fi
           done < bench/arch-map.tsv
-          if [ -f artifacts/udpspeeder-windows/udpspeeder-simd.exe ]; then
-            cp artifacts/udpspeeder-windows/udpspeeder-simd.exe release/udpspeeder-simd_windows_x86-64.exe
+          # The naming scheme says what the download is, no more: the
+          # extension names windows, the arch token names the machine,
+          # and the mac exec carries no annotation because there is only
+          # one mac download and it is the program's own name.
+          for w in "udpspeeder-windows-x86_64/udpspeeder-simd.exe udpspeeder-simd.x86_64.exe" \
+                   "udpspeeder-windows-aarch64/udpspeeder-simd.exe udpspeeder-simd.aarch64.exe"; do
+            set -- $w
+            if [ -f "artifacts/$1" ]; then
+              cp "artifacts/$1" "release/$2"
+            else
+              echo "FAIL  no windows artifact $1"
+              exit 1
+            fi
+          done
+          if [ -f artifacts/udpspeeder-macos-universal/udpspeeder-simd ]; then
+            cp artifacts/udpspeeder-macos-universal/udpspeeder-simd release/udpspeeder-simd
+          else
+            echo "note  no mac exec this run (the macOS pool starves the lane; best-effort)"
           fi
           ls -l release/
           echo "sha256:"; sha256sum release/*
