@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, release-v1.2.1]
+  workflow_dispatch:
     # release.yml carried this trigger before its job moved here. Without it
     # the release job's ref test can never be true and a tag publishes nothing.
     tags: ['v*']
@@ -75,11 +76,11 @@ jobs:
       - name: Build the exe
         run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
       - name: Smoke: the exe runs
-        run: wine64 ./speederv2.exe --version
+        run: wine64 ./udpspeeder-simd.exe --version
       - uses: actions/upload-artifact@v4
         with:
           name: udpspeeder-windows
-          path: speederv2.exe
+          path: udpspeeder-simd.exe
 
   test:
     runs-on: ubuntu-latest
@@ -755,8 +756,8 @@ jobs:
               exit 1
             fi
           done < bench/arch-map.tsv
-          if [ -f artifacts/udpspeeder-windows/speederv2.exe ]; then
-            cp artifacts/udpspeeder-windows/speederv2.exe release/udpspeeder-simd_windows_x86-64.exe
+          if [ -f artifacts/udpspeeder-windows/udpspeeder-simd.exe ]; then
+            cp artifacts/udpspeeder-windows/udpspeeder-simd.exe release/udpspeeder-simd_windows_x86-64.exe
           else
             echo "FAIL  no windows exe artifact"
             exit 1
