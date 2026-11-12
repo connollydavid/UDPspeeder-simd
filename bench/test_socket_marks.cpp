@@ -130,8 +130,11 @@ static int test_dscp_applied_v4() {
          getsockopt(fd, IPPROTO_IP, IP_TOS, &tos, &n) == 0 && tos == (46 << 2));
     MARK_CLOSE(fd);
 #elif defined(_WIN32)
-    /* qWAVE dresses flows, not sockets; the dedicated windows test owns it. */
-    TEST("dscp supported here", mark_supported("dscp") == 1);
+    /* qWAVE dresses flows, not sockets; the support answer is probed and
+     * the dedicated windows test owns it end to end. */
+    dscp = 46;
+    TEST("dscp rides flows, not sockets", apply_socket_marks(-1, AF_INET) == 0);
+    dscp = 0;
 #else
     TEST("dscp unsupported here", mark_supported("dscp") == 0);
 #endif
@@ -154,7 +157,7 @@ static int test_dscp_applied_v6() {
          getsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tc, &n) == 0 && tc == (46 << 2));
     MARK_CLOSE(fd);
 #elif defined(_WIN32)
-    TEST("dscp v6 supported here", mark_supported("dscp") == 1);
+    TEST("dscp v6 rides flows", apply_socket_marks(-1, AF_INET6) == 0);
 #else
     TEST("dscp v6 unsupported here", mark_supported("dscp") == 0);
 #endif
@@ -257,7 +260,7 @@ static int test_repoint_mark_persistence() {
         if (b >= 0) MARK_CLOSE(b);
     }
 #elif defined(_WIN32)
-    TEST("dscp re-point rides flows here", mark_supported("dscp") == 1);
+    TEST("dscp re-point rides flows", apply_socket_marks(-1, AF_INET) == 0);
 #else
     TEST("dscp unsupported on re-point", mark_supported("dscp") == 0);
 #endif
