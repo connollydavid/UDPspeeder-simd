@@ -29,6 +29,7 @@ jobs:
         with:
           release: "15.1"
           arch: arm64
+          sync: scp
           usesh: true
           prepare: pkg install -y gmake gcc libev
           run: |
