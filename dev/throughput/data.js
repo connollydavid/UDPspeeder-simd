@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794483255378,
+  "lastUpdate": 1794483874797,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2311,6 +2311,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 565.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5d72395d33cd1d6e7259df7a916a9ae351dd3405",
+          "message": "marks: qWAVE flows join non-adaptive\n\nThe probe matrix on the hosted windows runner isolated it: adaptive\nflows are refused with ERROR_NOT_SUPPORTED for every destination,\nwhile non-adaptive flows are admitted, plain shell or elevated alike.\nqWAVE's path estimation is what those environments cannot provide, and\na tunnel wants the stamp, not the estimate, so the flow joins with\nQOS_NON_ADAPTIVE_FLOW and the positive dscp path opens on CI hardware\ninstead of only on desktops.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:38:24Z",
+          "tree_id": "6561d7b4af14871b13c6972fab97c5c7c0d74d3f",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5d72395d33cd1d6e7259df7a916a9ae351dd3405"
+        },
+        "date": 1794483870198,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 965,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 775,
             "unit": "Mbps"
           }
         ]
