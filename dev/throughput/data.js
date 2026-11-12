@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794480931240,
+  "lastUpdate": 1794481187342,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2175,6 +2175,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1003.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "f0b6e51e8ed2dd0be79e47819a10ba7bd0cb4626",
+          "message": "build: the windows exe target links qwave\n\nThe qWAVE dscp tier added socket_marks.cpp to the sources but the\nmingw_cross exe targets still linked only ws2_32, so the main windows\nbinary has not linked since the tier landed; no lane built it, because\nthe release publishes linux binaries only. The import library joins\nboth exe targets now, and the gap this exposed is recorded: the\nwindows release artifact is owed.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T10:53:45Z",
+          "tree_id": "1e637783fc95028be5dbb2df6a6ccd7352cf155b",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/f0b6e51e8ed2dd0be79e47819a10ba7bd0cb4626"
+        },
+        "date": 1794481183050,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1129.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 980.4,
             "unit": "Mbps"
           }
         ]
