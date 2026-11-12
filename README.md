@@ -154,6 +154,9 @@ The three marks are host-local: they change how the tunnel's own outer
 packets are treated (routed, filtered, queued) and nothing about the wire
 protocol, so the two ends of a tunnel need not agree on them.
 
+A plain-language guide lives in [doc/socket-marks.md](doc/socket-marks.md);
+the short version follows.
+
 `--fwmark` drives policy routing on Linux: mark the outer packets, route
 them by the mark, and they can never recurse through the tunnel itself.
 It needs root or CAP_NET_ADMIN. `--cookie` is the ipfw-side equivalent
