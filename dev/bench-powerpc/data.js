@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794465751672,
+  "lastUpdate": 1794466416085,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -10558,6 +10558,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 882.464,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "218c836be506f5c0de47bd3968685c16214ccdb8",
+          "message": "marks: repair the preprocessor chains the last edit broke\n\nThree #else lines survived above the inserted #elif branches, which no\ncompiler accepts; the chains read ifdef / elif / else again, and the\nlocal build gates the commit this time.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:52:30Z",
+          "tree_id": "18d58ee9f8393a1a1d5055f4835fdf2de490986d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/218c836be506f5c0de47bd3968685c16214ccdb8"
+        },
+        "date": 1794466411712,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 57.5507,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 171.791,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 625.578,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 909.964,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 14162.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 46723.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 16909.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 51904.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 77.2341,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 175.929,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 673.146,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1014.63,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 63.6877,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 227.656,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 892.527,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1304.84,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 67.1692,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 230.93,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 897.638,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1310.96,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 404.213,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 702.631,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 1842.59,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 2523.87,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 242.63,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 514.008,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 1738.12,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 2430.98,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1430.25,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 750.181,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 522.731,
             "unit": "ns/op"
           }
         ]
