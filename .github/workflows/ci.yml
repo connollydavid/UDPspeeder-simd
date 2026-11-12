@@ -47,6 +47,28 @@ jobs:
           grep -q 'tos 0xb8' /tmp/marks.txt
           echo "ok    dscp 46 observed on the wire (tos 0xb8)"
 
+  macos-universal:
+    # The mac answer is one fat exec: x86_64 and arm64 lipo'd together,
+    # named plainly udpspeeder-simd because on a mac there is only one
+    # download and it runs wherever you put it. Best-effort while the
+    # macOS pool starves this repository; the artifact feeds the
+    # publisher of the next release, and can be attached to an open one.
+    runs-on: macos-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the universal exec
+        run: |
+          set -e
+          make mac cc_local="clang++ -arch x86_64 -arch arm64 -DBENCH_EXPOSE_INTERNALS"
+          file udpspeeder-simd | grep -q universal
+          ./udpspeeder-simd -h | grep -q "v1."
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-macos-universal
+          path: udpspeeder-simd
+
   windows:
     # The native Windows lane: real WinSock where mingw-wine only emulates,
     # and the only host where the qWAVE dscp machinery can be exercised.
