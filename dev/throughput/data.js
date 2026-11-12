@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794468114669,
+  "lastUpdate": 1794468541593,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2073,6 +2073,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 591.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "66fbb4dba53b614b5749b5ef55d419d8c63cef76",
+          "message": "v1.2.0\n\nSocket marks for the tunnel's outer traffic: --fwmark (Linux policy\nrouting), --cookie (FreeBSD ipfw) and --dscp (IP_TOS/IPV6_TCLASS, qWAVE\non Windows), each zero-default and honor-or-refuse -- a mark the host\ncannot stamp refuses startup. Resolver traffic is never marked; marks\nride a tunnel re-point; nothing changes on the wire. Specified in\nsocket_marks.allium with obligations discharged by the bench suite;\nnew FreeBSD and Windows CI lanes cover the platform inversions. The\nidea and the first prototype are sdanfa's (issue 1).\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T07:22:48Z",
+          "tree_id": "0cd94bfbb57fcdae82bbeb1217ae31e81bd985a0",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/66fbb4dba53b614b5749b5ef55d419d8c63cef76"
+        },
+        "date": 1794468534432,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 714.5,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 548.5,
             "unit": "Mbps"
           }
         ]
