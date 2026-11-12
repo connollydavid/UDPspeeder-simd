@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794480895935,
+  "lastUpdate": 1794481358810,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -11990,6 +11990,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 974.089,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5f7ee105ffe3abdd942e973d28d7f82d7415407e",
+          "message": "build: the windows exe targets tolerate libev's narrowing\n\nThe embedded libev win32 backend initializes SOCKET members from -1\nin braced lists, which C++11 makes a hard error, so no modern compiler\ncan build the main windows exe; no lane built it, which is how it\nstayed broken. The legacy-compatible downgrade joins both exe targets\nbeside the qwave link fix.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:00:55Z",
+          "tree_id": "c3fcbc2e1781d175babc628a007d1e3c3d88daa5",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5f7ee105ffe3abdd942e973d28d7f82d7415407e"
+        },
+        "date": 1794481354382,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 134.263,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 445.692,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1690,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 2476.66,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 37830.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 125326,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 42998.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 136374,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 137.145,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 473.675,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1801.87,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2694.45,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 145.386,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 393.594,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1396.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 2041,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 151.966,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 399.917,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1402.66,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2040.81,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 782.177,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1261.55,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3168.72,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4348.05,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 473.574,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 973.548,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 3007.47,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4298.03,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2227.79,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1456.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1076.84,
             "unit": "ns/op"
           }
         ]
