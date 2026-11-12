@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794448731766,
+  "lastUpdate": 1794448794942,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1563,6 +1563,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 716,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "a4bce62563b1d1a0aa0ebc0f33e44b4e4fcf61d4",
+          "message": "marks: the obligations manifest, every plan obligation dispositioned\n\nNine structural (the spec's own check and analyse lane), eight\nbehavioural (the bench tests with their exercises links), two waived\nwith reasons: the resolver rule guards a refactor of sockets the libc\nresolver owns, and the startup statement is process_arg logging the\nbench build does not contain. The obligations lint covers the second\nspec beside the first.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T01:53:48Z",
+          "tree_id": "c2fdb695a32fa1183b75cd624613523394813a70",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/a4bce62563b1d1a0aa0ebc0f33e44b4e4fcf61d4"
+        },
+        "date": 1794448791455,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 719.6,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 629.2,
             "unit": "Mbps"
           }
         ]
