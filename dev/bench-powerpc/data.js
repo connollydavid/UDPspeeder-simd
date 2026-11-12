@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794468297993,
+  "lastUpdate": 1794480600922,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -11453,6 +11453,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1057.62,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5cf333b0fb0773032ccb46b4d3c5ae316599f01e",
+          "message": "ci: the dscp byte reaches the wire, observed on loopback\n\nThe suite proves the socket carries the value; the capture proves the\nkernel puts the byte on the wire. A small sender dresses a socket\nthrough apply_socket_marks exactly as the tunnel does and emits five\ndatagrams to loopback; tcpdump must read tos 0xb8 (dscp 46) back off\nthe wire. Ubuntu runs it under the sudo pass, FreeBSD inside the VM\nwith the base tcpdump on lo0.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T10:48:53Z",
+          "tree_id": "f44b2597b4a779ab360325bf3be64503ac84611d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5cf333b0fb0773032ccb46b4d3c5ae316599f01e"
+        },
+        "date": 1794480596309,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 87.4337,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 254.949,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 971.69,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1384.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 21569,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 71098.5,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 25425.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 80317.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 90.497,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 361.595,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1255.81,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1852.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 86.4056,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 298.02,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1153.54,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1665.93,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 88.5224,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 299.041,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1138,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1669.98,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 634.645,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 977.807,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2599.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3591.08,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 372.762,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 765.947,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2451.07,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3482.98,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1805.35,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1192.58,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 879.975,
             "unit": "ns/op"
           }
         ]
