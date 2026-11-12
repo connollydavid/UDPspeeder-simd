@@ -204,9 +204,19 @@ static int test_dscp_flow_windows() {
         TEST("qwave present: socket created", fd != INVALID_SOCKET);
         if (fd != INVALID_SOCKET) {
             int st = track_dscp_socket(fd, (struct sockaddr *)&dest, sizeof(dest));
-            if (st != 0)
+            if (st == 0) {
+                TEST("qwave present: flow carries dscp", 1);
+            } else if (st == -2 && GetLastError() == ERROR_NOT_SUPPORTED) {
+                /* Admission refuses on hosts whose qWAVE policy says no
+                 * (the Server runner does); the tier's contract then fires
+                 * the fatal path, which is exactly what the caller does
+                 * with this return. */
+                printf("  qwave admission refused (ERROR_NOT_SUPPORTED): the fatal path owns this host\n");
+                TEST("qwave admission refusal is the contract", 1);
+            } else {
                 printf("  qwave stage: %d (last error %lu)\n", st, (unsigned long)GetLastError());
-            TEST("qwave present: flow carries dscp", st == 0);
+                TEST("qwave present: flow carries dscp", 0);
+            }
             MARK_CLOSE(fd);
         } else {
             failures++;

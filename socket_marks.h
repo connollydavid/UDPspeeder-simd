@@ -101,7 +101,17 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len);
 #include <errno.h>
 
 #ifdef _WIN32
-#include <qos2.h>
+/* Minimal qWAVE declarations. Some MinGW-w64 headers ship a qos2.h whose
+ * prototypes reference a QOS_FLOWID the same header never declares, so it
+ * does not compile under those toolchains at all; the surface we need is
+ * declared here, ABI-exact, against qwave.lib directly. */
+typedef struct { unsigned short MajorVersion, MinorVersion; } qwave_version_t;
+typedef unsigned int qwave_flow_id_t;
+#define QWAVE_BEST_EFFORT 0
+#define QWAVE_SETFLOW_DSCP 2
+extern WINBOOL WINAPI QOSCreateHandle(const qwave_version_t *, HANDLE *);
+extern WINBOOL WINAPI QOSAddSocketToFlow(HANDLE, SOCKET, const void *, int, unsigned long, qwave_flow_id_t *);
+extern WINBOOL WINAPI QOSSetFlow(HANDLE, qwave_flow_id_t, int, unsigned long, void *, unsigned long, void *);
 #endif
 
 #ifdef __cplusplus
@@ -114,7 +124,7 @@ extern "C" {
 static HANDLE windows_qos_handle(void) {
     static HANDLE qos = INVALID_HANDLE_VALUE;
     static int probed = 0;
-    QOS_VERSION v = { 1, 0 };
+    const qwave_version_t v = { 1, 0 };
     if (!probed) {
         probed = 1;
         if (QOSCreateHandle(&v, &qos) == 0)
@@ -129,7 +139,7 @@ static int windows_qwave_available(void) {
 
 int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len) {
     HANDLE qos = windows_qos_handle();
-    QOS_FLOWID flow = 0;
+    qwave_flow_id_t flow = 0;
     DWORD value;
     (void)dest_len;
     /* Stage-coded so a failure names where qWAVE gave up: -1 no service
@@ -137,10 +147,10 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len) {
      * would not carry the value. */
     if (qos == INVALID_HANDLE_VALUE)
         return -1;
-    if (QOSAddSocketToFlow(qos, fd, (PSOCKADDR)dest, QOSTrafficTypeBestEffort, 0, &flow) == 0)
+    if (QOSAddSocketToFlow(qos, fd, dest, QWAVE_BEST_EFFORT, 0, &flow) == 0)
         return -2;
     value = dscp;
-    if (QOSSetFlow(qos, flow, QOSSetOutgoingDSCPValue, sizeof(value), &value, 0, 0) == 0)
+    if (QOSSetFlow(qos, flow, QWAVE_SETFLOW_DSCP, sizeof(value), &value, 0, 0) == 0)
         return -3;
     return 0;
 }
