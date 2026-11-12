@@ -17,6 +17,11 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef _WIN32
+/* The qWAVE declarations (QOS_FLOWID and friends) sit behind the Vista
+ * floor in some MinGW headers; set it before winsock loads. */
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -97,8 +102,6 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len);
 
 #ifdef _WIN32
 #include <qos2.h>
-/* qwave.lib provides the QOS2 API; MinGW-w64 ships the import library. */
-#pragma comment(lib, "qwave.lib")
 #endif
 
 #ifdef __cplusplus
