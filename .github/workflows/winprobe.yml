@@ -93,11 +93,11 @@ jobs:
         shell: powershell
         run: |
           Write-Output "=== elevated (scheduled task, highest run level)"
-          $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c C:\msys64	mp\probe.exe > C:\msys64	mp\elevated.txt 2>&1"
+          $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c C:\msys64\tmp\probe.exe > C:\msys64\tmp\elevated.txt 2>&1"
           Register-ScheduledTask -TaskName qwavetest -Action $action -RunLevel Highest -User $env:USERNAME -Force | Out-Null
           Start-ScheduledTask -TaskName qwavetest
           Start-Sleep -Seconds 12
-          Get-Content C:\msys64	mp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
+          Get-Content C:\msys64\tmp\elevated.txt -ErrorAction SilentlyContinue | Write-Output
           Unregister-ScheduledTask -TaskName qwavetest -Confirm:$false -ErrorAction SilentlyContinue
 
   exe:
