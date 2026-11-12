@@ -112,6 +112,12 @@ typedef struct { unsigned short MajorVersion, MinorVersion; } qwave_version_t;
 typedef unsigned int qwave_flow_id_t;
 #define QWAVE_BEST_EFFORT 0
 #define QWAVE_SETFLOW_DSCP 2
+/* QOS_NON_ADAPTIVE_FLOW: skip qWAVE's path estimation. The estimation
+ * machinery refuses to run in some hosted environments (Azure Windows
+ * runners answer ERROR_NOT_SUPPORTED for every adaptive flow), while
+ * non-adaptive flows are admitted everywhere we probed, privileged or
+ * not. A tunnel wants the stamp, not the estimate. */
+#define QWAVE_NON_ADAPTIVE 2
 extern WINBOOL WINAPI QOSCreateHandle(const qwave_version_t *, HANDLE *);
 extern WINBOOL WINAPI QOSAddSocketToFlow(HANDLE, SOCKET, const void *, int, unsigned long, qwave_flow_id_t *);
 extern WINBOOL WINAPI QOSSetFlow(HANDLE, qwave_flow_id_t, int, unsigned long, void *, unsigned long, void *);
@@ -153,7 +159,7 @@ int track_dscp_socket(SOCKET fd, const struct sockaddr *dest, int dest_len) {
      * would not carry the value. */
     if (qos == INVALID_HANDLE_VALUE)
         return -1;
-    if (QOSAddSocketToFlow(qos, fd, dest, QWAVE_BEST_EFFORT, 0, &flow) == 0)
+    if (QOSAddSocketToFlow(qos, fd, dest, QWAVE_BEST_EFFORT, QWAVE_NON_ADAPTIVE, &flow) == 0)
         return -2;
     value = dscp;
     if (QOSSetFlow(qos, flow, QWAVE_SETFLOW_DSCP, sizeof(value), &value, 0, 0) == 0)
