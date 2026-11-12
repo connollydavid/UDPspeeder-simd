@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794493588701,
+  "lastUpdate": 1794496967113,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2447,6 +2447,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 527.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3f14365597f9e3d09bc1071dbfeb5eb70cd296c8",
+          "message": "ci: the macos lane does not gate while macOS runners starve\n\nThe lane as written fails every run: macOS runners are not being\ngranted to this repository, so the job queues past ten minutes and is\ncancelled without a runner, twice observed on both macos-latest and\nmacos-14 with a trivial workload. continue-on-error carries the lane\nwithout gating releases on a platform capacity fact; the flag comes\noff the day this lane goes green once.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T15:16:22Z",
+          "tree_id": "05f1c6b5369ac56175e2405eb5760fab31b10f9a",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3f14365597f9e3d09bc1071dbfeb5eb70cd296c8"
+        },
+        "date": 1794496962560,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 703.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 560.9,
             "unit": "Mbps"
           }
         ]
