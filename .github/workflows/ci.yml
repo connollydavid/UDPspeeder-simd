@@ -31,10 +31,10 @@ jobs:
           arch: arm64
           sync: scp
           usesh: true
-          prepare: pkg install -y gmake gcc libev
+          prepare: pkg install -y gmake
           run: |
             cd "$GITHUB_WORKSPACE" || exit 1
-            gmake test
+            gmake test cc_local=clang++
 
   test:
     runs-on: ubuntu-latest
