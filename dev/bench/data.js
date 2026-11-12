@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794463470091,
+  "lastUpdate": 1794463910466,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -10544,6 +10544,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 26.1969,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "62dea558477f870a17bb7de714ea7b861d748a2d",
+          "message": "ci: the FreeBSD lane builds with the base clang\n\nThe gcc port's libstdc++ demands the port's libgcc_s symbol versions\nwhile the loader prefers the base one, and the build dies before a\nsource is read. FreeBSD carries clang in base, so the lane drops the\ngcc port and builds with cc_local=clang++; the test sources need no\nlibev, and git_version falls back to an empty string without git.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T06:05:34Z",
+          "tree_id": "1d8db3051af1a2d7a22825c41137a30915d36eef",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/62dea558477f870a17bb7de714ea7b861d748a2d"
+        },
+        "date": 1794463909739,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 9.08301,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 8.53673,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 16.7557,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 27.2302,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 573.569,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1844.78,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 1103.64,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2966.64,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 15.7429,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 59.9293,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 236.469,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 393.348,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 18.0794,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 93.1693,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 393.004,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 568.104,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 4.08412,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 14.0339,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 99.7092,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 139.336,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 3.81409,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 14.1848,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 91.3378,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 139.523,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 128.682,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 139.601,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 225.098,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 282.184,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 29.8522,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 55.3902,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 142.21,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 200.192,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 163.971,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 140.543,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 38.7252,
             "unit": "ns/op"
           }
         ]
