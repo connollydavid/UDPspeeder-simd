@@ -62,20 +62,68 @@ jobs:
             cd "$GITHUB_WORKSPACE" || exit 1
             gmake test cc_local=clang++
 
+
+  macos-universal:
+    # The mac answer is one fat exec: x86_64 and arm64 lipo'd together,
+    # named plainly udpspeeder-simd because on a mac there is only one
+    # download and it runs wherever you put it. Best-effort while the
+    # macOS pool starves this repository (see the macos lane note); the
+    # release takes the asset when the lane grants capacity.
+    runs-on: macos-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the universal exec
+        run: |
+          set -e
+          make mac cc_local="clang++ -arch x86_64 -arch arm64"
+          file udpspeeder-simd | grep -q universal
+          ./udpspeeder-simd --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-macos-universal
+          path: udpspeeder-simd
+
   windows-exe:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install the mingw cross and wine
-        run: sudo apt-get update && sudo apt-get install -y mingw-w64 wine64
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 wine
       - name: Build the exe
         run: make mingw_cross cc_mingw_cross=x86_64-w64-mingw32-g++-posix
       - name: Smoke
-        run: wine64 ./udpspeeder-simd.exe --version
+        run: wine ./udpspeeder-simd.exe --version
       - uses: actions/upload-artifact@v4
         with:
-          name: udpspeeder-windows
+          name: udpspeeder-windows-x86_64
+          path: udpspeeder-simd.exe
+
+
+  windows-arm64-exe:
+    # The other arm world: MSYS2's CLANGARM64 toolchain builds the
+    # aarch64 exe; Windows 11 on the x86_64 runner executes it under
+    # emulation for the smoke.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: CLANGARM64
+          update: false
+          install: mingw-w64-clang-aarch64-gcc make
+      - name: Build and smoke the arm64 exe
+        shell: msys2 {0}
+        run: |
+          set -e
+          make mingw_cross cc_mingw_cross=clang++
+          ./udpspeeder-simd.exe --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: udpspeeder-windows-aarch64
           path: udpspeeder-simd.exe
 
   test:
@@ -716,7 +764,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe, windows-arm64-exe, macos-universal]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -742,12 +790,12 @@ jobs:
             for cand in "artifacts/udpspeeder-$name/udpspeeder-simd_cross" \
                         "artifacts/udpspeeder-$name/udpspeeder-simd"; do
               if [ -f "$cand" ]; then
-                cp "$cand" "release/udpspeeder-simd_linux_$name"
-                chmod +x "release/udpspeeder-simd_linux_$name"
+                cp "$cand" "release/udpspeeder-simd.$name"
+                chmod +x "release/udpspeeder-simd.$name"
                 break
               fi
             done
-            if [ ! -f "release/udpspeeder-simd_linux_$name" ]; then
+            if [ ! -f "release/udpspeeder-simd.$name" ]; then
               echo "FAIL  no production binary in the $name artifact"
               exit 1
             fi
