@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794467234820,
+  "lastUpdate": 1794467675280,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2005,6 +2005,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1060.5,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "4bf5ff4b3a2540306b1e3dd208a14c0cece8ad48",
+          "message": "marks: the local qWAVE declarations carry C linkage\n\nThey sat outside the implementation's extern \"C\" block, so the calls\ncompiled to C++-mangled names no import library carries; the linkage\nwrapper moves onto the declarations themselves.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T07:08:15Z",
+          "tree_id": "1bebc31c5366058757a957f784425ccc6cca9325",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/4bf5ff4b3a2540306b1e3dd208a14c0cece8ad48"
+        },
+        "date": 1794467663403,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 735.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 590.8,
             "unit": "Mbps"
           }
         ]
