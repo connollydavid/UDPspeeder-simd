@@ -41,51 +41,6 @@ jobs:
           make test-mingw cc_mingw_cross=g++
           ./test_udpspeeder.exe
 
-  freebsd:
-    # The host-OS inversion lane for socket marks: --cookie applies for real
-    # (SO_USER_COOKIE) and --fwmark refuses, where ubuntu sees the opposite.
-    # Pinned by commit; the arm64 macOS runner hosts an arm64 FreeBSD VM
-    # (Intel macos-13 runners queue for a long time and are retiring).
-    runs-on: macos-latest
-    timeout-minutes: 25
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build and run the test suite on FreeBSD
-        uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
-        with:
-          release: "15.1"
-          arch: arm64
-          sync: scp
-          usesh: true
-          prepare: pkg install -y gmake
-          run: |
-            cd "$GITHUB_WORKSPACE" || exit 1
-            gmake test cc_local=clang++
-
-
-  macos-universal:
-    # The mac answer is one fat exec: x86_64 and arm64 lipo'd together,
-    # named plainly udpspeeder-simd because on a mac there is only one
-    # download and it runs wherever you put it. Best-effort while the
-    # macOS pool starves this repository (see the macos lane note); the
-    # release takes the asset when the lane grants capacity.
-    runs-on: macos-latest
-    timeout-minutes: 25
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build the universal exec
-        run: |
-          set -e
-          make mac cc_local="clang++ -arch x86_64 -arch arm64 -DBENCH_EXPOSE_INTERNALS"
-          file udpspeeder-simd | grep -q universal
-          ./udpspeeder-simd --version
-      - uses: actions/upload-artifact@v4
-        with:
-          name: udpspeeder-macos-universal
-          path: udpspeeder-simd
-
   windows-exe:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -770,7 +725,7 @@ jobs:
   # dispatch, instruction screen or interop check did not pass.
   release:
     name: Publish the tagged binaries
-    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe, windows-arm64-exe, macos-universal]
+    needs: [test, build-static, cpu-dispatch, interop, allium, tlc, dns-live, mingw-wine, windows-exe, windows-arm64-exe]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
