@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794449775413,
+  "lastUpdate": 1794463057679,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1665,6 +1665,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 952.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "bf9e14b05c31b89aa93c3e3ae268a3feb3993c1c",
+          "message": "ci: the FreeBSD lane rides an arm64 VM on the arm64 runner\n\nThe Intel macos-13 runners queue for many minutes and are retiring;\nthe vmactions image table lists aarch64 builds, so the lane takes\nmacos-latest with arch arm64 and the FreeBSD 15.1 image. SO_USER_COOKIE\nis unchanged by the architecture move.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T05:51:24Z",
+          "tree_id": "00d35ab3f1561772cd75cdd3ee17f1d7b874aabb",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/bf9e14b05c31b89aa93c3e3ae268a3feb3993c1c"
+        },
+        "date": 1794463053096,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 698.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 585,
             "unit": "Mbps"
           }
         ]
