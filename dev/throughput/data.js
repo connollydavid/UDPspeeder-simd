@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794466722963,
+  "lastUpdate": 1794467234820,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -1971,6 +1971,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 589.7,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c34c87b19912bee085195558f0fc0bd05e1f4219",
+          "message": "marks: qWAVE declared locally, admission refusal is a tested arm\n\nSome MinGW-w64 headers ship a qos2.h that references a QOS_FLOWID the\nsame header never declares and does not compile at all, so the minimal\nqWAVE surface is declared here against qwave.lib directly, ABI-exact,\nand every Windows toolchain builds the same declarations. The flow\ntest accepts admission refusal (ERROR_NOT_SUPPORTED, which the Server\nrunner's qWAVE policy answers) as the honor-or-refuse arm it is: the\nfatal path owns such hosts, and the assertion says so instead of\nfailing a host that honestly said no.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T07:01:21Z",
+          "tree_id": "3e3aa29a1ebdb6c202e5654c1bf338cc0918e254",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c34c87b19912bee085195558f0fc0bd05e1f4219"
+        },
+        "date": 1794467230886,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1226.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1060.5,
             "unit": "Mbps"
           }
         ]
