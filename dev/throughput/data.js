@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794480905731,
+  "lastUpdate": 1794480931240,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2141,6 +2141,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1126.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "e5db0e60e185e2a0b7b367ffa05322db04950165",
+          "message": "ci: drop the probe workflow from main (experiment machinery)",
+          "timestamp": "2026-11-12T10:49:36Z",
+          "tree_id": "9b72f5a6f823881459fce84711320454ba893e3d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/e5db0e60e185e2a0b7b367ffa05322db04950165"
+        },
+        "date": 1794480926841,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1213.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1003.4,
             "unit": "Mbps"
           }
         ]
