@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794468541593,
+  "lastUpdate": 1794480905731,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2107,6 +2107,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 548.5,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5cf333b0fb0773032ccb46b4d3c5ae316599f01e",
+          "message": "ci: the dscp byte reaches the wire, observed on loopback\n\nThe suite proves the socket carries the value; the capture proves the\nkernel puts the byte on the wire. A small sender dresses a socket\nthrough apply_socket_marks exactly as the tunnel does and emits five\ndatagrams to loopback; tcpdump must read tos 0xb8 (dscp 46) back off\nthe wire. Ubuntu runs it under the sudo pass, FreeBSD inside the VM\nwith the base tcpdump on lo0.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T10:48:53Z",
+          "tree_id": "f44b2597b4a779ab360325bf3be64503ac84611d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5cf333b0fb0773032ccb46b4d3c5ae316599f01e"
+        },
+        "date": 1794480900716,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1510.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1126.1,
             "unit": "Mbps"
           }
         ]
