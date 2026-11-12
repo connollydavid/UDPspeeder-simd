@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794483257784,
+  "lastUpdate": 1794483877039,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -13927,6 +13927,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 69.1287,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "5d72395d33cd1d6e7259df7a916a9ae351dd3405",
+          "message": "marks: qWAVE flows join non-adaptive\n\nThe probe matrix on the hosted windows runner isolated it: adaptive\nflows are refused with ERROR_NOT_SUPPORTED for every destination,\nwhile non-adaptive flows are admitted, plain shell or elevated alike.\nqWAVE's path estimation is what those environments cannot provide, and\na tunnel wants the stamp, not the estimate, so the flow joins with\nQOS_NON_ADAPTIVE_FLOW and the positive dscp path opens on CI hardware\ninstead of only on desktops.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:38:24Z",
+          "tree_id": "6561d7b4af14871b13c6972fab97c5c7c0d74d3f",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/5d72395d33cd1d6e7259df7a916a9ae351dd3405"
+        },
+        "date": 1794483876488,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 8.46867,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 8.69163,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 16.785,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 27.5368,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 571.253,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1831.88,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 1114.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 2998.17,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 15.692,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 59.9321,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 236.547,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 393.43,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 18.1177,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 92.6828,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 394.018,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 567.753,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 4.08572,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 14.1924,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 90.9484,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 139.292,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 3.81883,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 14.174,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 91.2719,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 140.285,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 128.47,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 139.643,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 225.55,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 285.192,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 29.6795,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 55.2905,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 141.975,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 199.694,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 162.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 140.657,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 38.8976,
             "unit": "ns/op"
           }
         ]
