@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794483134691,
+  "lastUpdate": 1794483255378,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2277,6 +2277,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 615.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "fbd482a51e9b752c9805c9c00047db276cad5de6",
+          "message": "rename the binary to udpspeeder-simd\n\nspeederv2 was upstream's internal name; the fork is udpspeeder-simd,\nthe release artifacts were already named for the project, and the\nOpenWrt package installs the binary under its own name, so the\nlingering speederv2 was the odd one out. The makefile NAME, the CMake\nproject and target, the bench scripts, the CI references, gitignore\nand every documented example now say udpspeeder-simd. The next release\nnotes this as a breaking rename of the binary's filename.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-12T11:28:03Z",
+          "tree_id": "e9207a11d4f8622ee632a0423a6e3006e9267cfc",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/fbd482a51e9b752c9805c9c00047db276cad5de6"
+        },
+        "date": 1794483251147,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 718.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 565.6,
             "unit": "Mbps"
           }
         ]
