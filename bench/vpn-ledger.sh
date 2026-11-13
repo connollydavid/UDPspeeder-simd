@@ -116,7 +116,7 @@ start_wg() { # $1 = inner client ip, $2 = inner server ip
 	ip link add wg-s type wireguard
 	$WG set wg-s listen-port 7777 private-key <(echo "$skey") \
 		peer "$cpub" allowed-ips "$1/32"
-	ip link set wg-s up mtu 1420
+	ip link set wg-s up mtu 1500
 	ip addr add "$2/32" dev wg-s
 	ip route add "$1/32" dev wg-s
 
@@ -124,7 +124,7 @@ start_wg() { # $1 = inner client ip, $2 = inner server ip
 	$WG set wg-c private-key <(echo "$ckey") \
 		peer "$spub" endpoint 127.0.0.1:3333 allowed-ips "$2/32" \
 		persistent-keepalive 3
-	ip link set wg-c up mtu 1420
+	ip link set wg-c up mtu 1500
 	ip addr add "$1/32" dev wg-c
 	ip route add "$2/32" dev wg-c
 	sleep 1
@@ -255,7 +255,7 @@ for pmtu in 1500 1492; do
 	start_speeder
 
 	start_wg 10.10.0.1 10.10.0.2
-	ledger_row wireguard wg-c 10.10.0.2 $pmtu 1392
+	ledger_row wireguard wg-c 10.10.0.2 $pmtu 1472
 	stop_wg
 
 	case ${ROWS:-wg,ovpn-udp,ovpn-tcp} in *ovpn-udp*)

@@ -38,18 +38,21 @@ consequences, both measured rather than assumed:
 
 | VPN | path MTU | largest passing inner MTU | outer packet ceiling |
 |---|---|---|---|
-| wireguard | 1500 | 1419 | 1313 |
-| wireguard | 1492 | 1419 | 1313 |
+| wireguard | 1500 | 1499 | 1304 |
+| wireguard | 1492 | 1499 | 1304 |
 | openvpn-udp | 1500 | 1499 | 1254 |
 | openvpn-udp | 1492 | 1499 | 1254 |
 | openvpn-tcp | 1500 | refused: the TCP SYN meets the UDP listener | |
 | openvpn-tcp | 1492 | refused: the TCP SYN meets the UDP listener | |
 
-The knobs, in one line each: the inner link needs no tuning at the defaults
-(WireGuard 1420, OpenVPN `--tun-mtu` 1500); the tunnel's `--mtu` sets the
-outer shard ceiling, and lowering it is the correct move only on a path
-tighter than 1492; `--timeout` (8 ms default) is how long a group waits to
-fill before flushing, the one latency knob in the stacking.
+The inner link runs at the idiomatic Ethernet 1500, the same value as any
+plain attached network: the blob encoder re-segments beneath it, so the
+customary VPN MTU arithmetic (WireGuard's default 1420, overhead-derived
+values) buys nothing here, and both stacks measure to the same 1499 bound,
+the interface itself. The tunnel's `--mtu` sets the outer shard ceiling, and
+lowering it is the correct move only on a path tighter than 1492;
+`--timeout` (8 ms default) is how long a group waits to fill before
+flushing, the one latency knob in the stacking.
 
 The latency cost of a stacking is not MTU arithmetic, it is group structure:
 each inner packet waits at most `--timeout` for its group to fill, then
@@ -70,7 +73,8 @@ wg-quick up /etc/wireguard/wg0   # wg0 listens on 51820
 udpspeeder-simd -c -l127.0.0.1:3333 -r<server>:4096 -f20:10 -k "passwd" \
   --fwmark 0x2
 # /etc/wireguard/wg0 on the client: Endpoint = 127.0.0.1:3333
-wg-quick up wg0     # wg0's default 1420 MTU passes whole; no tuning needed
+wg-quick up wg0
+ip link set wg0 mtu 1500   # the idiomatic ethernet value; the tunnel re-segments
 ```
 
 The two mark users do not conflict because they mark different packets with
@@ -92,6 +96,7 @@ config interface 'wg0'
 	option proto 'wireguard'
 	list addresses '10.10.0.1/32'
 	option listen_port '51820'
+	option mtu '1500'
 
 config wireguard_wg0
 	option public_key '<server public key>'
