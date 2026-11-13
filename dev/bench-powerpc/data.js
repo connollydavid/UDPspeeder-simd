@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794545988225,
+  "lastUpdate": 1794587682090,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -14138,6 +14138,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1056.3,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8f1d8949bcb1e011ea9871e6035eebe02e107fd3",
+          "message": "docs: the double-spend tension moves to the OpenVPN UDP section\n\nThe intended family is OpenVPN over UDP; the tension describes TCP\nflows riding that UDP VPN inside the FEC, so it lives where it\napplies. The TCP-transport refusal stays as its own short honest\nanswer, with the pointer to the UDP stackings that do carry TCP\ntraffic.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T16:33:30Z",
+          "tree_id": "e3ff94f32b70924afb9cd25a373077640649f9d9",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8f1d8949bcb1e011ea9871e6035eebe02e107fd3"
+        },
+        "date": 1794587677702,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 54.991,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 170.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 625.145,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 912.192,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 14056.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 47233.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 16896.3,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 52437.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 53.8892,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 180.769,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 669.002,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1039.28,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 66.3365,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 233.565,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 902.126,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1332.42,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 69.567,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 238.034,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 906.816,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1336.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 438.448,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 717.207,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 1874.76,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 2516.65,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 233.118,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 522.517,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 1706.75,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 2406.44,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1435.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 746.468,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 516.09,
             "unit": "ns/op"
           }
         ]
