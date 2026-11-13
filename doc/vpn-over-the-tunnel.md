@@ -122,41 +122,27 @@ openvpn --dev tun --proto udp --remote 127.0.0.1 3333 ...
 the ledger's hard column confirms the interface bound, not the wire, is what
 bites.
 
+TCP flows through the tun interface (downloads, ssh, anything stream-shaped)
+ride the whole stack, and their loss behavior is where the one live tension
+of this stacking sits, named and left unresolved: when a packet is lost, both
+layers react. The tunnel sends redundant shards, and the TCP sender
+retransmits on its own timer. On a link with steady background loss the two
+repairs stack, and the TCP flow inside pays retransmission latency the FEC
+already paid for. Whether the trade is worth it depends on which loss you
+are fighting: burst loss that FEC's redundancy repairs cheaply favors the
+stacking; congestion loss that TCP would back off from favors leaving TCP
+alone. This guide does not resolve it; it states it, and the tuning section
+shows how to measure which side your link falls on.
+
 ## OpenVPN's TCP transport: refused, honestly
 
-A TCP-based OpenVPN cannot ride this tunnel directly, and the harness proves
-it rather than asserting it: the client's TCP SYN arrives at the tunnel's
-UDP listener and is refused (`bench/vpn-ledger.sh` records the refusal at
-both path MTUs). The tunnel forwards UDP datagrams between its two ports;
+A TCP-based OpenVPN cannot ride this tunnel, and the harness proves it
+rather than asserting it: the client's TCP SYN arrives at the tunnel's UDP
+listener and is refused (`bench/vpn-ledger.sh` records the refusal at both
+path MTUs). The tunnel forwards UDP datagrams between its two ports;
 OpenVPN's TCP transport wants a TCP session with its endpoint. The two do
-not meet. To carry TCP traffic through the tunnel, use a VPN whose outer
-protocol is UDP and let the TCP flows ride inside it as packets: WireGuard
-or OpenVPN's UDP transport, both measured above.
-
-What people usually mean by "TCP over the tunnel" is the case worth its own
-section: TCP flows riding a UDP VPN inside the FEC. That is where the
-double-spend tension lives, named and left unresolved: when a packet is
-lost, both layers react. The tunnel sends redundant shards, and the TCP
-sender retransmits on its own timer. On a link with steady background loss
-the two repairs stack, and the TCP flow inside pays retransmission latency
-the FEC already paid for. Whether the trade is worth it depends on which
-loss you are fighting: burst loss that FEC's redundancy repairs cheaply
-favors the stacking; congestion loss that TCP would back off from favors
-leaving TCP alone. This guide does not resolve it; it states it, and the
-tuning section shows how to measure which side your link falls on.
-
-```bash
-# the stack that works, restated: OpenVPN's UDP transport in the tunnel
-# server
-udpspeeder-simd -s -l0.0.0.0:4096 -r127.0.0.1:1194 -f20:10 -k "passwd"
-openvpn --dev tun --proto udp --local 127.0.0.1 --port 1194 ...
-# client
-udpspeeder-simd -c -l127.0.0.1:3333 -r<server>:4096 -f20:10 -k "passwd"
-openvpn --dev tun --proto udp --remote 127.0.0.1 3333 ...
-```
-
-Any TCP connection through the tun interface rides the whole stack, and the
-tension above describes exactly its loss behavior.
+not meet. To carry TCP traffic through the tunnel, let the TCP flows ride
+inside a UDP VPN: WireGuard or OpenVPN's UDP transport, both measured above.
 
 ## The stranger scenarios
 
