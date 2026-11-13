@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794528587140,
+  "lastUpdate": 1794540356164,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2549,6 +2549,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 588,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "0fec3817032c3b283114eb396d024bf9ffc07eef",
+          "message": "bench: the VPN-over-tunnel evidence pair, and the guide they feed\n\nvpn-ledger.sh stacks WireGuard and both OpenVPN transports over a\nreal tunnel across a veth whose MTU plays the path MTU, probes DF\nping sizes, and reads the wire with tcpdump: every MTU ledger cell is\nmeasured. vpn-marks-check.sh holds the WireGuard recipe's mark\ncoordination: the stack passes with both mark rules installed, the\ntunnel's outer packets carry the mark (mark-match counter), and the\ntwo marks differ in value and rule. The guide carries the recipes,\nthe ledger table (filled by measurement), and the OpenVPN TCP\ndouble-spend tension stated and left live. Runs unprivileged in a\nuser+net namespace.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T03:19:43Z",
+          "tree_id": "0892cec78a60f992b602a1575b9da077a2d51e07",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/0fec3817032c3b283114eb396d024bf9ffc07eef"
+        },
+        "date": 1794540350148,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 974.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 744.6,
             "unit": "Mbps"
           }
         ]
