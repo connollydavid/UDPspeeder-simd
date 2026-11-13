@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794588113309,
+  "lastUpdate": 1794613982501,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2685,6 +2685,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 610.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c68a92ddb6ce16cf21fb0bc851cf262da37f8446",
+          "message": "bench: the applied recipes check, fifo and the moving endpoint\n\nFive claims a reader's recipes stand on: the fifo levers (fec,\ntimeout, queue-len) accepted and logged by a running instance; a\nclient started with -r hostname resolving and passing; and the\nmoving endpoint proved brutally -- the DNS answer flips, the old\nserver dies, and the same client process re-points and passes again.\nThe DNS side runs on a namespace-local resolv.conf bind mount and a\none-file responder on port 53; no host root anywhere.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T23:46:20Z",
+          "tree_id": "d38253c4da561de29ce3ee57f1cf1f9257c72840",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c68a92ddb6ce16cf21fb0bc851cf262da37f8446"
+        },
+        "date": 1794613979943,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1751.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1530.1,
             "unit": "Mbps"
           }
         ]
