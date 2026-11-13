@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794540358733,
+  "lastUpdate": 1794546266822,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks": [
@@ -15519,6 +15519,205 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 38.6565,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "79711b980bdd21ff0fa10cadaf620601b583b65c",
+          "message": "docs: the VPN-over-tunnel family, measured and told straight\n\nThe ledger fills from the harness runs, reproducible across two:\nWireGuard passes to its own 1420 interface bound (1419 measured) at\nboth path MTUs, OpenVPN UDP to its tun bound (1499), the outer packet\nceiling under filled groups is 1313 and 1254 bytes -- under the PPPoE\n1492 at both -- and OpenVPN's TCP transport is refused at the UDP\nlistener, which is the tunnel's nature, not a defect: the SYN meets a\nUDP socket. The guide carries the WireGuard marks recipe (coordination\nproven separately, four claims), the UDP stacking, the refusal, the\ndouble-spend tension for inner TCP flows stated and left live, the\nstranger scenarios, and the generalized anti-loop exception, with\nupstream's guide superseded and credited.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T04:58:18Z",
+          "tree_id": "e58915c19c543c725a46dd857e90b1c4d88e3182",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/79711b980bdd21ff0fa10cadaf620601b583b65c"
+        },
+        "date": 1794546266353,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 5.78441,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 6.44076,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 11.4291,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 20.5179,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 380.402,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 1292.29,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 676.244,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 1933.15,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 9.84296,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 41.6456,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 180.523,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 309.357,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 11.3522,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 66.3866,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 303.761,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 452.726,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/64B",
+            "value": 2.22138,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/256B",
+            "value": 7.61961,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1024B",
+            "value": 49.6714,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_hw/1500B",
+            "value": 85.4588,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 2.37817,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 7.60289,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 49.7257,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 85.2109,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 198.563,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 209.657,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 284.762,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 329.562,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 24.1819,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 43.2489,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 109.21,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 152.603,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 103.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 210.324,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 24.2135,
             "unit": "ns/op"
           }
         ]
