@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794587990589,
+  "lastUpdate": 1794588113309,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2651,6 +2651,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 570.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "e9f02155f67d9d49b57354c2060b3dee849982f4",
+          "message": "docs: the inner link runs at the idiomatic ethernet 1500\n\nThe customary VPN MTU arithmetic buys nothing over this tunnel: the\nblob encoder re-segments beneath the inner link, so WireGuard drops\nits 1420 default for the plain ethernet value and measures to the\nsame 1499 bound as OpenVPN's tun, the interface itself, at both path\nMTUs. The wire ceilings (1304 and 1254, measured under filled\ngroups) stay under the PPPoE 1492. Nothing strange anywhere in the\nstack: 1500 inside, shards at most --mtu outside.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T16:35:25Z",
+          "tree_id": "2e976b8db636d63363eb4e7c5694c5391fb26754",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/e9f02155f67d9d49b57354c2060b3dee849982f4"
+        },
+        "date": 1794588105701,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 713.7,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 610.6,
             "unit": "Mbps"
           }
         ]
