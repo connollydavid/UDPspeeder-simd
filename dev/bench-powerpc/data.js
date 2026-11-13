@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794587859011,
+  "lastUpdate": 1794613661129,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -14496,6 +14496,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 974.82,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c68a92ddb6ce16cf21fb0bc851cf262da37f8446",
+          "message": "bench: the applied recipes check, fifo and the moving endpoint\n\nFive claims a reader's recipes stand on: the fifo levers (fec,\ntimeout, queue-len) accepted and logged by a running instance; a\nclient started with -r hostname resolving and passing; and the\nmoving endpoint proved brutally -- the DNS answer flips, the old\nserver dies, and the same client process re-points and passes again.\nThe DNS side runs on a namespace-local resolv.conf bind mount and a\none-file responder on port 53; no host root anywhere.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T23:46:20Z",
+          "tree_id": "d38253c4da561de29ce3ee57f1cf1f9257c72840",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c68a92ddb6ce16cf21fb0bc851cf262da37f8446"
+        },
+        "date": 1794613658325,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 66.7283,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 216.03,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 812.008,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1192.14,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 18382.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 60864.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 21915.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 67246.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 65.299,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 218.766,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 832.267,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1271.47,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 75.3731,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 291.063,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1147.47,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1679.42,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 77.9186,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 294.818,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1150.01,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1682.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 492.203,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 897.137,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2510.29,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3471.03,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 285.048,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 696.869,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2341.36,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3365.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1833.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1098.84,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 844.99,
             "unit": "ns/op"
           }
         ]
