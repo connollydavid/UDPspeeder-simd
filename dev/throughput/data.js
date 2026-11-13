@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794540356164,
+  "lastUpdate": 1794546264364,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2583,6 +2583,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 744.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "79711b980bdd21ff0fa10cadaf620601b583b65c",
+          "message": "docs: the VPN-over-tunnel family, measured and told straight\n\nThe ledger fills from the harness runs, reproducible across two:\nWireGuard passes to its own 1420 interface bound (1419 measured) at\nboth path MTUs, OpenVPN UDP to its tun bound (1499), the outer packet\nceiling under filled groups is 1313 and 1254 bytes -- under the PPPoE\n1492 at both -- and OpenVPN's TCP transport is refused at the UDP\nlistener, which is the tunnel's nature, not a defect: the SYN meets a\nUDP socket. The guide carries the WireGuard marks recipe (coordination\nproven separately, four claims), the UDP stacking, the refusal, the\ndouble-spend tension for inner TCP flows stated and left live, the\nstranger scenarios, and the generalized anti-loop exception, with\nupstream's guide superseded and credited.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T04:58:18Z",
+          "tree_id": "e58915c19c543c725a46dd857e90b1c4d88e3182",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/79711b980bdd21ff0fa10cadaf620601b583b65c"
+        },
+        "date": 1794546260487,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1175.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1017.1,
             "unit": "Mbps"
           }
         ]
