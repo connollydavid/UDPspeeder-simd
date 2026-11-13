@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794497912729,
+  "lastUpdate": 1794528587140,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2515,6 +2515,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1006.8,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "d1e1ee96a16b3d2103905a5fd73e8a6efadc51c4",
+          "message": "ci: pin the linux lanes to ubuntu-24.04 through the runner roll\n\nubuntu-latest migrated overnight to a newer default toolchain, and\nits statically linked glibc and libstdc++ emit SSSE3/AVX2/SSE4.2 in\nnon-dunder symbols the ISA screen's allowlist predates -- the screen\nflagged a hundred runtime functions overnight, all of them library\ncode. The lanes pin the image the v1.2.x binaries were proven on;\nthe screen's allowlist for static runtime code is the follow-up.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T00:03:30Z",
+          "tree_id": "4519d47fd77ef452bdcf09ddb2f02c78b768fa05",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/d1e1ee96a16b3d2103905a5fd73e8a6efadc51c4"
+        },
+        "date": 1794528582902,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 713.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 588,
             "unit": "Mbps"
           }
         ]
