@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794546264364,
+  "lastUpdate": 1794587990589,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2617,6 +2617,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1017.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "8f1d8949bcb1e011ea9871e6035eebe02e107fd3",
+          "message": "docs: the double-spend tension moves to the OpenVPN UDP section\n\nThe intended family is OpenVPN over UDP; the tension describes TCP\nflows riding that UDP VPN inside the FEC, so it lives where it\napplies. The TCP-transport refusal stays as its own short honest\nanswer, with the pointer to the UDP stackings that do carry TCP\ntraffic.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T16:33:30Z",
+          "tree_id": "e3ff94f32b70924afb9cd25a373077640649f9d9",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/8f1d8949bcb1e011ea9871e6035eebe02e107fd3"
+        },
+        "date": 1794587986990,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 716.5,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 570.8,
             "unit": "Mbps"
           }
         ]
