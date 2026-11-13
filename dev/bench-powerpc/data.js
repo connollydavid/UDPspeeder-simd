@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794540055505,
+  "lastUpdate": 1794545988225,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -13959,6 +13959,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 887.467,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "79711b980bdd21ff0fa10cadaf620601b583b65c",
+          "message": "docs: the VPN-over-tunnel family, measured and told straight\n\nThe ledger fills from the harness runs, reproducible across two:\nWireGuard passes to its own 1420 interface bound (1419 measured) at\nboth path MTUs, OpenVPN UDP to its tun bound (1499), the outer packet\nceiling under filled groups is 1313 and 1254 bytes -- under the PPPoE\n1492 at both -- and OpenVPN's TCP transport is refused at the UDP\nlistener, which is the tunnel's nature, not a defect: the SYN meets a\nUDP socket. The guide carries the WireGuard marks recipe (coordination\nproven separately, four claims), the UDP stacking, the refusal, the\ndouble-spend tension for inner TCP flows stated and left live, the\nstranger scenarios, and the generalized anti-loop exception, with\nupstream's guide superseded and credited.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T04:58:18Z",
+          "tree_id": "e58915c19c543c725a46dd857e90b1c4d88e3182",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/79711b980bdd21ff0fa10cadaf620601b583b65c"
+        },
+        "date": 1794545982541,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 100.147,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 301.688,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 1106.38,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1636.82,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 25344.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 84984.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 30166.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 91504.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 104.953,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 369.961,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1440.35,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 2163.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 102.122,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 351.222,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1353,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1990.89,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 104.705,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 358.932,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1369.78,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 2008.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 766.662,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 1166.33,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 3112.94,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 4285.89,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 458.161,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 905.382,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2921.28,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 4156.45,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 2171.93,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1409.02,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 1056.3,
             "unit": "ns/op"
           }
         ]
