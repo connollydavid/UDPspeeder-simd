@@ -602,7 +602,18 @@ jobs:
           fi
 
       - name: Verify binaries
-        run: file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
+        run: |
+          file ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}
+          # An object without .note.GNU-stack makes linkers older than binutils
+          # 2.41 mark the stack executable; the OpenWrt 24.10/25.12 SDKs do that,
+          # and their hardening check fails the feed build on such a binary
+          # (xor_spe.S assembled empty did exactly this). Assert the stack of
+          # every shipped binary is data, never code.
+          for b in ${{ matrix.bench_bin }} ${{ matrix.test_bin }} ${{ matrix.prod_bin }}; do
+            flags=$(readelf -lW "$b" | awk '/GNU_STACK/{for(i=1;i<=NF;i++) if($i ~ /^[RWE]+$/) print $i}')
+            [ -n "$flags" ] || { echo "no GNU_STACK segment: $b"; exit 1; }
+            case "$flags" in *E*) echo "executable stack: $b"; exit 1;; esac
+          done
 
       # The job above now builds the way the feed does, with -mcpu=8548 and no
       # SPE=1, so its green already depends on the makefile reading the flag.

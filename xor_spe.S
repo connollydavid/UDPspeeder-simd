@@ -17,10 +17,6 @@
  * upper 32 bits of GPRs.
  */
 
-/* Mark stack as non-executable (suppresses ld warning). Use '%progbits'
- * rather than '@progbits': on 32-bit ARM '@' begins a line comment, and
- * gas accepts '%' for the ELF section type on every target. */
-.section .note.GNU-stack,"",%progbits
 
 .section .text
 .globl xor_tile_spe
@@ -162,3 +158,11 @@ xor_tile_spe:
 .size xor_tile_spe, .-xor_tile_spe
 
 #endif /* HAVE_PPC_SPE */
+
+/* Mark stack as non-executable, outside the guard so the note is emitted even
+ * when the guard empties this translation unit: an object without .note.GNU-stack
+ * makes linkers older than binutils 2.41 mark the whole stack executable, and
+ * OpenWrt 24.10/25.12 fail their hardening check on such a binary. Use
+ * '%progbits' rather than '@progbits': on 32-bit ARM '@' begins a line comment,
+ * and gas accepts '%' for the ELF section type on every target. */
+.section .note.GNU-stack,"",%progbits

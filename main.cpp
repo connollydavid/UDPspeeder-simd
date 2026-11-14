@@ -18,7 +18,7 @@ using namespace std;
 #endif
 
 #ifndef PROGRAM_VERSION
-#define PROGRAM_VERSION "v1.3.1"
+#define PROGRAM_VERSION "v1.3.2"
 #endif
 
 static void print_help() {
