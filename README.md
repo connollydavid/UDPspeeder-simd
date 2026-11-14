@@ -286,12 +286,14 @@ ratio increase that makes loss worse. The guide:
 ## The evidence posture
 
 What this fork claims, it tests. The specifics live where they belong: the
-behaviour spec and its obligations in `socket_marks.allium` and
-`dns_lease_mgr.allium` (run by CI), the timing models in `spec/` under TLA+,
-the SIMD dispatch held against named CPU models, the MTU ledger read off
-captured packets, and the marks byte proven on the wire on every host the
-CI runs. Where something is only true on some platforms, the tables above
-say so.
+behaviour specifications `socket_marks.allium` and `dns_lease_mgr.allium`
+(run by CI), the timing models in `spec/` under TLA+, the SIMD dispatch
+held against named CPU models, the MTU ledger read off captured packets,
+and the marks byte proven on the wire on every host the CI runs. Where
+something is only true on some platforms, the tables above say so. The
+English and Chinese READMEs carry a
+[terminology table](doc/terminology.md) that keeps them a translation of
+record.
 
 ## License and credit
 

@@ -207,7 +207,7 @@ chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 
 ## 证据姿态
 
-这个分支主张什么，就测试什么。具体各归其位：行为规格与义务在 `socket_marks.allium` 与 `dns_lease_mgr.allium`（CI 执行）；时序模型在 `spec/` 之下的 TLA+；SIMD 分发对照指定 CPU 模型执行；MTU 账目从抓包读出；标记字节在 CI 跑的每台主机上于线缆级被证明。只在部分平台为真的东西，上文的表格写明了。
+这个分支主张什么，就测试什么。具体各归其位：行为规格 `socket_marks.allium` 与 `dns_lease_mgr.allium`（CI 执行）；时序模型在 `spec/` 之下的 TLA+；SIMD 分发对照指定 CPU 模型执行；MTU 账目从抓包读出；标记字节在 CI 跑的每台主机上于线缆级被证明。只在部分平台为真的东西，上文的表格写明了。中英文两页 README 由一张 [术语表](terminology.md) 约束为一份有记录的翻译。
 
 ## 许可证与致谢
 
