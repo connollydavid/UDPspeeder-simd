@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615306733,
+  "lastUpdate": 1794615377686,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2855,6 +2855,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 972.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "953e3c6e1fb03899ebc1761f14c2e01cd443eb4c",
+          "message": "docs: the socket marks guide in Chinese\n\nThe promise paragraph carries the same force in Chinese: a mark the\nhost cannot honor is refused at startup, never silently dropped. The\nquick-reference table is intact (option, what it marks, where it\nworks, privileges), the wire-proof method is told the same way, and\nthe Windows alternative keeps its no-code framing. The dedication\nline does not cross into the translation: shipped artifacts carry no\npersona names.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:09:20Z",
+          "tree_id": "b314ab28306532347e09a525f7987979c507d801",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/953e3c6e1fb03899ebc1761f14c2e01cd443eb4c"
+        },
+        "date": 1794615373621,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1141.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 979.3,
             "unit": "Mbps"
           }
         ]
