@@ -54,18 +54,24 @@ cygwin:git_version
 	${cc_local}   -o ${NAME}          -I. ${SOURCES} ${FLAGS} -lrt -ggdb -static -O2 -D_GNU_SOURCE
 
 #targes for general cross compile
+# ELF links carry this regardless of what any input object asks for: one
+# note-less or exec-marked dependency (a cross libgcc on mips does exactly
+# that) would otherwise make the whole stack executable and fail the feed's
+# hardening check. PE/Mach-O links skip it; their toolchains default the
+# stack non-exec and the flag is not theirs to speak.
+HARDEN_LDFLAGS=-Wl,-z,noexecstack
 
 cross:git_version
-	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} -lrt -O2
+	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} ${HARDEN_LDFLAGS} -lrt -O2
 
 cross2:git_version
-	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} -lrt -static -lgcc_eh -O2
+	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} ${HARDEN_LDFLAGS} -lrt -static -lgcc_eh -O2
 
 cross3:git_version
-	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} -lrt -static -O2
+	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} ${CXXFLAGS} ${LDFLAGS} ${HARDEN_LDFLAGS} -lrt -static -O2
 
 cross_cxx:git_version
-	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} -O2 ${CXXFLAGS} ${LDFLAGS} ${LDLIBS}
+	${CXX}   -o ${NAME}_cross    -I. ${SOURCES} ${FLAGS} -O2 ${CXXFLAGS} ${LDFLAGS} ${HARDEN_LDFLAGS} ${LDLIBS}
 
 #targets only for debug purpose
 fast: git_version
@@ -185,10 +191,10 @@ test-static: git_version
 	${cc_local} -o test_udpspeeder_static -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS} -static
 
 bench-cross: git_version
-	${CC} -o bench_udpspeeder_cross -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} -static -lgcc_eh
+	${CC} -o bench_udpspeeder_cross -I. -Ibench ${BENCH_SOURCES} ${BENCH_FLAGS} ${HARDEN_LDFLAGS} -static -lgcc_eh
 
 test-cross: git_version
-	${CC} -o test_udpspeeder_cross -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS} -static -lgcc_eh
+	${CC} -o test_udpspeeder_cross -I. -Ibench ${TEST_SOURCES} ${BENCH_FLAGS} ${HARDEN_LDFLAGS} -static -lgcc_eh
 
 # The Windows (MinGW) test binary, run under Wine: exercises the DNS lease
 # manager's Windows PAL (registry discovery, Winsock, QueryPerformanceCounter)
@@ -199,7 +205,7 @@ test-mingw: git_version
 	    ${BENCH_FLAGS} -static -ggdb -D_WIN32_WINNT=0x0600 -lws2_32 -lqwave
 
 all-cross: git_version
-	${CC} -o ${NAME}_cross -I. ${SOURCES} ${FLAGS} -lrt -static -lgcc_eh -O2
+	${CC} -o ${NAME}_cross -I. ${SOURCES} ${FLAGS} ${HARDEN_LDFLAGS} -lrt -static -lgcc_eh -O2
 
 man: $(NAME)
 	./gen_man.sh > doc/udpspeeder-simd.1

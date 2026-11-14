@@ -164,5 +164,9 @@ xor_tile_spe:
  * makes linkers older than binutils 2.41 mark the whole stack executable, and
  * OpenWrt 24.10/25.12 fail their hardening check on such a binary. Use
  * '%progbits' rather than '@progbits': on 32-bit ARM '@' begins a line comment,
- * and gas accepts '%' for the ELF section type on every target. */
+ * and gas accepts '%' for the ELF section type on every target. The directive
+ * is ELF-only: the PE and Mach-O assemblers reject it, and those formats have
+ * no such segment to request. */
+#if defined(__ELF__)
 .section .note.GNU-stack,"",%progbits
+#endif
