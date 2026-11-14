@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617689506,
+  "lastUpdate": 1794617805172,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3059,6 +3059,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1058.9,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "dbf18133db642c5982886ce7ccd03205a71ff6d4",
+          "message": "docs: the dispatch check stated without its history\n\nThe sentence carried the old SIGILL story inside a consequence\nclause; by operator ruling the fact stands alone: the dispatch table\nis held against named CPU models in CI.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:49:08Z",
+          "tree_id": "c9f7f20855ef5ceb0db6ca134737fd3bcbbc4d11",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/dbf18133db642c5982886ce7ccd03205a71ff6d4"
+        },
+        "date": 1794617800266,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 980.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 736.7,
             "unit": "Mbps"
           }
         ]
