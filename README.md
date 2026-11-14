@@ -3,7 +3,8 @@
 A UDP tunnel that makes a high-latency, lossy link usable: it sends
 Reed-Solomon redundancy across the path so the far end can rebuild what the
 link dropped, and it does the math fast enough to matter (SIMD kernels, a
-measured 657-1082 Mbps end to end with redundancy on).
+measured 657-1082 Mbps end to end with redundancy on CI hosts, not a
+router capacity promise).
 
 It is a fork of wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder),
 and the foundation is his: the FEC design, the tunnel, the instincts. This
@@ -17,14 +18,15 @@ from.
 flowchart LR
     APP["application<br/>UDP traffic"] -->|"inner packet"| C["udpspeeder-simd<br/>client"]
     C -->|"FEC group:<br/>20 original + 10 redundant"| P["outer packets<br/>cooked: crc32c + xor<br/>marked: fwmark / cookie / dscp"]
-    P -->|"lossy high-latency link<br/>any 10 of 30 survive: decode"| S["udpspeeder-simd<br/>server"]
+    P -->|"lossy high-latency link<br/>any 20 of 30 suffice to decode"| S["udpspeeder-simd<br/>server"]
     S -->|"decoded inner packet"| T["the service<br/>127.0.0.1:7777"]
 ```
 
-Used alone it improves UDP flows. Stacked under a UDP VPN (WireGuard,
-OpenVPN) it improves everything, and the stacking is measured: the
-[VPN guide](doc/vpn-over-the-tunnel.md) carries an MTU ledger read off real
-captured packets.
+Used alone it carries one UDP service. A UDP VPN over it carries the VPN's
+protocols too, and whether that improves them depends on the loss shape and
+spare bandwidth; the stacking's MTU behaviour is measured:
+[the VPN guide](doc/vpn-over-the-tunnel.md) carries an MTU ledger read off
+real captured packets.
 
 ## Why it is fast
 
@@ -62,9 +64,9 @@ The numbers, each from [OPTIMIZATION.md](OPTIMIZATION.md) or the bench lane:
 Ranges are CI host variance; each before-and-after pair is measured on one
 host in one run.
 
-Every tier in the diagram is a row in `bench/arch-map.tsv`, the same table
-CI holds as a check under named QEMU CPU models: the dispatch is probed at
-run time on every architecture the release ships.
+`bench/arch-map.tsv` records the Linux build targets and the dispatch each
+binary must choose. CI runs the non-x86 targets under QEMU and holds x86
+against named CPU models, so the dispatch is probed at run time.
 
 ## Why this fork
 
@@ -100,7 +102,7 @@ udpspeeder-simd -c -l127.0.0.1:3333 -r<server-address>:4096 -f20:10 -k "passwd"
 ```
 
 With both sides running, UDP traffic sent to 127.0.0.1:3333 arrives at the
-server's port 7777, with any 10 of every 30 packets on the wire enough to
+server's port 7777, with any 20 of every 30 packets on the wire enough to
 rebuild the group. `-f20:10` is the ratio (20 originals, 10 redundant); `-k`
 adds XOR obfuscation, which is not encryption (below).
 
@@ -113,10 +115,12 @@ asset per target, listed in the which-binary table below.
 The release binaries are built with the OpenWrt target toolchains and run on
 a stock router: static, about 4.2 MB, no kernel modules, with a receive path
 that falls back where the kernel lacks io_uring. The guide turns one into an
-appliance: a procd service that starts at boot, restarts on exit, and reads
+appliance: a procd service that starts at boot, restarts on exit under its
+respawn policy, and reads
 `/etc/config/udpspeeder-simd`, so the UCI stanzas in this README work
-verbatim on a binary deployment; `uci commit` applies changes, `logread`
-shows the loss report, and one line in `/etc/sysupgrade.conf` carries the
+verbatim on a binary deployment; `uci commit udpspeeder-simd` saves and
+`/etc/init.d/udpspeeder-simd reload` applies (the reload trigger also fires
+on commit); `logread` shows the report counters, and one line in `/etc/sysupgrade.conf` carries the
 binary across firmware upgrades. The full guide, with the init script ready
 to paste: [doc/openwrt.md](doc/openwrt.md).
 
@@ -133,20 +137,6 @@ PPPoE's 1492:
 | WireGuard over the tunnel | 1500 (interface) | 1304 measured |
 | OpenVPN UDP over the tunnel | 1500 (interface) | 1254 measured |
 
-```mermaid
-sequenceDiagram
-    participant C as udpspeeder-simd client
-    participant D as DNS resolver
-    participant O as old endpoint 203.0.113.7
-    participant N as new endpoint 198.51.100.9
-    C->>D: resolve tunnel.example.net, before TTL expiry
-    D-->>C: 203.0.113.7, TTL 300
-    C->>O: outer packets
-    Note over D: the record changes
-    D-->>C: 198.51.100.9, TTL 300
-    C->>N: outer packets, same session
-    Note over C: the tunnel re-points without a restart
-```
 
 OpenVPN's TCP transport cannot ride the tunnel (its SYN meets a UDP
 listener; the ledger records the refusal), and TCP traffic crosses the
@@ -158,19 +148,22 @@ burst-shaped or congestion-shaped.
 
 ## Tuning a lossy link
 
-Start from measurement: run with `--report 10`, read the loss it reports,
-then choose the ratio. The arithmetic of what a ratio buys:
+Start from measurement: run with `--report 10` and read its cumulative
+original and FEC packet and byte counts (it prints counters, not a loss
+rate), then choose the ratio. The arithmetic of what a ratio buys:
 
 | ratio | bandwidth | survives per-group loss | shape |
 |---|---|---|---|
-| `-f4:2` | 1.5x | up to 1/3 | small groups, quick flush |
-| `-f20:10` | 1.5x | up to 1/3 | the default, smoother under load |
-| `-f1:1` | 2x | up to 1/2 | per-packet doubling, best for games |
-| `-f1:3` | 4x | up to 3/4 | rescue mode for very bad links |
+| `-f4:2` | 1.5x | up to 1/3 | four-original groups |
+| `-f20:10` | 1.5x | up to 1/3 | twenty-original groups; the default |
+| `-f1:1` | 2x | up to 1/2 | one redundant packet per original |
+| `-f1:3` | 4x | up to 3/4 | three redundant packets per original |
 
-Everything is live-tunable through the fifo: `echo "fec 4:2" > /tmp/fifo`
-retunes a running instance (verified by the recipes check, along with the
-timeout and queue-len levers). The full method, including how to read the
+The fifo accepts `fec`, `timeout`, `queue-len`, `mtu` and `mode` from a
+running instance (the first three verified by `bench/recipes-check.sh`);
+startup options such as `remote` and `key` are not live-tunable. With
+`option fifo '/tmp/fifo'` configured, `echo "fec 4:2" > /tmp/fifo` changes
+the running encoder until restart; persist the ratio in UCI before reloading. The full method, including how to read the
 report against the double spend, is in the ratio table above and the
 [VPN guide](doc/vpn-over-the-tunnel.md)'s loss discussion.
 
@@ -184,9 +177,12 @@ config udpspeeder-simd 'tunnel1'
 	option remote '<server>:4096'
 	option fec '4:2'
 	option report '10'
-	option fifo '/tmp/udpspeeder-fifo'
+	option fifo '/tmp/fifo'
 	option key 'passwd'
 ```
+
+The key here is XOR obfuscation, not encryption, authentication, or access
+control; use a real VPN for payload security.
 
 ## The moving endpoint
 
@@ -200,21 +196,35 @@ udpspeeder-simd -c -l127.0.0.1:3333 -rmytunnel.example.net:4096 \
   -f20:10 -k "passwd"
 ```
 
+The key is XOR obfuscation, not encryption or access control.
+
 On OpenWrt the `remote` option takes the hostname the same way.
 
-## What this is not
+```mermaid
+sequenceDiagram
+    participant C as udpspeeder-simd client
+    participant D as DNS resolver
+    participant O as old endpoint 203.0.113.7
+    participant N as new endpoint 198.51.100.9
+    C->>D: resolve tunnel.example.net, before TTL expiry
+    D-->>C: 203.0.113.7, TTL 300
+    C->>O: outer packets
+    Note over D: the record changes
+    C->>D: resolve tunnel.example.net, before TTL expiry
+    D-->>C: 198.51.100.9, TTL 300
+    C->>N: outer packets, same client process
+    Note over C: the tunnel re-points without a restart
+```
 
-So nobody arrives by mistake:
 
-1. Not a TCP tunnel: it carries UDP datagrams; TCP traffic rides a VPN
-   stacked on top.
-2. Not magic against congestion: FEC repairs loss; it cannot create
-   bandwidth, and congestion loss is better left to TCP's own backoff.
-3. Not strong encryption: `-k` is XOR obfuscation with random padding;
-   confidentiality is the stacked VPN's job.
-4. Not a VPN by itself: it forwards one UDP service; the VPN guide is where
-   whole-network access comes from.
-5. Not a WAN optimizer: on a clean link it only adds redundancy.
+## Scope and limits
+
+The tunnel carries UDP datagrams; TCP traffic and whole-network access
+require a UDP VPN stacked over it. FEC repairs loss but cannot create
+bandwidth, and congestion loss is better left to TCP's own backoff. `-k` is
+XOR obfuscation with random padding, not encryption at all; confidentiality
+and integrity are the stacked VPN's job. It forwards one UDP service, and
+on a clean link it only adds redundancy and CPU cost.
 
 ## Which binary
 
@@ -223,7 +233,7 @@ The release ships one asset per target; the build matrix behind them is
 
 | asset | machine |
 |---|---|
-| `udpspeeder-simd.x86_64` | any x86_64 Linux, back to the first K8 |
+| `udpspeeder-simd.x86_64` | x86_64 Linux, back to the first K8 (Linux 3.2+) |
 | `udpspeeder-simd.aarch64` | 64-bit ARM |
 | `udpspeeder-simd.armv7-neon` | 32-bit ARM with NEON |
 | `udpspeeder-simd.armv7-scalar` | 32-bit ARM without NEON |
@@ -235,7 +245,7 @@ The release ships one asset per target; the build matrix behind them is
 | `udpspeeder-simd` | macOS, Intel and Apple silicon, one universal binary |
 
 ```bash
-curl -LO https://github.com/connollydavid/UDPspeeder-simd/releases/download/v1.2.2/udpspeeder-simd.x86_64
+curl -LO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
 chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 ```
 
@@ -247,42 +257,41 @@ router as a managed service.
 | platform | status | source |
 |---|---|---|
 | Linux (seven architectures) | built, tested, shipped as assets | release + CI matrix |
-| Windows x86_64 and ARM64 | built, tested under wine and natively, shipped | release + CI matrix |
+| Windows x86_64 | built, tested under wine and natively, shipped | release + CI matrix |
+| Windows ARM64 | built natively, banner-smoke tested, shipped | release + CI matrix |
 | macOS (Intel and Apple silicon) | built and tested in CI, shipped as one universal binary | release + CI matrix |
-| FreeBSD | built and tested in CI | build from source |
+| FreeBSD | built and tested in CI | no release asset |
 
 | option | privilege |
 |---|---|
-| none | the tunnel runs unprivileged |
+| none | the binary needs no special privileges when run by hand; the procd script runs it as root |
 | `--fwmark` | root or CAP_NET_ADMIN (Linux) |
 | `--cookie`, `--dscp` | none beyond a normal user |
 
 ## Troubleshooting
 
-The common failures, each in symptom-cause-fix form and each naming where
-its claim comes from: the refused startup naming a mark, the size threshold
-where packets vanish, the DSCP value that leaves your host and stops being
-honored past a hop you do not control, and the ratio increase that makes
-loss worse. The guide:
+The common failures, in symptom-cause-fix form with each claim's source:
 [doc/troubleshooting.md](doc/troubleshooting.md).
 
 ## Verification
 
-The tunnel's behaviour is written down as specifications (`socket_marks.allium`,
-`dns_lease_mgr.allium`) that CI runs like tests on every change. Its timing
-properties are modelled in TLA+ and checked across every interleaving the
-model can express. The dispatch table is held against named CPU models in
-CI. The MTU numbers were
-measured from packets captured on a real stacked link, and the marks byte is
-proven on the wire on every host CI runs: Linux, FreeBSD, Windows, macOS.
-Where a claim holds only on some platforms, the tables above say which. Two
-languages can drift apart without anyone noticing, so a
-[terminology table](doc/terminology.md) binds them.
+The DNS lease and socket-mark behaviour is specified in `dns_lease_mgr.allium`
+and `socket_marks.allium`; CI runs their checks and validates the obligations
+manifests. Timing properties are modelled in TLA+ and checked across every
+interleaving the finite model can express. The dispatch table is held against
+named CPU models in CI. The MTU numbers were measured from packets captured
+on a loopback stacked link by `bench/vpn-ledger.sh`, and the marks byte is
+proven on the wire by packet capture on Linux, Windows and macOS, with the
+FreeBSD and macOS lanes best-effort (`continue-on-error`) and the macOS
+release asset taken only when its lane supplies it. Where a claim holds only
+on some platforms, the tables above say which. Two languages can drift apart
+without anyone noticing, so a [terminology table](doc/terminology.md) records
+the intended vocabulary in both; synchronization is reviewed by hand.
 
 ## License and credit
 
 The software is MIT (see [LICENSE.md](LICENSE.md)). It builds on
 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder): the
-Reed-Solomon tunnel, the FEC design and the tuning instincts are his, and
-this fork carries them forward with its own kernels, marks, endpoint and
-measurements. The upstream wiki remains worth reading for its tuning lore.
+Reed-Solomon tunnel and the FEC design are his, and this fork carries them
+forward with its own kernels, marks, endpoint and measurements. The upstream
+wiki remains worth reading for its tuning documentation.

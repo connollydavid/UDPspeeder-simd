@@ -24,12 +24,12 @@ translation.
 | fwmark / cookie / dscp | fwmark / cookie / dscp | option names kept |
 | honor-or-refuse | 要么打上、要么拒绝 | the startup contract |
 | endpoint | 对端 | the tunnel's far side |
-| the moving endpoint | 移动的对端 | |
+| the moving endpoint | 对端地址变化 | |
 | lease manager | 租约管理器 | the DNS component |
 | stacking (a VPN over it) | 叠加 | |
-| MTU ledger | MTU 账目 | the measured table |
+| MTU ledger | MTU 实测记录 | the measured table |
 | path MTU | 路径 MTU | |
-| idiomatic Ethernet 1500 | 惯常的以太网 1500 | the inner MTU choice |
+| idiomatic Ethernet 1500 | 常见的以太网 1500 | the inner MTU choice |
 | tuning | 调优 | |
 | quick start | 快速上手 | |
 | report (`--report`) | 报告（`--report`） | the loss report |
@@ -43,7 +43,7 @@ translation.
 | troubleshooting | 故障排查 | symptom-cause-fix form |
 | symptom-cause-fix | 症状-原因-处置 | |
 | verification | 验证 | the checks behind the page's claims |
-| wire proof | 线缆级证据 | packet capture proof |
+| wire proof | 抓包验证 | packet capture proof |
 | privileges | 权限 | |
 | obfuscation (`-k`) | 混淆（`-k`） | explicitly not encryption |
 | credit | 致谢 | upstream attribution |

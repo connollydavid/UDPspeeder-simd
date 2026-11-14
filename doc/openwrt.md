@@ -20,8 +20,8 @@ holds as a check. Match the router's target:
 | `udpspeeder-simd.powerpc` | mpc85xx (e500v2) | TL-WDR4900 |
 | `udpspeeder-simd.riscv64` | sifiveu | vision-free boards |
 
-Each binary is static (about 4.2 MB) with no runtime dependencies and no
-kernel module requirements. Where the kernel lacks io_uring the receive path
+Each binary is static (about 1.3-4.1 MB depending on target) with no runtime
+dependencies and no kernel module requirements. Where the kernel lacks io_uring the receive path
 probes and falls back at startup (the log line names it).
 
 ## Install
