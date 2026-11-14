@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794614773535,
+  "lastUpdate": 1794614973948,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2753,6 +2753,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 705.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "edae3cbacae4f0c62227c2b58e5f6f7951e3ab62",
+          "message": "docs: the troubleshooting guide, four symptoms each with its record\n\nSymptom-cause-fix form throughout: the admission-refused fatal (the\nhonor-or-refuse spec and the marks guide's promise), the MTU\nblackhole (mode 1's documented no-split behavior, with the ledger's\nmeasured ceilings clearing the tunnel itself), transit DSCP\nremarking (the byte proven leaving the host by CI capture, the hops\nbeyond it stated honestly), and the ratio backfiring (the tuning\narithmetic and the double-spend tension, with the report-based\ndiagnosis). Both READMEs will route here.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:02:42Z",
+          "tree_id": "850c4603587f9edd19c0528fb93bb24c3b5df1bc",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/edae3cbacae4f0c62227c2b58e5f6f7951e3ab62"
+        },
+        "date": 1794614966229,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 987.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 798.2,
             "unit": "Mbps"
           }
         ]
