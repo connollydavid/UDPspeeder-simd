@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617575854,
+  "lastUpdate": 1794617689506,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3025,6 +3025,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 505,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "278a3d38e926aeae56c86feb1915ab17facad1fd",
+          "message": "docs: the verification section opens with its first fact\n\nThe opener sentence is gone by operator ruling, and the whip pass\nover what remained took the trailing explanation clause with it; the\nsection now states each check and stops.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:46:49Z",
+          "tree_id": "2e348f9ff4e7f4ffe5f8d3738b6ab9ff500966ef",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/278a3d38e926aeae56c86feb1915ab17facad1fd"
+        },
+        "date": 1794617685208,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1185.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1058.9,
             "unit": "Mbps"
           }
         ]
