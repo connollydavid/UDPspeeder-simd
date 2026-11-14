@@ -114,14 +114,14 @@ asset per target, listed in the which-binary table below.
 
 The release binaries are built with the OpenWrt target toolchains and run on
 a stock router: static, about 4.2 MB, no kernel modules, with a receive path
-that falls back where the kernel lacks io_uring. The guide turns one into an
-appliance: a procd service that starts at boot, restarts on exit under its
-respawn policy, and reads
+that falls back where the kernel lacks io_uring. The guide runs it as a managed service: a procd script that starts at boot,
+restarts on exit under its respawn policy, and reads
 `/etc/config/udpspeeder-simd`, so the UCI stanzas in this README work
 verbatim on a binary deployment; `uci commit udpspeeder-simd` saves and
-`/etc/init.d/udpspeeder-simd reload` applies (the reload trigger also fires
-on commit); `logread` shows the report counters, and one line in `/etc/sysupgrade.conf` carries the
-binary across firmware upgrades. The full guide, with the init script ready
+`/etc/init.d/udpspeeder-simd reload` applies; `logread` shows the report
+counters, and the guide lists the files a manual
+deployment needs to survive a sysupgrade (binary, init script, the enable
+symlinks), with a verify step after the upgrade. The full guide, with the init script ready
 to paste: [doc/openwrt.md](doc/openwrt.md).
 
 ## Stack a VPN over it
@@ -233,7 +233,7 @@ The release ships one asset per target; the build matrix behind them is
 
 | asset | machine |
 |---|---|
-| `udpspeeder-simd.x86_64` | x86_64 Linux, back to the first K8 (Linux 3.2+) |
+| `udpspeeder-simd.x86_64` | x86_64 Linux with an SSE2 baseline (Linux 3.2+) |
 | `udpspeeder-simd.aarch64` | 64-bit ARM |
 | `udpspeeder-simd.armv7-neon` | 32-bit ARM with NEON |
 | `udpspeeder-simd.armv7-scalar` | 32-bit ARM without NEON |
@@ -245,7 +245,8 @@ The release ships one asset per target; the build matrix behind them is
 | `udpspeeder-simd` | macOS, Intel and Apple silicon, one universal binary |
 
 ```bash
-curl -LO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
+curl -fLO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
+echo 'f0c9e2a68fed29e5558617ecb9689122ce3ad13ab57044195ccb44700d59317f  udpspeeder-simd.x86_64' | sha256sum -c -
 chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 ```
 
@@ -256,16 +257,16 @@ router as a managed service.
 
 | platform | status | source |
 |---|---|---|
-| Linux (seven architectures) | built, tested, shipped as assets | release + CI matrix |
+| Linux (seven target builds) | built, tested in native/QEMU rows, shipped | release + CI matrix |
 | Windows x86_64 | built, tested under wine and natively, shipped | release + CI matrix |
 | Windows ARM64 | built natively, banner-smoke tested, shipped | release + CI matrix |
-| macOS (Intel and Apple silicon) | built and tested in CI, shipped as one universal binary | release + CI matrix |
+| macOS (Intel and Apple silicon) | universal build; tests cover the CI host architecture; the asset is best-effort | release + CI matrix |
 | FreeBSD | built and tested in CI | no release asset |
 
 | option | privilege |
 |---|---|
 | none | the binary needs no special privileges when run by hand; the procd script runs it as root |
-| `--fwmark` | root or CAP_NET_ADMIN (Linux) |
+| `--fwmark` | root or CAP_NET_ADMIN; CAP_NET_RAW also works on Linux 5.17+ |
 | `--cookie`, `--dscp` | none beyond a normal user |
 
 ## Troubleshooting
@@ -290,8 +291,13 @@ the intended vocabulary in both; synchronization is reviewed by hand.
 
 ## License and credit
 
-The software is MIT (see [LICENSE.md](LICENSE.md)). It builds on
-wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder): the
-Reed-Solomon tunnel and the FEC design are his, and this fork carries them
-forward with its own kernels, marks, endpoint and measurements. The upstream
-wiki remains worth reading for its tuning documentation.
+The fork's own code is MIT (see [LICENSE.md](LICENSE.md)). Bundled
+third-party code retains its own licenses and notices: BSD-licensed FEC code
+in `lib/fec.cpp`, libev under its terms in `libev/LICENSE`, and the CRC32
+code's zlib terms. Binary distributions must carry the applicable notices.
+
+The tunnel stands on wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder):
+the Reed-Solomon tunnel and the FEC design are his, and this fork carries them
+forward with its own kernels, marks, endpoint and measurements. The
+[upstream wiki](https://github.com/wangyu-/UDPspeeder/wiki) retains the
+upstream tuning documentation.

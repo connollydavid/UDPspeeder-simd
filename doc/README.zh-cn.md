@@ -80,7 +80,7 @@ udpspeeder-simd -c -l127.0.0.1:3333 -r<server-address>:4096 -f20:10 -k "passwd"
 
 ## 在 OpenWrt 上运行
 
-发布二进制由 OpenWrt 目标工具链构建，在标准 OpenWrt 系统上直接可用：静态链接，依目标约 1.3-4.1 MB，无需内核模块；内核缺少 io_uring 时收包路径自动回退。指南把二进制变成设备级服务：procd 守护开机自启，进程退出后按 respawn 策略重启，并读取 /etc/config/udpspeeder-simd，因此本页所有 UCI 配置段在纯二进制部署上原样可用；uci commit udpspeeder-simd 保存配置，/etc/init.d/udpspeeder-simd reload 应用配置（reload trigger 也会在提交后触发），logread 查看运行日志和周期输出的累计报文、字节计数，/etc/sysupgrade.conf 加一行即可让二进制随固件升级保留。完整过程与可直接粘贴的 init 脚本见 [openwrt.md](openwrt.md)。
+发布二进制由 OpenWrt 目标工具链构建，在标准 OpenWrt 系统上直接可用：静态链接，依目标约 1.3-4.1 MB，无需内核模块；内核缺少 io_uring 时收包路径自动回退。指南把二进制部署为由 procd 管理的服务：procd 守护开机自启，进程退出后按 respawn 策略重启，并读取 /etc/config/udpspeeder-simd，因此本页所有 UCI 配置段在纯二进制部署上原样可用；uci commit udpspeeder-simd 保存配置，/etc/init.d/udpspeeder-simd reload 应用配置，logread 查看运行日志和周期输出的累计报文、字节计数，/etc/sysupgrade.conf 按指南列出的文件清单（二进制、init 脚本、enable 符号链接）保留整个手动部署，升级后按指南验证。完整过程与可直接粘贴的 init 脚本见 [openwrt.md](openwrt.md)。
 
 ## 在其上叠加 VPN
 
@@ -159,7 +159,7 @@ sequenceDiagram
 
 | 资产 | 机器 |
 |---|---|
-| `udpspeeder-simd.x86_64` | x86_64 Linux，最低为第一代 K8（Linux 3.2 及以上） |
+| `udpspeeder-simd.x86_64` | x86_64 Linux，要求 SSE2 基线（Linux 3.2 及以上） |
 | `udpspeeder-simd.aarch64` | 64 位 ARM |
 | `udpspeeder-simd.armv7-neon` | 带 NEON 的 32 位 ARM |
 | `udpspeeder-simd.armv7-scalar` | 无 NEON 的 32 位 ARM |
@@ -171,7 +171,8 @@ sequenceDiagram
 | `udpspeeder-simd` | macOS，Intel 与 Apple 芯片，单个通用二进制 |
 
 ```bash
-curl -LO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
+curl -fLO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
+echo 'f0c9e2a68fed29e5558617ecb9689122ce3ad13ab57044195ccb44700d59317f  udpspeeder-simd.x86_64' | sha256sum -c -
 chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 ```
 
@@ -190,7 +191,7 @@ chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 | 选项 | 权限 |
 |---|---|
 | 无 | 手动运行时无需特殊权限；所附 OpenWrt procd 脚本默认以 root 运行 |
-| `--fwmark` | root 或 CAP_NET_ADMIN（Linux） |
+| `--fwmark` | root 或 CAP_NET_ADMIN；Linux 5.17+ 也可用 CAP_NET_RAW |
 | `--cookie`、`--dscp` | 普通用户即可 |
 
 ## 故障排查
@@ -203,4 +204,6 @@ DNS 租约与套接字标记的行为写成分规格文件 `dns_lease_mgr.allium
 
 ## 许可证与致谢
 
-软件为 MIT（见 [LICENSE.md](../LICENSE.md)）。它基于 wangyu- 开发的 [UDPspeeder](https://github.com/wangyu-/UDPspeeder) 之上：Reed-Solomon 隧道、FEC 设计与调优直觉是他的，本分支并加入自己的计算内核、套接字标记、DNS 对端跟随和实测数据。上游 wiki 的调优经验至今值得读。
+本分支自有代码为 MIT（见 [LICENSE.md](../LICENSE.md)）。随附的第三方代码保留各自许可证与声明：`lib/fec.cpp` 中的 BSD 许可 FEC 代码、`libev/LICENSE` 所载条款下的 libev，以及 CRC32 代码的 zlib 条款。二进制分发须携带相应声明。
+
+本分支基于 wangyu- 的 [UDPspeeder](https://github.com/wangyu-/UDPspeeder)：Reed-Solomon 隧道与 FEC 设计由他创建，本分支在此基础上加入自己的计算内核、套接字标记、DNS 对端跟随和实测工具。[上游 wiki](https://github.com/wangyu-/UDPspeeder/wiki) 保留其调优文档，仍可供参考。

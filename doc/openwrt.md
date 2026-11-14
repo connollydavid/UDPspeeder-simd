@@ -10,15 +10,15 @@ release assets.
 The build matrix behind the assets is `bench/arch-map.tsv`, the same table CI
 holds as a check. Match the router's target:
 
-| asset | OpenWrt target family | example hardware |
-|---|---|---|
-| `udpspeeder-simd.x86_64` | x86/64 | appliances, Atom boards |
-| `udpspeeder-simd.aarch64` | armsr/armv8, mvebu/cortexa72 | most current routers |
-| `udpspeeder-simd.armv7-neon` | armsr/armv7 (NEON cores) | cortex-a15-class |
-| `udpspeeder-simd.armv7-scalar` | mvebu/cortexa9 | WRT1900AC class |
-| `udpspeeder-simd.mips` | ath79, big-endian MIPS | the common 802.11ac era |
-| `udpspeeder-simd.powerpc` | mpc85xx (e500v2) | TL-WDR4900 |
-| `udpspeeder-simd.riscv64` | sifiveu | vision-free boards |
+| asset | recorded build and test |
+|---|---|
+| `udpspeeder-simd.x86_64` | native CI-host build; a separate OpenWrt x86_64 test build gets named-CPU dispatch checks |
+| `udpspeeder-simd.aarch64` | distro aarch64-linux-gnu cross-build; QEMU aarch64 |
+| `udpspeeder-simd.armv7-neon` | OpenWrt armsr/armv7 toolchain; QEMU cortex-a15 |
+| `udpspeeder-simd.armv7-scalar` | OpenWrt mvebu/cortexa9 toolchain; QEMU cortex-a9 |
+| `udpspeeder-simd.mips` | distro mips-linux-gnu cross-build, big-endian; QEMU mips |
+| `udpspeeder-simd.powerpc` | OpenWrt mpc85xx/p1010 toolchain with `-mcpu=8548`; QEMU e500v2 |
+| `udpspeeder-simd.riscv64` | OpenWrt sifiveu/generic toolchain; QEMU riscv64 |
 
 Each binary is static (about 1.3-4.1 MB depending on target) with no runtime
 dependencies and no kernel module requirements. Where the kernel lacks io_uring the receive path
@@ -143,15 +143,26 @@ the init script names it in the command line.
 ## Survive the upgrade
 
 `sysupgrade` preserves `/etc/` configuration by default, so the config file
-and the init script survive; the binary in `/usr/bin` does not, because it is
-not part of an installed package. Append this line to
+survives; the binary, the init script and the `enable` symlinks it creates
+are not default conffiles and must be listed. Append to
 `/etc/sysupgrade.conf`:
 
 ```
 /usr/bin/udpspeeder-simd
+/etc/init.d/udpspeeder-simd
+/etc/rc.d/S99udpspeeder-simd
+/etc/rc.d/K15udpspeeder-simd
 ```
 
-After a firmware upgrade the tunnel comes back on its own.
+Leave enough backup space for the binary. After a firmware upgrade the
+preserved files bring the enabled service back; verify it rather than
+assume it:
+
+```bash
+/usr/bin/udpspeeder-simd -h
+/etc/init.d/udpspeeder-simd status
+# then an end-to-end UDP probe through the tunnel
+```
 
 ## Marks and the firewall on a router
 
