@@ -205,4 +205,4 @@ chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 
 ## 许可证与致谢
 
-软件为 MIT（见 [LICENSE.md](../LICENSE.md)）。它站在 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder) 之上：Reed-Solomon 隧道、FEC 设计与调优直觉是他的，本分支带着自己的内核、标记、对端与测量继续向前。上游 wiki 的调优经验至今值得读，本分支的测量如今为那些经验补上了数字。
+软件为 MIT（见 [LICENSE.md](../LICENSE.md)）。它站在 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder) 之上：Reed-Solomon 隧道、FEC 设计与调优直觉是他的，本分支带着自己的内核、标记、对端与测量继续向前。上游 wiki 的调优经验至今值得读。

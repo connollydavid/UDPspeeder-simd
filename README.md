@@ -285,5 +285,4 @@ The software is MIT (see [LICENSE.md](LICENSE.md)). It builds on
 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder): the
 Reed-Solomon tunnel, the FEC design and the tuning instincts are his, and
 this fork carries them forward with its own kernels, marks, endpoint and
-measurements. The upstream wiki remains worth reading for the tuning lore
-this fork's measurements now back with numbers.
+measurements. The upstream wiki remains worth reading for its tuning lore.
