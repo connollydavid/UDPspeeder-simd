@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617502335,
+  "lastUpdate": 1794617593964,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -16644,6 +16644,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1022.43,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c222d4fd11a3aad9ff4c264fbd0fba0b5b3f9e18",
+          "message": "docs: the credit section's closing clause dropped\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:50:27Z",
+          "tree_id": "d738a2b3e00802595a7d23acdf42346a76748df9",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c222d4fd11a3aad9ff4c264fbd0fba0b5b3f9e18"
+        },
+        "date": 1794617590979,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 68.0396,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 219.869,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 817.162,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1207.05,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 18790.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 60979.7,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 22171.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 67732.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 66.0414,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 221.747,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 841.687,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1280.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 75.1438,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 293.62,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1166.79,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1699.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 78.8586,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 298.308,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1161.77,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1700.16,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 490.034,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 892.032,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2509.99,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3483.62,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 287.279,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 708.743,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2369.27,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3377.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1847.88,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1094.25,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 851.729,
             "unit": "ns/op"
           }
         ]
