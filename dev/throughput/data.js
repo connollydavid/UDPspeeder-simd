@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617305822,
+  "lastUpdate": 1794617575854,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2991,6 +2991,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 497.6,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "aead01be26f7ff0bc8b2b2dce0d2ffe1eebe18ab",
+          "message": "docs: the verification section speaks to the reader\n\nThe old heading carried a coined label and the paragraph catalogued\nits machinery; the rewrite opens with what a person actually needs\n(you should not have to take this page's word for anything) and then\ngives each check in the terms of the doubt it answers. The heading\nbecame Verification in English and 验证 in Chinese, the terminology\ntable follows, and both pages keep their heading alignment.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:45:54Z",
+          "tree_id": "0cd590e9228533cf08c5697f941798369c7912a3",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/aead01be26f7ff0bc8b2b2dce0d2ffe1eebe18ab"
+        },
+        "date": 1794617572277,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 712.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 505,
             "unit": "Mbps"
           }
         ]
