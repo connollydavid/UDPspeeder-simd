@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794614973948,
+  "lastUpdate": 1794615062828,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2787,6 +2787,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 798.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c04daf82c8858df83a191eb8f4257a3cb9edca0b",
+          "message": "docs: the README rewritten as the fork's own front door\n\nSections open with claims: what this is with the credit link up\nfront, why it is fast with the dispatch diagram and the measured\ntable, why this fork (the DNS-following endpoint, the marks with\ntheir refusal contract, four hosts measured, ten assets) with the two\nscars told as stories (the SSSE3 SIGILL and the pretending Windows\nsocket), quick start, OpenWrt routing to the binary guide, the\nmeasured VPN stacking at the idiomatic 1500, tuning with the live\nfifo, the moving endpoint, the five honest lines, which-binary, the\nplatform and privileges tables, troubleshooting routed, the evidence\nposture, and the license with credit. Three mermaid blocks render;\nno upstream image remains; the options block is replaced by the\nbinary's own help, which cannot drift from the code it documents.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:05:00Z",
+          "tree_id": "67b17632ca3ba0901caf699a33e1e3faf3b661d6",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c04daf82c8858df83a191eb8f4257a3cb9edca0b"
+        },
+        "date": 1794615058966,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1155.9,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 955.2,
             "unit": "Mbps"
           }
         ]
