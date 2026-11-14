@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615377686,
+  "lastUpdate": 1794615478778,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2889,6 +2889,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 979.3,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "e12d17b6ea82f899a4977987ca279712a517064b",
+          "message": "docs: the evidence hold, every artifact swept\n\nNo persona names remain in any shipped document (the marks guide's\ndedication line goes, as the translation already knew). No\nmethodology vocabulary beyond the checking artifacts' own file\nnames, and the obligations phrasing becomes plain product language.\nEvery performance, platform and feature statement in the shipped\npages traces to OPTIMIZATION.md, the arch map, the measured ledger,\nthe recipes check, or the specifications CI runs. The marks guide's\nthirteen em-dash decorations are reworded to zero tropes. A\nterminology table now binds the English and Chinese READMEs as a\ntranslation of record, linked from both.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:11:11Z",
+          "tree_id": "47eb68f6af5b8b9649bfde20acf9de28b256bc1c",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/e12d17b6ea82f899a4977987ca279712a517064b"
+        },
+        "date": 1794615474592,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1013,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 836.2,
             "unit": "Mbps"
           }
         ]
