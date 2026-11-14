@@ -1,240 +1,214 @@
-# UDPspeeder
-![image0](/images/cn/speedercn.PNG)
+# udpspeeder-simd
 
-双边网络加速工具，软件本身的功能是加速UDP；不过，配合vpn可以加速全流量(包括TCP/UDP/ICMP)。通过合理配置，可以加速游戏，降低游戏的丢包和延迟；也可以加速下载和看视频这种大流量的应用。用1.5倍的流量，就可以把10%的丢包率降低到万分之一以下。跟 kcptun/finalspeed/BBR 等现有方案比，主要优势是可以加速 UDP 和 ICMP，现有方案几乎都只能加速 TCP。
+一条让高延迟、高丢包链路可用的 UDP 隧道：向链路发送 Reed-Solomon 冗余，让对端重建链路丢掉的内容；并且算得足够快，快到有意义（SIMD 内核，带冗余时端到端实测 657-1082 Mbps）。
 
-我自己稳定用了几个月，用来加速美服的Brawl Stars和亚服的Mobile Legend，效果不错，加速前卡得几乎没法玩，加速后就没怎么卡过了。用来看视频也基本满速。
+它是 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder) 的分支，地基是他的：FEC 设计、隧道、调优的直觉。本页讲的是这个分支在地基之上成为的样子，下方每个主张都落在一次测试、一次测量或一份写明出处的文档上。
 
-最新的版本是v2版，在v1版的基础上增加了FEC功能，更省流量。如果你用的是v1版（路由器固件里自带的集成版很可能是v1版的），请看[v1版主页](/doc/README.zh-cn.v1.md)
+[English](../../README.md)（与本页逐节对应）
 
-配合vpn加速全流量的原理图(已测试支持VPN的有OpenVPN、L2TP、$\*\*\*VPN):
-
-![image0](/images/Capture2.PNG)
-
-[English](/README.md)
-
-[UDPspeeder Wiki](https://github.com/wangyu-/UDPspeeder/wiki)
-
-##### 提示
-
-如果你嫌UDPspeeder+OpenVPN麻烦，你可以尝试tinyfecVPN，一个集成了UDPspeeder功能的VPN：
-
-tinyfecVPN的repo:
-
-https://github.com/wangyu-/tinyfecVPN
-
-
-#### 效果
-![image0](/images/cn/ping_compare_cn.PNG)
-
-![image0](/images/cn/scp_compare.PNG)
-
-
-#### 原理简介
-主要原理是通过冗余数据来对抗网络的丢包，发送冗余数据的方式支持FEC(Forward Error Correction)和多倍发包，其中FEC算法是Reed-Solomon。
-
-FEC方式的原理图:
-
-![image0](/images/en/fec.PNG)
-
-#### 其他功能
-对包的内容和长度做随机化（可以理解为混淆），从抓包看不出你发送了冗余数据，不用担心vps被封。
-
-在多个冗余包之间引入延迟（时间可配）来对抗突发性的丢包，避开中间路由器因为瞬时buffer长度过长而连续丢掉所有副本。
-
-模拟一定的延迟抖动（时间可配），这样上层应用计算出来的RTT方差会更大，以等待后续冗余包的到达，不至于发生在冗余包到达之前就触发重传的尴尬。
-
-输出UDP收发情况报告，可以看出丢包率。
-
-模拟丢包，模拟延迟，模拟jitter。便于通过实验找出应用卡顿的原因。
-
-client支持多个udp连接，server也支持多个client
-
-#### 关键词
-
-UDP加速器、双边UDP加速、全流量加速、开源加速器、游戏加速、网游加速器
-
-# 简明操作说明
-
-### 环境要求
-Linux主机，可以是桌面版，可以是android手机/平板，可以是openwrt路由器，也可以是树莓派。Release中提供了`amd64`、`x86`、`arm`、`mips_be`、`mips_le`的预编译binary.
-
-对于windows和mac用户，在虚拟机中可以稳定使用（speeder跑在Linux里，其他应用照常跑在window里，桥接模式测试可用）。可以使用[这个](https://github.com/wangyu-/udp2raw-tunnel/releases/download/20171108.0/lede-17.01.2-x86_virtual_machine_image.zip)虚拟机镜像，大小只有7.5mb，免去在虚拟机里装系统的麻烦；虚拟机自带ssh server，可以scp拷贝文件，可以ssh进去，可以复制粘贴，root密码123456。
-
-android版需要通过terminal运行。
-
-##### 注意
-在使用虚拟机时，建议手动指定桥接到哪个网卡，不要设置成自动。否则可能会桥接到错误的网卡。
-
-### 安装
-下载编译好的二进制文件，解压到本地和服务器的任意目录。
-
-https://github.com/wangyu-/UDPspeeder/releases
-
-### 运行
-假设你有一个server，ip为44.55.66.77，有一个服务监听在udp 7777端口。 假设你需要加速本地到44.55.66.77:7777的流量。
-```
-在server端运行:
-./udpspeeder-simd -s -l0.0.0.0:4096 -r127.0.0.1:7777  -f20:10 -k "passwd" --mode 0
-
-在client端运行:
-./udpspeeder-simd -c -l0.0.0.0:3333 -r44.55.66.77:4096 -f20:10 -k "passwd" --mode 0
+```mermaid
+flowchart LR
+    APP["应用程序<br/>UDP 流量"] -->|"内层报文"| C["udpspeeder-simd<br/>客户端"]
+    C -->|"FEC 组：<br/>20 原始 + 10 冗余"| P["外层报文<br/>加料：crc32c + xor<br/>打标：fwmark / cookie / dscp"]
+    P -->|"高延迟有损链路<br/>30 个里活下来 10 个即可解码"| S["udpspeeder-simd<br/>服务端"]
+    S -->|"解码后的内层报文"| T["目标服务<br/>127.0.0.1:7777"]
 ```
 
-现在client和server之间建立起了tunnel。想要连接44.55.66.77:7777，只需要连接 127.0.0.1:3333。来回的所有的udp流量会被加速。
+单独使用时它改善 UDP 流量；叠加在 UDP VPN（WireGuard、OpenVPN）之下时改善一切，而且叠加经过了实测：[VPN 指南](vpn-over-the-tunnel.md)携带一张从真实抓包读出的 MTU 账目。
 
-##### 备注
+## 为什么快
 
-`-f20:10`表示对每20个原始数据发送10个冗余包。`-f20:10` 和`-f 20:10`都是可以的，空格可以省略，对于所有的单字节option都是如此。对于双字节option，例如后面会提到的`--mode 0`，空格不可以省略。
+热路径是三个内核族，各自向量化，各自按 CPU 实际具备的能力分发：
 
-`-k` 指定一个字符串，开启简单的异或加密
+| 族 | 职责 | 层级 |
+|---|---|---|
+| addmul1 | Reed-Solomon 内部的 GF 乘加 | avx512bw、avx2、ssse3、sse2、标量、neon |
+| xor_tile | 每个报文上密钥与 IV 图案的 XOR | avx2、sse2、neon、spe、字宽 |
+| crc32c | Castagnoli 校验和 | 硬件（SSE4.2 / ARMv8）、软件 |
 
-推荐使用`--mode 0`选项，否则你可能需要考虑MTU问题。
+```mermaid
+flowchart TD
+    A["FEC 内循环：<br/>GF 乘加"] --> Q{"x86_64 主机"}
+    Q -->|"OS 开放 ZMM 状态"| AV5["avx512bw，64 字节"]
+    Q -->|"OS 开放 YMM 状态"| AV2["avx2，32 字节"]
+    Q -->|"CPUID leaf 1 ECX 位 9"| SS3["ssse3，16 字节，PSHUFB 半字节查表"]
+    Q -->|"仅 SSE2"| S2["sse2，16 字节，倍增实现"]
+    Q -->|"无向量单元"| SC["标量"]
+    A --> B{"构建目标"}
+    B -->|"带 NEON 的 ARM 工具链"| NE["neon，16 字节，TBL 查表"]
+    B -->|"PowerPC e500v2"| SPE["spe，8 字节，evxor 汇编"]
+    B -->|"mips、riscv64、无 NEON 的 armv7"| W["字宽 XOR 与标量乘"]
+```
 
-这里推荐的参数是给日常/非游戏情况下使用的；玩游戏请用 [使用经验](https://github.com/wangyu-/UDPspeeder/wiki/使用经验) 里推荐的参数。
+数字如下，每一项来自 [OPTIMIZATION.md](../OPTIMIZATION.md) 或基准测试通道：
 
-##### 提示
+| 路径 | 之前 | 之后 |
+|---|---|---|
+| 乘加，每 1500 字节 | 665 ns | 58 ns（11.5 倍） |
+| Reed-Solomon 编码，k=10 n=15 | 34,000 ns | 3,100 ns（11 倍） |
+| 端到端，fec 20:10 | 364-509 Mbps | 657-1082 Mbps（+81-113%） |
 
-对于某些运营商，UDPspeeder跟udp2raw配合可以达到更好的速度，udp2raw负责把UDP伪装成TCP，来绕过运营商的UDP限速。
+区间是 CI 主机方差；每对前后数据在同一台主机、同一次运行内测得。
 
-udp2raw的repo:
+图中每个层级都是 `bench/arch-map.tsv` 中的一行，CI 在指定的 QEMU CPU 模型下把它当作检查来执行：分发是探测出来的，不是假设出来的，覆盖发布的每个架构。
 
-https://github.com/wangyu-/udp2raw-tunnel
+## 为何选择这个分支
 
-# 进阶操作说明
+与上游的差异，各带证据：
 
-### 命令选项
-```host-lint:ignore
-udpspeeder-simd v1.0.6
-git version: 3e248b414c    build date: Aug  5 2018 21:59:52
-repository: https://github.com/connollydavid/UDPspeeder-simd
-based on UDPspeeder: https://github.com/wangyu-/UDPspeeder
+- **对端跟随 DNS。** `-r` 接受主机名；租约管理器在 TTL 到期前刷新记录，地址变化时把隧道指向新地址，无需重启。验证方式是翻转一个活的 DNS 应答并杀掉旧服务端：同一个客户端进程完成重指向并继续通过流量（`bench/recipes-check.sh`）。
+- **套接字标记。** `--fwmark`、`--cookie`、`--dscp` 把隧道自身的报文向你所在的网络报名字，并附带一份契约：主机打不上的标记在启动时拒绝，绝不静默丢弃。CI 通过在 Linux、FreeBSD、Windows 上抓真实报文证明优先级字节确实离开了主机（[标记指南](socket-marks.md)）。
+- **四个主机，实测。** 测试套件在 CI 中运行于 Linux、FreeBSD、Windows 与 macOS，线缆级证据在每一台主机上抓包取得。
+- **十件发布资产**，覆盖七个 Linux 架构（以 OpenWrt 工具链构建）、两个 Windows 世界，以及一件 macOS 通用二进制。
+- **统一命名的二进制。** 到处只有一个名字：`udpspeeder-simd`。
 
-usage:
-    run as client: ./this_program -c -l local_listen_ip:local_port -r server_ip:server_port  [options]
-    run as server: ./this_program -s -l server_listen_ip:server_port -r remote_ip:remote_port  [options]
+引擎盖下的两道疤，因为它们塑造了设计：
 
-common options, must be same on both sides:
-    -k,--key              <string>        key for simple xor encryption. if not set, xor is disabled
-main options:
-    -f,--fec              x:y             forward error correction, send y redundant packets for every x packets
-    --timeout             <number>        how long could a packet be held in queue before doing fec, unit: ms, default: 8ms
-    --report              <number>        turn on send/recv report, and set a period for reporting, unit: s
-advanced options:
-    --mode                <number>        fec-mode,available values: 0,1; mode 0(default) costs less bandwidth,no mtu problem.
-                                          mode 1 usually introduces less latency, but you have to care about mtu.
-    --mtu                 <number>        mtu. for mode 0, the program will split packet to segment smaller than mtu value.
-                                          for mode 1, no packet will be split, the program just check if the mtu is exceed.
-                                          default value: 1250. you typically shouldn't change this value.
-    -q,--queue-len        <number>        fec queue len, only for mode 0, fec will be performed immediately after queue is full.
-                                          default value: 200. 
-    -j,--jitter           <number>        simulated jitter. randomly delay first packet for 0~<number> ms, default value: 0.
-                                          do not use if you dont know what it means.
-    -i,--interval         <number>        scatter each fec group to a interval of <number> ms, to protect burst packet loss.
-                                          default value: 0. do not use if you dont know what it means.
-    -f,--fec              x1:y1,x2:y2,..  similar to -f/--fec above,fine-grained fec parameters,may help save bandwidth.
-                                          example: "-f 1:3,2:4,10:6,20:10". check repo for details
-    --random-drop         <number>        simulate packet loss, unit: 0.01%. default value: 0.
-    --disable-obscure     <number>        disable obscure, to save a bit bandwidth and cpu.
-developer options:
-    --fifo                <string>        use a fifo(named pipe) for sending commands to the running program, so that you
-                                          can change fec encode parameters dynamically, check readme.md in repository for
-                                          supported commands.
-    -j ,--jitter          jmin:jmax       similar to -j above, but create jitter randomly between jmin and jmax
-    -i,--interval         imin:imax       similar to -i above, but scatter randomly between imin and imax
-    --decode-buf          <number>        size of buffer of fec decoder,u nit: packet, default: 2000
-    --fix-latency         <number>        try to stabilize latency, only for mode 0
-    --delay-capacity      <number>        max number of delayed packets
-    --disable-fec         <number>        completely disable fec, turn the program into a normal udp tunnel
-    --sock-buf            <number>        buf size for socket, >=10 and <=10240, unit: kbyte, default: 1024
-    --fwmark              <number>        给隧道套接字设置防火墙标记（SO_MARK），用于策略路由。仅 Linux，需要 root 或 CAP_NET_ADMIN。十进制或 0x 十六进制，默认 0（关闭）
-    --cookie              <number>        给隧道套接字设置包过滤 cookie（SO_USER_COOKIE），供 ipfw 匹配。仅 FreeBSD。十进制或 0x 十六进制，默认 0（关闭）
-    --dscp                <number>        设置隧道报文的差异化服务代码点，0-63。Windows 不提供（见下方说明）。默认 0（关闭）
-log and help options:
-    --log-level           <number>        0: never    1: fatal   2: error   3: warn 
-                                          4: info (default)      5: debug   6: trace
-    --log-position                        enable file name, function name, line number in log
-    --disable-color                       disable log color
-    -h,--help                             print this help message
+第一道是 SIGILL。SSSE3 乘法在所有人拥有的机器上都正确，而一台没有 SSSE3 的 CPU（AMD K8、早期 64 位 Intel）在第一个 FEC 批次上崩溃：调度器把它开发者机器上的能力当成了普适事实。修复不是给那台 CPU 打补丁，而是姿态的转变：先用再取，每个更快的层级下面保留一个更慢的，并在 CI 里对照指定 CPU 模型永久执行，让未来的内核或工具链无法悄悄带回那个假设。
+
+第二道是会假装的套接字。Windows 上 DSCP 套接字选项报告成功，却什么也不标。省事的做法是记为成功，让你的路由规则去匹配空气。本分支选择在启动时拒绝，并说明原因；同一套拒绝纪律覆盖了错误平台上的 `--fwmark`。标记是一份承诺，兑现不了的承诺要大声谢绝。
+
+## 快速上手
+
+服务端在 7777 端口有一个 UDP 服务，客户端想在本地 3333 端口使用它，冗余为每 20 个包 10 个：
+
+```bash
+# 服务端
+udpspeeder-simd -s -l0.0.0.0:4096 -r127.0.0.1:7777 -f20:10 -k "passwd"
+
+# 客户端
+udpspeeder-simd -c -l127.0.0.1:3333 -r<server-address>:4096 -f20:10 -k "passwd"
+```
+
+此后发往 127.0.0.1:3333 的 UDP 流量到达服务端的 7777 端口，线路上每 30 个包里任意存活 10 个即可重建整组。`-f20:10` 是冗余比（20 原始，10 冗余）；`-k` 加上 XOR 混淆，它不是加密（见下文）。
+
+二进制从 [发布页](https://github.com/connollydavid/UDPspeeder-simd/releases) 获取：十件资产，每个目标一件，清单见下文哪个二进制一节的表格。
+
+## 在 OpenWrt 上运行
+
+发布二进制由 OpenWrt 目标工具链构建，在原厂路由器上直接可用：静态链接，约 4.2 MB，无需内核模块；内核缺少 io_uring 时收包路径自动回退。指南把二进制变成设备级服务：procd 守护开机自启、退出即重启，并读取 /etc/config/udpspeeder-simd，因此本页所有 UCI 配置段在纯二进制部署上原样可用；uci commit 即时生效，logread 查看丢包报告，/etc/sysupgrade.conf 加一行即可让二进制随固件升级保留。完整过程与可直接粘贴的 init 脚本见 [openwrt.md](openwrt.md)。
+
+## 在其上叠加 VPN
+
+隧道搬运 UDP；UDP VPN 把它当载荷骑上去，顺带把所有协议都带过来。实测的结论很短：内层链路跑在惯常的以太网 1500 上（编码器在下面重新分段，惯常的 VPN MTU 算术在这里买不到任何东西），外层报文实测不超过 1313 字节，低于 PPPoE 的 1492：
+
+| 叠加 | 内层 MTU | 外层上限 |
+|---|---|---|
+| WireGuard 叠加隧道 | 1500（接口） | 实测 1304 |
+| OpenVPN UDP 叠加隧道 | 1500（接口） | 实测 1254 |
+
+```mermaid
+sequenceDiagram
+    participant C as udpspeeder-simd 客户端
+    participant D as DNS 解析器
+    participant O as 旧对端 203.0.113.7
+    participant N as 新对端 198.51.100.9
+    C->>D: 解析 tunnel.example.net，先于 TTL 到期
+    D-->>C: 203.0.113.7，TTL 300
+    C->>O: 外层报文
+    Note over D: 记录变化
+    D-->>C: 198.51.100.9，TTL 300
+    C->>N: 外层报文，同一会话
+    Note over C: 隧道重指向，无需重启
+```
+
+OpenVPN 的 TCP 传输无法骑上隧道（它的 SYN 撞上一个 UDP 监听者；账目记录了这次拒绝），TCP 流量以可行的方式到达：作为 UDP VPN 内部的流。叠加中那一个保持活的张力在此点名而不裁决，详见 [VPN 指南](vpn-over-the-tunnel.md)：丢包时，隧道的冗余与 TCP 自身的重传各自花钱，这笔双花是否划算，取决于你的丢包是突发形状还是拥塞形状。
+
+## 调优一条高丢包链路
+
+从测量出发：带 `--report 10` 运行，读它报告的丢包，再选冗余比。比值买来什么，算术如下：
+
+| 比值 | 带宽 | 组内可承受丢包 | 形态 |
+|---|---|---|---|
+| `-f4:2` | 1.5 倍 | 至多 1/3 | 小组，快速成组 |
+| `-f20:10` | 1.5 倍 | 至多 1/3 | 默认值，负载下更平滑 |
+| `-f1:1` | 2 倍 | 至多 1/2 | 逐包加倍，适合游戏 |
+| `-f1:3` | 4 倍 | 至多 3/4 | 极差链路的抢救模式 |
+
+一切都可在线调整：`echo "fec 4:2" > /tmp/fifo` 让运行中的实例换参（连同 timeout 与 queue-len 两个扳手，均由 recipes 校验脚本验证）。完整方法，包括如何对照双花张力读报告，见上文材料与 [VPN 指南](vpn-over-the-tunnel.md) 的丢包讨论。
+
+OpenWrt 那扇门，同样的调优写成 UCI：
 
 ```
-### 包发送选项，两端设置可以不同。 只影响本地包发送。
-##### `-f` 选项
-设置fec参数，影响数据的冗余度。
-##### `--timeout` 选项
-指定fec编码器在编码时候最多可以引入多大的延迟。越高fec越有效率，调低可以降低延迟，但是会牺牲效率。
-#####  `--mode` 选项 和 `--mtu`选项
-
-简单来说`--mode 0`更省流量，没有mtu问题；`--mode 1`可以稍微降低一点延迟，需要考虑mtu；另外还有个`--mode 0 -q1`模式，多倍发包专用，没有延迟，也没有mtu问题，适合游戏，但是最耗流量。
-
-具体见，https://github.com/wangyu-/UDPspeeder/wiki/mode和mtu选项
-
-对于新手，建议不要纠结这些参数的具体含义，就用我在`使用经验`里推荐的设置，不要乱改参数，尤其是不要改`--mtu`。
-
-##### `--report`  选项
-数据发送和接受报告。开启后可以根据此数据推测出包速和丢包率等特征。`--report 10`表示每10秒生成一次报告。
-
-##### `-i` 选项
-指定一个时间窗口，长度为n毫秒。同一个fec分组的数据在发送时候会被均匀分散到这n毫秒中，可以对抗突发性的丢包，默认值是0(也就是不开启此功能)。 这个功能很有用，在推荐的参数效果不理想时可以尝试打开，比如用`-i 10`、`-i 20`。这个选项的跟通信原理上常说的`交错fec` `交织fec`的原理是差不多的。
-
-##### `-j` 选项
-为原始数据的发送，增加一个延迟抖动值。这样上层应用计算出来的RTT方差会更大，以等待后续冗余包的到达，不至于发生在冗余包到达之前就触发重传的尴尬。配合-t选项使用。正常情况下跨国网络本身的延迟抖动就很大，可以不用设-j。这个功能也需要时钟，默认关掉了，不过一般情况应该不需要这个功能。
-
--j选项不但可以模拟延迟抖动，也可以模拟延迟。
-
-##### `--random-drop` 选项
-随机丢包。模拟高丢包的网络环境时使用。 `--random-drop`和`-j`选项一起用，可以模拟高延迟（或者高延迟抖动）高丢包的网络，可用于测试FEC参数在各种网络环境下的表现。
-
-##### `-q` 选项
-仅对mode 0模式有用。设置fec编码器的最大队列长度。 比如`-q5`的意思是，在编码器积攒了5个数据包后，就立即发送。合理使用可以改善延迟。在下文的`使用经验`里有提到用`--mode 0 -q1` 来多倍发包。 
-
-`-q`和 `--timeout`的作用类似。`-q`决定fec编码器积攒了多少个数据包之后，立即发送。`--timeout`决定编码器收到第一个数据包以后，最多延迟多少毫秒后发送。
-
-默认值是200，也就是尽可能多得积攒数据。 
-
-建议不要自己调整这个参数，除非是用我在`使用经验`里推荐给你的形式。
-
-#### `--fifo` option
-用fifo(命名管道)向运行中的程序发送command。例如`--fifo fifo.file`，可用的command有：
+config udpspeeder-simd 'tunnel1'
+	option enabled '1'
+	option server '0'
+	option local '127.0.0.1:3333'
+	option remote '<server>:4096'
+	option fec '4:2'
+	option report '10'
+	option fifo '/tmp/udpspeeder-fifo'
+	option key 'passwd'
 ```
-echo fec 19:9 > fifo.file
-echo mtu 1100 > fifo.file
-echo timeout 5 > fifo.file
-echo queue-len 100 > fifo.file
-echo mode 0 > fifo.file
+
+## 移动的对端
+
+给客户端一个主机名，它就会跟着地址走：租约管理器解析 `-r` 里的名字，在 TTL 到期前刷新，应答变化时把隧道指向新地址，无需重启。会动的对端从此不再表现为断线。
+
+```bash
+udpspeeder-simd -c -l127.0.0.1:3333 -rmytunnel.example.net:4096 \
+  -f20:10 -k "passwd"
 ```
-可以动态改变fec编码器参数。可以从程序的log里看到command是否发送成功。
 
-### 以下设置两端必须相同。 
+OpenWrt 上 remote 选项同样接受主机名。
 
-##### `-k`选项
-指定一个字符串，server/client间所有收发的包都会被异或，改变协议特征，防止UDPspeeder的协议被运营商针对。
+## 它不是什么
 
-##### `--disable-obscure`
-UDPspeeder默认情况下会对每个发出的数据包随机填充和异或一些字节(4~32字节)，这样通过抓包难以发现你发了冗余数据，防止VPS被封。这个功能只是为了小心谨慎，即使你关掉这个功能，基本上也没问题，关掉可以省一些带宽和CPU。`--disable-obscure`可以关掉这个功能。
+五行实话，免得有人误入：
 
-# 推荐参数
+1. 不是 TCP 隧道：它搬运 UDP 数据报；TCP 流量要靠叠在上面的 VPN。
+2. 不是拥塞的解药：FEC 修复丢包，不能凭空造带宽；拥塞丢包交给 TCP 自己的退避更合适。
+3. 不是强加密：`-k` 是带随机填充的异或混淆；保密性由叠加的 VPN 负责。
+4. 本身不是 VPN：它转发一个 UDP 服务；整网接入请看 VPN 指南。
+5. 不是广域网优化器：干净的链路上它只增加冗余。
 
-https://github.com/wangyu-/UDPspeeder/wiki/推荐设置
+## 哪台机器用哪个二进制
 
-# 使用经验
+发布为每个目标备一件资产；背后的构建矩阵是 `bench/arch-map.tsv`，与 CI 检查用的是同一张表：
 
-https://github.com/wangyu-/UDPspeeder/wiki/使用经验
+| 资产 | 机器 |
+|---|---|
+| `udpspeeder-simd.x86_64` | 任意 x86_64 Linux，早到第一代 K8 |
+| `udpspeeder-simd.aarch64` | 64 位 ARM |
+| `udpspeeder-simd.armv7-neon` | 带 NEON 的 32 位 ARM |
+| `udpspeeder-simd.armv7-scalar` | 无 NEON 的 32 位 ARM |
+| `udpspeeder-simd.mips` | 大端 MIPS |
+| `udpspeeder-simd.powerpc` | PowerPC e500v2 |
+| `udpspeeder-simd.riscv64` | 64 位 RISC-V |
+| `udpspeeder-simd.x86_64.exe` | Windows x86_64 |
+| `udpspeeder-simd.aarch64.exe` | Windows on ARM |
+| `udpspeeder-simd` | macOS，Intel 与 Apple 芯片，单件通用二进制 |
 
-# 编译教程
-暂时先参考udp2raw的这篇教程，几乎一样的过程。
+```bash
+curl -LO https://github.com/connollydavid/UDPspeeder-simd/releases/download/v1.2.2/udpspeeder-simd.x86_64
+chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
+```
 
-https://github.com/wangyu-/udp2raw-tunnel/blob/master/doc/build_guide.zh-cn.md
+在 OpenWrt 上，[指南](openwrt.md) 沿着同一批发布资产把二进制部署为受管服务。
 
-# 套接字标记 (socket marks)
+## 平台与权限
 
-三个标记都只作用于本机：它们改变的是隧道自身外层报文被路由、过滤、排队的方式，不改变线协议，隧道两端无需一致。
+| 平台 | 状态 | 来源 |
+|---|---|---|
+| Linux（七个架构） | 构建、测试并作为资产发布 | 发布页 + CI 矩阵 |
+| Windows x86_64 与 ARM64 | 构建、在 wine 与原生环境测试并发布 | 发布页 + CI 矩阵 |
+| macOS（Intel 与 Apple 芯片） | CI 构建测试，单件通用二进制发布 | 发布页 + CI 矩阵 |
+| FreeBSD | CI 构建测试 | 从源码构建 |
 
-`--fwmark` 用于 Linux 策略路由：给外层报文打标记，再按标记路由，外层报文就不会绕回隧道自身。需要 root 或 CAP_NET_ADMIN。`--cookie` 是 FreeBSD 上 ipfw 侧的等价物。在 Wi-Fi 上，`--dscp` 经内核栈的 DSCP 映射进入驱动的 WMM 接入类别，语音级别的值（46）无需其他配置即可获得语音级别的空口优先级。Windows 上 `--dscp` 会在启动时被拒绝：该平台的套接字选项会"成功"但什么也不标记，受支持的做法是策略 QoS 或 `New-NetQosPolicy`（按可执行文件或端口打标，无需代码）。本机打不上的标记一律在启动时拒绝，绝不静默丢弃。
+| 选项 | 权限 |
+|---|---|
+| 无 | 隧道以普通用户运行 |
+| `--fwmark` | root 或 CAP_NET_ADMIN（Linux） |
+| `--cookie`、`--dscp` | 普通用户即可 |
 
-# wiki
+## 故障排查
 
-更多内容请看 wiki:
+四个症状覆盖大多数出错的情形，均按症状-原因-处置组织，各带主张出处：启动时点名一个标记的拒绝、报文在某个尺寸上消失的阈值、DSCP 值离开你的主机之后不再被你管不到的中间跳尊重、以及提高冗余比反而丢得更多。指南见 [troubleshooting.md](troubleshooting.md)。
 
-https://github.com/wangyu-/UDPspeeder/wiki
+## 证据姿态
 
+这个分支主张什么，就测试什么。具体各归其位：行为规格与义务在 `socket_marks.allium` 与 `dns_lease_mgr.allium`（CI 执行）；时序模型在 `spec/` 之下的 TLA+；SIMD 分发对照指定 CPU 模型执行；MTU 账目从抓包读出；标记字节在 CI 跑的每台主机上于线缆级被证明。只在部分平台为真的东西，上文的表格写明了。
+
+## 许可证与致谢
+
+软件为 MIT（见 [LICENSE.md](../LICENSE.md)）。它站在 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder) 之上：Reed-Solomon 隧道、FEC 设计与调优直觉是他的，本分支带着自己的内核、标记、对端与测量继续向前。上游 wiki 的调优经验至今值得读，本分支的测量如今为那些经验补上了数字。
