@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615478778,
+  "lastUpdate": 1794615978014,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2923,6 +2923,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 836.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3aee5a97a49f467e83e7bb98214109594efdee75",
+          "message": "v1.3.0: the man page, generated from the binary's own help\n\nA minor bump for a user-visible addition: make man runs gen_man.sh,\nwhich reads the built binary's --help and emits doc/udpspeeder-simd.1\nin mdoc, so the page cannot drift from the code it documents (the\nold README's embedded help once drifted to a three-versions-old\nbanner; this design makes that impossible). make install places both\nthe binary and the page. The bump and the regenerated page share this\ncommit, and the tag carries the same version its page prints.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:20:01Z",
+          "tree_id": "b1c6b6fcd94ee506701cdf9d639816d5f58c7021",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3aee5a97a49f467e83e7bb98214109594efdee75"
+        },
+        "date": 1794615972981,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1261.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 970.2,
             "unit": "Mbps"
           }
         ]
