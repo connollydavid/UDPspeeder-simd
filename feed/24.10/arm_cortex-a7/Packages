@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: arm_cortex-a7
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_arm_cortex-a7.ipk
-Size: 21764
-SHA256sum: b7cd22d9791e654a1ec9088a1b6c21ea1f79db348ebf17c1f936b72012ef09b9
+Size: 21759
+SHA256sum: a2d289f4615ca3367400d11cb9918855fbe8e618f7443aba00808c8594128cb5
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: arm_cortex-a7
 Installed-Size: 51200
 Filename: libjaylink_0.3.1-r1_arm_cortex-a7.ipk
-Size: 20138
-SHA256sum: 1e9a6007c0d05b79471b709f4e8e806da2b54b39740e321a4aa92b7440e4ae87
+Size: 20135
+SHA256sum: 2850a2795c8abfcd8ae5c23bee122a7aee56830aa53749129cc6dad8b033ca2a
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,23 +94,23 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: arm_cortex-a7
 Installed-Size: 71680
 Filename: libusb-1.0-0_1.0.27-r1_arm_cortex-a7.ipk
-Size: 30173
-SHA256sum: 1cc9d43666e6740d895baf0d85d1d30024b8cb7da6f6b306423806f6a6893e92
+Size: 30176
+SHA256sum: 6516c960434e3b0adc21f755e4141354d73d434ede255c60b4278b63e8e2169b
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
 Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_cortex-a7
-Installed-Size: 163840
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_arm_cortex-a7.ipk
-Size: 68342
-SHA256sum: a4c619a1506bb18728f10dcd3a066ff5dd245fedc528857de931d0724fd3b630
+Installed-Size: 174080
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_arm_cortex-a7.ipk
+Size: 69692
+SHA256sum: 03366f1caa3d2bd3e2793420219126c53bec90c687c790dd25e5e82806fd58be
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: arm_xscale
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_arm_xscale.ipk
-Size: 21912
-SHA256sum: 9f79fc6d1365b7cc44da34fcd768927161c1238b38c939dfb20790f0e6006042
+Size: 21914
+SHA256sum: 8de52d720c6e2d91e75c36aa9ccbf6c31a79f8aa675265069d7e74b6b0fce443
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: arm_xscale
 Installed-Size: 61440
 Filename: libjaylink_0.3.1-r1_arm_xscale.ipk
-Size: 20235
-SHA256sum: bd379c940bcce374c2ace54bbe246e48b81fe8846bbecfb2999154c9cb36f3c9
+Size: 20243
+SHA256sum: 44d7252e1c3532cec340d726df6fc201e60e3dde0e736ab7703e9570ca487952
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,13 +94,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: arm_xscale
 Installed-Size: 71680
 Filename: libusb-1.0-0_1.0.27-r1_arm_xscale.ipk
-Size: 31153
-SHA256sum: 51d90deb0f97c9b00d0ade0267fbbe36a9e48f72dc73c5836e3cb736028eb819
+Size: 31113
+SHA256sum: 519c1a5c128d798c0b26f80d827112c491689602b09a625b531246a29aa94bb6
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_xscale
 Installed-Size: 174080
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_arm_xscale.ipk
-Size: 70802
-SHA256sum: 8c6ee3f49e5c9a38aca26855346a3cbd62085e743729ace7aeb88156316955c5
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_arm_xscale.ipk
+Size: 71720
+SHA256sum: 0a0d5f885497d5842000c2117229307a4b944b26e2fb5dd396cf6952aa396c34
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

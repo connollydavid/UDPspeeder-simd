@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: mips64_octeonplus
 Installed-Size: 81920
 Filename: libftdi1_1.5-r2_mips64_octeonplus.ipk
-Size: 21619
-SHA256sum: 0b6ef5999074d468a4805aeb619c9223687f3b7759c5e0a95e650664323eca39
+Size: 21621
+SHA256sum: 43a14a3b0b2deadcb00e79e4208a8dc0e7c08acb91bc4ffc454d9f872dec2be0
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: mips64_octeonplus
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_mips64_octeonplus.ipk
-Size: 20481
-SHA256sum: 58f7db22fc328adc9b76e4e504cc9434699db7b69c32f099c53c0e2ff606ae56
+Size: 20466
+SHA256sum: 0b9462c0bcd2747dad89edd1b31eecb80aad18367ad0b837ff4dffc99411f6a1
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,13 +94,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: mips64_octeonplus
 Installed-Size: 143360
 Filename: libusb-1.0-0_1.0.27-r1_mips64_octeonplus.ipk
-Size: 33277
-SHA256sum: cb18d236cd5c4104345a09d66edc1a87f34eb2db5621cdefbe85c53bade7ab6e
+Size: 33264
+SHA256sum: a9db7ffffa7ba05aa433ac6622082ea43caff109ee7b9a44092e0f40c6c521fb
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: mips64_octeonplus
 Installed-Size: 296960
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_mips64_octeonplus.ipk
-Size: 89403
-SHA256sum: 1ac3a5bc15362d49961e37b0a9585961587a313ff52d9523148ae793123ce61f
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_mips64_octeonplus.ipk
+Size: 90338
+SHA256sum: f2dab89c839f7b1848e72025d14b2c0e8a14830788db716b77d10bcf92206c99
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

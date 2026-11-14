@@ -63,7 +63,7 @@ Architecture: i386_pentium4
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_i386_pentium4.ipk
 Size: 21956
-SHA256sum: 1b24d00f6f850fbd778734548600b22d16e7003ea467e03bb04d4d0e5250a109
+SHA256sum: f939a6ba719bb7d8d754ee00f8595c5e592e197e6baafb60e19b2cbed4385b4d
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: i386_pentium4
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_i386_pentium4.ipk
-Size: 21821
-SHA256sum: 3413581935689249397c6df50f172b75d8996657a61a1292f5b8a18d8b82b250
+Size: 21825
+SHA256sum: 5ac6dfca1866b633704c37e4200dd4c6ad498b42193212660067c5750691de82
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -91,8 +91,8 @@ URL: http://mj.ucw.cz/pciutils.shtml
 Architecture: i386_pentium4
 Installed-Size: 71680
 Filename: libpci_3.14.0-r2_i386_pentium4.ipk
-Size: 28752
-SHA256sum: 11abce7fd9f26a2ac05dba6e41c49eb8eb64563562722796ee48e2e341fb84b9
+Size: 28754
+SHA256sum: 1ed7b84db5ed1ba492824585d0866c21cd25ec1f06577f8a66fe4722f951d3fd
 Description:  Linux PCI Libraries
 
 Package: libusb-1.0-0
@@ -107,13 +107,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: i386_pentium4
 Installed-Size: 81920
 Filename: libusb-1.0-0_1.0.27-r1_i386_pentium4.ipk
-Size: 33535
-SHA256sum: 4ea9507b7de353f8db48c37a7d799aa34c00ea0b2e333080530ddaaa76c456e8
+Size: 33514
+SHA256sum: d27d6dfef60ede9155ef5f80bc6b6be4ae87c95745c92f5a124a08b7f58561ee
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -121,9 +121,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: i386_pentium4
 Installed-Size: 174080
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_i386_pentium4.ipk
-Size: 67090
-SHA256sum: 7999c1832139fd916a8b8702cc56941117658aba0ff41f0317c708bbb65d89a0
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_i386_pentium4.ipk
+Size: 68035
+SHA256sum: 30b00a468ef0eee560231576b817c1804928f9a2f90a59465e689d4eceb18a69
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

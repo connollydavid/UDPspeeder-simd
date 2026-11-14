@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: arm_arm926ej-s
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_arm_arm926ej-s.ipk
-Size: 21889
-SHA256sum: 6ff359e79fd6b4e1f3349a5791fc759d9a5d8362e3a0928c8610da2667a95d17
+Size: 21884
+SHA256sum: c344063730ccc839e1d096f5889b4addb09cad5d54d3ea5b2347276fb4040f2b
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: arm_arm926ej-s
 Installed-Size: 61440
 Filename: libjaylink_0.3.1-r1_arm_arm926ej-s.ipk
-Size: 20184
-SHA256sum: 61b135ed3fb36d6d9d237eb60bdcad95c5a243d79e48099d344d7935f1d5f378
+Size: 20179
+SHA256sum: fc4c039742e5af685f42168d8e48349109a12472f47b4b8b598f64255cbe3762
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,13 +94,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: arm_arm926ej-s
 Installed-Size: 71680
 Filename: libusb-1.0-0_1.0.27-r1_arm_arm926ej-s.ipk
-Size: 31197
-SHA256sum: a4a5ec80702559b183b72cf19f4eb4acbb2fde386ff313757831422b5294ec59
+Size: 31145
+SHA256sum: a8f99f2e76791b4a92f601ff7816383a82c6660c70b88648a713d707fd6fdd40
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_arm926ej-s
 Installed-Size: 174080
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_arm_arm926ej-s.ipk
-Size: 70832
-SHA256sum: 3ee5b7a0efaa66b50db09dce44f9deb6d8c0834313daaaa971b63810c625d04d
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_arm_arm926ej-s.ipk
+Size: 71862
+SHA256sum: 0fa749cb04c228f2680dc1a6419770de2cea28ae1e713b205bc78bfbbb34efa6
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: arm_cortex-a7_neon-vfpv4
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_arm_cortex-a7_neon-vfpv4.ipk
-Size: 21633
-SHA256sum: 26ca873acc83f96f9b0e813b7ac68ea137b860d6bd3f7d602f37deb6e52d0504
+Size: 21627
+SHA256sum: 1f10a9fb5d9fcabb1b1e752dafc1c1b2349d21cc1c3ae5bf14c835d2e263552f
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: arm_cortex-a7_neon-vfpv4
 Installed-Size: 51200
 Filename: libjaylink_0.3.1-r1_arm_cortex-a7_neon-vfpv4.ipk
-Size: 20234
-SHA256sum: 2f7e37515a4dd021fc0fec014388d5c7925dc94ccb3337017c86deb94ae102e3
+Size: 20238
+SHA256sum: 56a342c806e691c2a711b2cda1aab2f4cec38b1f2bd40cf87a07414e32f2f8eb
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,13 +94,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: arm_cortex-a7_neon-vfpv4
 Installed-Size: 71680
 Filename: libusb-1.0-0_1.0.27-r1_arm_cortex-a7_neon-vfpv4.ipk
-Size: 30173
-SHA256sum: 9552eba6acb359ad9c6e0ef1deea46770a0fa9b28d257ce907b71fd2509bdd03
+Size: 30170
+SHA256sum: 93cb1da5d514996e8340f253c0adc6ae24e5b393954282388dd752f9a2378c25
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_cortex-a7_neon-vfpv4
 Installed-Size: 163840
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_arm_cortex-a7_neon-vfpv4.ipk
-Size: 68363
-SHA256sum: 4330d0053d3cb52b17d7052783a0f44319218dedf3becfb87299124e3ae28658
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_arm_cortex-a7_neon-vfpv4.ipk
+Size: 69482
+SHA256sum: b12479abc6de048b703a5c2de84de95afc8f33fc59e55979c77ab6a54de39b2d
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

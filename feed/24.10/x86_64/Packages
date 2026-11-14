@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: x86_64
 Installed-Size: 61440
 Filename: libftdi1_1.5-r2_x86_64.ipk
-Size: 22851
-SHA256sum: 0cf3be33d8087f3f7f4a23396430871a7a0e834457605a987851f8c7bb30ccd0
+Size: 22848
+SHA256sum: 28c08165167f4cb2582d26abdbb7c4f3973f76c0abc03bec84bf1c2f58707c98
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: x86_64
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_x86_64.ipk
-Size: 22510
-SHA256sum: 7f4eda74c6e9e7452974e865f8016b6654fa08e7b0e6d3c945aceb1a5a2a9bff
+Size: 22512
+SHA256sum: 1da8a70ee526ab7393a38de04a45e649b367ec4834066b9f08456db1def0bfa6
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -91,8 +91,8 @@ URL: http://mj.ucw.cz/pciutils.shtml
 Architecture: x86_64
 Installed-Size: 71680
 Filename: libpci_3.14.0-r2_x86_64.ipk
-Size: 29460
-SHA256sum: 14fe81500287c863e2bbdd41ef02c8d06b94d0f0007bc2e3d6e00ff3b029ca29
+Size: 29461
+SHA256sum: 24810f29b1f1ca01663357d5759ef89770f0fd794918ac38bb1f38741ecd8aa5
 Description:  Linux PCI Libraries
 
 Package: libusb-1.0-0
@@ -107,13 +107,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: x86_64
 Installed-Size: 81920
 Filename: libusb-1.0-0_1.0.27-r1_x86_64.ipk
-Size: 34766
-SHA256sum: 6675b7f879d49901a3bc6aa0979d063904e0a8419b06439714e8b09a7684dfde
+Size: 34765
+SHA256sum: 3b2969ecab70e10c69f7238f77512ba56bf5634c0f345d61e6003bd820d661f1
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -121,9 +121,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: x86_64
 Installed-Size: 184320
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_x86_64.ipk
-Size: 73032
-SHA256sum: 5c9a18b04215d47d8f9a8a7b99d754301a0825d29bf5c2b03c5d2cc9db9305ea
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_x86_64.ipk
+Size: 73873
+SHA256sum: 647fc4f2161f3d05540f7c31b2168a8c9c7a8cfeb0c74e11f62dfe3f416f59af
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs

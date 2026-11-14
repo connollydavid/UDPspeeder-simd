@@ -62,8 +62,8 @@ URL: http://www.intra2net.com/en/developer/libftdi/
 Architecture: aarch64_cortex-a76
 Installed-Size: 81920
 Filename: libftdi1_1.5-r2_aarch64_cortex-a76.ipk
-Size: 23084
-SHA256sum: ebf66ceaa6a08f3d886aa682585d26b260954361bb3a02c4befef49ecbdc7597
+Size: 23080
+SHA256sum: 466dcc4ff503fae3c76334e60f3de6a030516c963e0312e13667c359487b1e5d
 Description:  libFTDI - FTDI USB driver with bitbang mode
  libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, FT2232C, FT2232H, FT4232H, FT2232D and FT245R, including the popular bitbang mode. 
  The library is linked with your program in userspace, no kernel driver required.
@@ -77,8 +77,8 @@ URL: https://gitlab.zapb.de/libjaylink/libjaylink.git
 Architecture: aarch64_cortex-a76
 Installed-Size: 71680
 Filename: libjaylink_0.3.1-r1_aarch64_cortex-a76.ipk
-Size: 22491
-SHA256sum: 9f63a423bc1164a536d5887fdb95435f48bafe732e1c615b80ee9fc7f284c0f8
+Size: 22495
+SHA256sum: 7fd03c3430bdeee5399a5110f9be7a7cf91fd9fee86fbbf11ef01aa978f75db5
 Description:  libjaylink is a shared library written in C to access SEGGER J-Link and
  compatible devices.
 
@@ -94,13 +94,13 @@ CPE-ID: cpe:/a:libusb:libusb
 Architecture: aarch64_cortex-a76
 Installed-Size: 143360
 Filename: libusb-1.0-0_1.0.27-r1_aarch64_cortex-a76.ipk
-Size: 36233
-SHA256sum: c7fe8cb773a63f1a867a11d59a0f1776e6dd77ffc8bcb43673f1068c29f8fea6
+Size: 36236
+SHA256sum: 9d08f22f07e22d7aa57f3f534df68598b82c950ebbf37530be6bb7b89969e047
 Description:  libusb is a C library that gives applications easy access to USB devices on
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.1.0-r1
+Version: 1.3.2-r1
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: aarch64_cortex-a76
 Installed-Size: 235520
-Filename: udpspeeder-simd-snapshot_1.1.0-r1_aarch64_cortex-a76.ipk
-Size: 73692
-SHA256sum: 2559e3fa91a6d0c55481af943cb405c5aa5fffb195d6b597e9e74fff0f446131
+Filename: udpspeeder-simd-snapshot_1.3.2-r1_aarch64_cortex-a76.ipk
+Size: 74621
+SHA256sum: d4f0722c8571b871309e36836605ece0a7497576dc095cbcb3c28464ccbbdb22
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
