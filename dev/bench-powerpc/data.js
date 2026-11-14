@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615104318,
+  "lastUpdate": 1794615178363,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -15570,6 +15570,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 846.684,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "e12d17b6ea82f899a4977987ca279712a517064b",
+          "message": "docs: the evidence hold, every artifact swept\n\nNo persona names remain in any shipped document (the marks guide's\ndedication line goes, as the translation already knew). No\nmethodology vocabulary beyond the checking artifacts' own file\nnames, and the obligations phrasing becomes plain product language.\nEvery performance, platform and feature statement in the shipped\npages traces to OPTIMIZATION.md, the arch map, the measured ledger,\nthe recipes check, or the specifications CI runs. The marks guide's\nthirteen em-dash decorations are reworded to zero tropes. A\nterminology table now binds the English and Chinese READMEs as a\ntranslation of record, linked from both.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:11:11Z",
+          "tree_id": "47eb68f6af5b8b9649bfde20acf9de28b256bc1c",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/e12d17b6ea82f899a4977987ca279712a517064b"
+        },
+        "date": 1794615172180,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 87.0731,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 251.988,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 924.853,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1356.53,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 21075.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 69497.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 24819.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 76604.8,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 85.3581,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 308.556,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 1203.05,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1802.99,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 85.2454,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 294.206,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1136.17,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1666.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 88.5543,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 298.355,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1140.29,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1669.86,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 663.49,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 975.211,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2605.6,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3594.85,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 374.406,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 758.607,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2454.54,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3491.45,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1810.66,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1186.25,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 886.24,
             "unit": "ns/op"
           }
         ]
