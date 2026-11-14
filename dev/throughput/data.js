@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615978014,
+  "lastUpdate": 1794617305822,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2957,6 +2957,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 970.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "926b5756d803d179ab2c4880ee1c02277c9f0509",
+          "message": "docs: the writing-whip pass across every shipped page\n\nOne dedicated pass per file against a stricter trope list than the\nrepo linter (compulsive counting, bold-first bullets, coined labels,\nteaching voice, tie-backs, figurative register), applied with the\nwriting-whip skill v0.1.0 by Ossama Chaib (CC BY 4.0, crediting\ntropes.fyi). The scars passage in both READMEs is gone by operator\nruling, the marks guides' question headings became the operator's\npreferred statement, and every measured number, citation, table, code\nblock and mermaid diagram survived byte-identical. All eight pages\nand the regenerated man page sit at zero warnings; 13 headings still\nalign across the two READMEs.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:42:07Z",
+          "tree_id": "75e035e4697e98b536ee171b53311c678de34841",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/926b5756d803d179ab2c4880ee1c02277c9f0509"
+        },
+        "date": 1794617301630,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 718.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 497.6,
             "unit": "Mbps"
           }
         ]
