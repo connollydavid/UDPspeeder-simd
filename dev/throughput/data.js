@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794687715902,
+  "lastUpdate": 1794689021742,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3229,6 +3229,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 786,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "dd6ae0f95b28c4804f0c68f1fc169d819a79dd39",
+          "message": "hardening: the note is ELF's, and the noexec stack is asserted at links\n\nMoving .note.GNU-stack outside the SPE guard exposed it to the PE and\nMach-O assemblers, which reject the ELF directive outright (the mingw and\nmacos lanes proved it the same push). The note now sits behind __ELF__.\n\nThe mips lane exposed the other half: a note on our object cannot undo an\nexec-marked dependency object, so every ELF cross link now passes\n-Wl,-z,noexecstack and the CI assertion checks the result on all three\nbinaries per arch.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T20:37:22Z",
+          "tree_id": "4bc828da257cb8e3c9ab5d7b78144713408af54f",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/dd6ae0f95b28c4804f0c68f1fc169d819a79dd39"
+        },
+        "date": 1794689016738,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1001.4,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 774.6,
             "unit": "Mbps"
           }
         ]
