@@ -201,7 +201,7 @@ chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 
 ## 验证
 
-本页的任何说法都不必凭信任接受。隧道的行为被写成规格（`socket_marks.allium`、`dns_lease_mgr.allium`），CI 在每次变更时像跑测试一样执行它们。时序性质以 TLA+ 建模，在模型能表达的全部交错上检查，也就是测试运行恰好会漏掉的那些顺序。分发表对照具名 CPU 模型执行，没有 SSSE3 的机器不会再被遗忘。MTU 数字测自真实叠加链路上抓取的报文，标记字节在 CI 运行的每一台主机（Linux、FreeBSD、Windows、macOS）上于线缆级被证明。只在部分平台成立的主张，上文的表格写明是哪些。两种语言会在无人察觉时漂移，因此一张 [术语表](terminology.md) 把它们绑定在一起。
+隧道的行为被写成规格（`socket_marks.allium`、`dns_lease_mgr.allium`），CI 在每次变更时像跑测试一样执行它们。时序性质以 TLA+ 建模，在模型能表达的全部交错上检查。分发表对照具名 CPU 模型执行，没有 SSSE3 的机器不会再被遗忘。MTU 数字测自真实叠加链路上抓取的报文，标记字节在 CI 运行的每一台主机（Linux、FreeBSD、Windows、macOS）上于线缆级被证明。只在部分平台成立的主张，上文的表格写明是哪些。两种语言会在无人察觉时漂移，因此一张 [术语表](terminology.md) 把它们绑定在一起。
 
 ## 许可证与致谢
 
