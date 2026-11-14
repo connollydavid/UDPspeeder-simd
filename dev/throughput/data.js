@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794615062828,
+  "lastUpdate": 1794615306733,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2821,6 +2821,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 955.2,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "7fcb5beeebeed10bd1e0ec0fc804922e8efd847f",
+          "message": "docs: the Chinese README, section for section with the English page\n\nThirteen sections aligned one to one, the same three mermaid blocks\nwith Chinese labels (render-verified), the same tables and numbers\nwith the same citations, and the documentation register held: the\nfork's name and credit up front, the two scars, the measured VPN\nstacking at 1500, the live fifo tuning, the five honest lines, and\nthe evidence posture. The upstream-era Chinese strata the inventory\nlisted (the personal anecdote, the v1/v2 talk, the keyword block,\nthe VM password) are gone with the page that carried them.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:08:39Z",
+          "tree_id": "8e15aa5770cf673a78ccc5f72b68f51c4e0d91e6",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/7fcb5beeebeed10bd1e0ec0fc804922e8efd847f"
+        },
+        "date": 1794615301300,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1171.3,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 972.3,
             "unit": "Mbps"
           }
         ]
