@@ -200,3 +200,10 @@ test-mingw: git_version
 
 all-cross: git_version
 	${CC} -o ${NAME}_cross -I. ${SOURCES} ${FLAGS} -lrt -static -lgcc_eh -O2
+
+man: $(NAME)
+	./gen_man.sh > doc/udpspeeder-simd.1
+
+install: $(NAME) man
+	install -D $(NAME) $(DESTDIR)/usr/local/bin/$(NAME)
+	install -D -m 644 doc/udpspeeder-simd.1 $(DESTDIR)/usr/local/share/man/man1/$(NAME).1
