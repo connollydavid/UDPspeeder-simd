@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794680997661,
+  "lastUpdate": 1794687715902,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3195,6 +3195,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 954.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "3578306aba608ba54ba300a14d95586dcb3d86d7",
+          "message": "hardening: keep the stack data, and assert it in CI\n\nxor_spe.S declares .note.GNU-stack, but the declaration sat inside the\nHAVE_PPC_SPE guard, so on every other target the file assembled to an\nempty object without the note. Linkers older than binutils 2.41 treat a\nnote-less input as an executable-stack request: OpenWrt 24.10/25.12 built\nudpspeeder-simd that way and its hardening check failed the feed install.\nMove the declaration outside the guard, assert a non-exec GNU_STACK for\nevery statically built release binary in CI, and bump to v1.3.2 so the\nfix reaches the feed and the package with a fresh source hash.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T20:15:41Z",
+          "tree_id": "469bda6e6d5c0a0648f59228971b15949b17539d",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/3578306aba608ba54ba300a14d95586dcb3d86d7"
+        },
+        "date": 1794687711470,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 965.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 786,
             "unit": "Mbps"
           }
         ]
