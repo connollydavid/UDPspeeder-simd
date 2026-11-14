@@ -266,17 +266,19 @@ honored past a hop you do not control, and the ratio increase that makes
 loss worse. The guide:
 [doc/troubleshooting.md](doc/troubleshooting.md).
 
-## The evidence posture
+## Verification
 
-Every claim in this README is tested. The specifics: the behaviour
-specifications `socket_marks.allium` and `dns_lease_mgr.allium`
-(run by CI), the timing models in `spec/` under TLA+, the SIMD dispatch
-held against named CPU models, the MTU ledger read off captured packets,
-and the marks byte proven on the wire on every host the CI runs. Where
-something is only true on some platforms, the tables above say so. The
-English and Chinese READMEs carry a
-[terminology table](doc/terminology.md) that keeps them a translation of
-record.
+You should not have to take this page's word for anything. The tunnel's
+behaviour is written down as specifications (`socket_marks.allium`,
+`dns_lease_mgr.allium`) that CI runs like tests on every change. Its timing
+properties are modelled in TLA+ and checked across every interleaving the
+model can express, the orderings a test run happens to miss. The dispatch
+table is held against named CPU models, so a machine without SSSE3 cannot be
+forgotten again. The MTU numbers were measured from packets captured on a
+real stacked link, and the marks byte is proven on the wire on every host CI
+runs: Linux, FreeBSD, Windows, macOS. Where a claim holds only on some
+platforms, the tables above say which. Two languages can drift apart without
+anyone noticing, so a [terminology table](doc/terminology.md) binds them.
 
 ## License and credit
 

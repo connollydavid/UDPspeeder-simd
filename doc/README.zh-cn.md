@@ -199,9 +199,9 @@ chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 
 指南里的排查按症状-原因-处置组织，各条写明主张出处，覆盖大多数出错情形：启动时指名某个标记的拒绝、报文在某个尺寸上消失的阈值、DSCP 值离开主机后你控制不到的中间跳不再尊重它、提高冗余比反而丢得更多。详见 [troubleshooting.md](troubleshooting.md)。
 
-## 证据姿态
+## 验证
 
-分支的每个主张都有对应的测试：行为规格 `socket_marks.allium` 与 `dns_lease_mgr.allium`（CI 执行）；时序模型在 `spec/` 之下的 TLA+；SIMD 分发对照指定 CPU 模型执行；MTU 账目从抓包读出；标记字节在 CI 跑的每台主机上于线缆级被证明。只在部分平台为真的东西，上文的表格写明了。中英文两页 README 由 [术语表](terminology.md) 约束为一份有记录的翻译。
+本页的任何说法都不必凭信任接受。隧道的行为被写成规格（`socket_marks.allium`、`dns_lease_mgr.allium`），CI 在每次变更时像跑测试一样执行它们。时序性质以 TLA+ 建模，在模型能表达的全部交错上检查，也就是测试运行恰好会漏掉的那些顺序。分发表对照具名 CPU 模型执行，没有 SSSE3 的机器不会再被遗忘。MTU 数字测自真实叠加链路上抓取的报文，标记字节在 CI 运行的每一台主机（Linux、FreeBSD、Windows、macOS）上于线缆级被证明。只在部分平台成立的主张，上文的表格写明是哪些。两种语言会在无人察觉时漂移，因此一张 [术语表](terminology.md) 把它们绑定在一起。
 
 ## 许可证与致谢
 

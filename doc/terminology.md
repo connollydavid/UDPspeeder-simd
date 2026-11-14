@@ -42,7 +42,7 @@ translation.
 | appliance | 设备级服务 | router deployment register |
 | troubleshooting | 故障排查 | symptom-cause-fix form |
 | symptom-cause-fix | 症状-原因-处置 | |
-| evidence posture | 证据姿态 | |
+| verification | 验证 | the checks behind the page's claims |
 | wire proof | 线缆级证据 | packet capture proof |
 | privileges | 权限 | |
 | obfuscation (`-k`) | 混淆（`-k`） | explicitly not encryption |
