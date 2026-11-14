@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794613982501,
+  "lastUpdate": 1794614773535,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -2719,6 +2719,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1530.1,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "a4009ffd9253e90638bcbc7e69b4a02520014ce6",
+          "message": "docs: running on OpenWrt, from the release assets only\n\nThe guide turns a release binary into a router appliance: the\ntarget-to-asset table from the arch map, a paste-ready procd init\nscript that reads /etc/config/udpspeeder-simd and maps the documented\nUCI options onto the binary's flags (so every UCI stanza in the docs\nworks verbatim on a binary deployment), the report and fifo for live\ntuning, one line in sysupgrade.conf to survive firmware upgrades, and\nthe router-side marks rule. Deployment documented from the release\nassets only; no feed or upstream claims. The init script is\nsyntax-checked and its flags mirror the verified option surface.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-13T23:59:20Z",
+          "tree_id": "67e84c95d3dc7d45dd09663bc3576cc024ca0ce7",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/a4009ffd9253e90638bcbc7e69b4a02520014ce6"
+        },
+        "date": 1794614767249,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1006.1,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 705.3,
             "unit": "Mbps"
           }
         ]
