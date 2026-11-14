@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617805172,
+  "lastUpdate": 1794617863124,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3093,6 +3093,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 736.7,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "c222d4fd11a3aad9ff4c264fbd0fba0b5b3f9e18",
+          "message": "docs: the credit section's closing clause dropped\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T00:50:27Z",
+          "tree_id": "d738a2b3e00802595a7d23acdf42346a76748df9",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/c222d4fd11a3aad9ff4c264fbd0fba0b5b3f9e18"
+        },
+        "date": 1794617860587,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1702.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1428.4,
             "unit": "Mbps"
           }
         ]
