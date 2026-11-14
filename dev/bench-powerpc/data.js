@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794687418770,
+  "lastUpdate": 1794688712870,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Benchmarks (PowerPC e500v2 via QEMU)": [
@@ -17360,6 +17360,185 @@ window.BENCHMARK_DATA = {
           {
             "name": "cook_xor_only/1500B",
             "value": 1059.13,
+            "unit": "ns/op"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "dd6ae0f95b28c4804f0c68f1fc169d819a79dd39",
+          "message": "hardening: the note is ELF's, and the noexec stack is asserted at links\n\nMoving .note.GNU-stack outside the SPE guard exposed it to the PE and\nMach-O assemblers, which reject the ELF directive outright (the mingw and\nmacos lanes proved it the same push). The note now sits behind __ELF__.\n\nThe mips lane exposed the other half: a note on our object cannot undo an\nexec-marked dependency object, so every ELF cross link now passes\n-Wl,-z,noexecstack and the CI assertion checks the result on all three\nbinaries per arch.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T20:37:22Z",
+          "tree_id": "4bc828da257cb8e3c9ab5d7b78144713408af54f",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/dd6ae0f95b28c4804f0c68f1fc169d819a79dd39"
+        },
+        "date": 1794688710123,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "addmul1/64B",
+            "value": 67.2181,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/256B",
+            "value": 217.865,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1024B",
+            "value": 815.857,
+            "unit": "ns/op"
+          },
+          {
+            "name": "addmul1/1500B",
+            "value": 1197.13,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k5/8/1500B",
+            "value": 18537.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_encode/k10/15/1500B",
+            "value": 60617.1,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k5/8/1500B",
+            "value": 22127.9,
+            "unit": "ns/op"
+          },
+          {
+            "name": "rs_decode/k10/15/1500B",
+            "value": 67427.2,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/64B",
+            "value": 65.8645,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/256B",
+            "value": 221.296,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1024B",
+            "value": 832.851,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32_old/1500B",
+            "value": 1275.57,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/64B",
+            "value": 75.454,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/256B",
+            "value": 293.145,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1024B",
+            "value": 1149.38,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c_sw/1500B",
+            "value": 1692.44,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/64B",
+            "value": 78.6772,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/256B",
+            "value": 295.897,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1024B",
+            "value": 1151.21,
+            "unit": "ns/op"
+          },
+          {
+            "name": "crc32c/1500B",
+            "value": 1692.32,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/64B",
+            "value": 489.655,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/256B",
+            "value": 893.73,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1024B",
+            "value": 2514.04,
+            "unit": "ns/op"
+          },
+          {
+            "name": "do_cook/1500B",
+            "value": 3486.37,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/64B",
+            "value": 289.62,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/256B",
+            "value": 706.894,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1024B",
+            "value": 2373.4,
+            "unit": "ns/op"
+          },
+          {
+            "name": "de_cook/1500B",
+            "value": 3420.31,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_crc32_only/1500B",
+            "value": 1847.32,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_obscure_only/1500B",
+            "value": 1098.28,
+            "unit": "ns/op"
+          },
+          {
+            "name": "cook_xor_only/1500B",
+            "value": 848.877,
             "unit": "ns/op"
           }
         ]
