@@ -246,7 +246,7 @@ The release ships one asset per target; the build matrix behind them is
 
 ```bash
 curl -fLO https://github.com/connollydavid/UDPspeeder-simd/releases/latest/download/udpspeeder-simd.x86_64
-echo 'f0c9e2a68fed29e5558617ecb9689122ce3ad13ab57044195ccb44700d59317f  udpspeeder-simd.x86_64' | sha256sum -c -
+sha256sum udpspeeder-simd.x86_64  # compare with the asset digest shown on the release page
 chmod +x udpspeeder-simd.x86_64 && ./udpspeeder-simd.x86_64 -h
 ```
 
