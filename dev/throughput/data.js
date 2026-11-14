@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794617863124,
+  "lastUpdate": 1794654332022,
   "repoUrl": "https://github.com/connollydavid/UDPspeeder-simd",
   "entries": {
     "UDPspeeder Throughput": [
@@ -3127,6 +3127,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "baseline/throughput/no-fec",
             "value": 1428.4,
+            "unit": "Mbps"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "committer": {
+            "email": "connollydavid@users.noreply.github.com",
+            "name": "David Connolly",
+            "username": "connollydavid"
+          },
+          "distinct": true,
+          "id": "1ef50b2867d09c191ead30b90ad89994db8d42aa",
+          "message": "docs: the last of the persona findings, licensing and preservation\n\nThe final review caught two classes the earlier rounds could not:\nlicense truth (MIT covers the fork's own code; the bundled FEC,\nlibev and CRC32 sources retain their licenses, and binary\ndistributions must carry notices) and preservation truth (a manual\ndeployment's enable symlinks are not default conffiles, so the\nsysupgrade list now names the binary, the init script and both rc.d\nlinks, with a verify step after the upgrade). The OpenWrt target\ntable now records builds and QEMU models instead of invented\nhardware examples, the download example verifies its sha256, the\nprivileges row names CAP_NET_RAW on newer kernels, and the uci\nsequence is an explicit commit-and-reload with no trigger claims.\nBoth pages and the guide sit at zero warnings, headings aligned.\n\nCo-Authored-By: GLM-5.3 <noreply@z.ai>",
+          "timestamp": "2026-11-14T02:19:45Z",
+          "tree_id": "c56648a0c589c12ffde5900239035d7ca0fd99a2",
+          "url": "https://github.com/connollydavid/UDPspeeder-simd/commit/1ef50b2867d09c191ead30b90ad89994db8d42aa"
+        },
+        "date": 1794654329451,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "throughput/no-fec",
+            "value": 1766.2,
+            "unit": "Mbps"
+          },
+          {
+            "name": "baseline/throughput/no-fec",
+            "value": 1415.2,
             "unit": "Mbps"
           }
         ]
