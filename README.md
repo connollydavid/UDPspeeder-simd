@@ -271,8 +271,8 @@ loss worse. The guide:
 The tunnel's behaviour is written down as specifications (`socket_marks.allium`,
 `dns_lease_mgr.allium`) that CI runs like tests on every change. Its timing
 properties are modelled in TLA+ and checked across every interleaving the
-model can express. The dispatch table is held against named CPU models, so a
-machine without SSSE3 cannot be forgotten again. The MTU numbers were
+model can express. The dispatch table is held against named CPU models in
+CI. The MTU numbers were
 measured from packets captured on a real stacked link, and the marks byte is
 proven on the wire on every host CI runs: Linux, FreeBSD, Windows, macOS.
 Where a claim holds only on some platforms, the tables above say which. Two
