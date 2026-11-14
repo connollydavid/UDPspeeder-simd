@@ -21,16 +21,16 @@
 .
 .Sh DESCRIPTION
 A tunnel for high-latency, lossy links: it sends Reed-Solomon redundancy
-across the path so the far end can rebuild what the link dropped. Used
-alone it improves UDP flows; stacked under a UDP VPN (WireGuard,
-OpenVPN) it improves every protocol the VPN carries.
+so the far end can rebuild dropped packets. Used alone it improves UDP
+flows; stacked under a UDP VPN (WireGuard, OpenVPN) it improves every
+protocol the VPN carries.
 .Pp
 This is a fork of wangyu-'s UDPspeeder; the FEC design and the tunnel
-are his, and this fork carries its own SIMD kernels, DNS-following
-endpoint, socket marks, and measurements.
+are his, and the fork adds SIMD kernels, a DNS-following endpoint,
+socket marks, and measurements.
 .Pp
-The socket marks options carry a contract: a mark the host cannot
-honor is refused at startup, never silently dropped.
+The socket marks options are validated: a mark the host cannot honor
+is refused at startup.
 .Pp
 This build identifies itself as
 .Sy v1.3.0 .
@@ -111,15 +111,15 @@ print this help message
 .El
 .
 .Sh EXAMPLES
-A server with a UDP service on port 7777, a client that wants it at
-localhost:3333, redundancy of 10 packets per 20:
+Run a server for a UDP service on port 7777 and a client at
+localhost:3333, with redundancy of 10 packets per 20:
 .Bd -literal -offset indent
 udpspeeder-simd -s -l0.0.0.0:4096 -r127.0.0.1:7777 -f20:10 -k passwd
 udpspeeder-simd -c -l127.0.0.1:3333 -r44.55.66.77:4096 -f20:10 -k passwd
 .Ed
 .
 .Sh SEE ALSO
-The documentation shipped beside the source:
+The documentation shipped with the source:
 .Lk README.md ,
 .Lk doc/vpn-over-the-tunnel.md ,
 .Lk doc/socket-marks.md ,
@@ -129,7 +129,7 @@ Upstream:
 .Lk https://github.com/wangyu-/UDPspeeder .
 .
 .Sh AUTHORS
-Maintained as
+Maintained at
 .Lk https://github.com/connollydavid/UDPspeeder-simd ,
 a fork of UDPspeeder by wangyu-.
 .

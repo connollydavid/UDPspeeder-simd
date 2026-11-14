@@ -6,10 +6,10 @@ link dropped, and it does the math fast enough to matter (SIMD kernels, a
 measured 657-1082 Mbps end to end with redundancy on).
 
 It is a fork of wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder),
-and the foundation is his: the FEC design, the tunnel, the instincts. What
-you are reading about here is what this fork became on top of that
-foundation, with every claim below tied to a test, a measurement, or a
-document that says where it came from.
+and the foundation is his: the FEC design, the tunnel, the instincts. This
+README covers what the fork became on top of that work, with every claim
+below tied to a test, a measurement, or a document that says where it came
+from.
 
 [简体中文](doc/README.zh-cn.md) (section-for-section with this page)
 
@@ -28,8 +28,8 @@ captured packets.
 
 ## Why it is fast
 
-The hot path is three kernel families, each vectorized and each dispatched
-to what the CPU actually has:
+The hot path is built from kernel families, each vectorized and each
+dispatched to what the CPU actually has:
 
 | family | what it does | tiers |
 |---|---|---|
@@ -63,45 +63,28 @@ Ranges are CI host variance; each before-and-after pair is measured on one
 host in one run.
 
 Every tier in the diagram is a row in `bench/arch-map.tsv`, the same table
-CI holds as a check under named QEMU CPU models: the dispatch is probed, not
-assumed, on every architecture the release ships.
+CI holds as a check under named QEMU CPU models: the dispatch is probed at
+run time on every architecture the release ships.
 
 ## Why this fork
 
 The differences from upstream, each with its evidence:
 
-- **The endpoint follows DNS.** `-r` takes a hostname; a lease manager
+- The endpoint follows DNS: `-r` takes a hostname; a lease manager
   refreshes the record before its TTL expires and re-points the tunnel when
   the address changes, without a restart. The verification flips a live DNS
   answer and kills the old server: the same client process re-points and
   keeps passing traffic (`bench/recipes-check.sh`).
-- **Socket marks.** `--fwmark`, `--cookie` and `--dscp` name the tunnel's
+- Socket marks: `--fwmark`, `--cookie` and `--dscp` name the tunnel's
   own packets to your network, with a contract: a mark the host cannot honor
   is refused at startup, never silently dropped. CI proves the priority byte
   leaves the host by capturing packets on Linux, FreeBSD and Windows
   ([the marks guide](doc/socket-marks.md)).
-- **Four hosts, measured.** The suite runs on Linux, FreeBSD, Windows and
-  macOS in CI, and the wire proofs capture real packets on each.
-- **Ten release assets** covering seven Linux architectures (built with the
+- The suite runs on Linux, FreeBSD, Windows and macOS in CI, and the wire
+  proofs capture real packets on each.
+- Release assets cover seven Linux architectures (built with the
   OpenWrt toolchains), both Windows worlds, and one universal macOS binary.
-- **The renamed binary.** One name everywhere: `udpspeeder-simd`.
-
-Two scars from under the hood, because they taught the design:
-
-The first is the SIGILL. The SSSE3 multiply was correct on every machine
-anyone had, and a CPU without SSSE3 (AMD K8, early 64-bit Intel) died on the
-first FEC batch: the dispatcher assumed what its developers' machines had.
-The fix was not a patch for that CPU, it was a change in posture: probe
-before you use, keep a slower tier beneath every faster one, and hold every
-dispatch against a named CPU model in CI, forever, so a future kernel or
-toolchain cannot quietly reintroduce the assumption.
-
-The second is the pretending socket. On Windows, the DSCP socket option
-reports success and marks nothing. The easy behavior would be to call it a
-success and let your routing rules match empty air. The fork refuses
-instead, at startup, with the reason; the same refusal discipline covers
-`--fwmark` on the wrong platform. A mark is a promise, and promises that
-cannot be kept are declined out loud.
+- The renamed binary: one name everywhere, `udpspeeder-simd`.
 
 ## Quick start
 
@@ -116,14 +99,14 @@ udpspeeder-simd -s -l0.0.0.0:4096 -r127.0.0.1:7777 -f20:10 -k "passwd"
 udpspeeder-simd -c -l127.0.0.1:3333 -r<server-address>:4096 -f20:10 -k "passwd"
 ```
 
-Now UDP traffic sent to 127.0.0.1:3333 arrives at the server's port 7777,
-with any 10 of every 30 packets on the wire enough to rebuild the group.
-`-f20:10` is the ratio (20 originals, 10 redundant); `-k` adds XOR
-obfuscation, which is not encryption (below).
+With both sides running, UDP traffic sent to 127.0.0.1:3333 arrives at the
+server's port 7777, with any 10 of every 30 packets on the wire enough to
+rebuild the group. `-f20:10` is the ratio (20 originals, 10 redundant); `-k`
+adds XOR obfuscation, which is not encryption (below).
 
 Get the binary from the
-[releases](https://github.com/connollydavid/UDPspeeder-simd/releases): ten
-assets, one per target, listed in the which-binary table below.
+[releases](https://github.com/connollydavid/UDPspeeder-simd/releases): one
+asset per target, listed in the which-binary table below.
 
 ## Running on OpenWrt
 
@@ -134,16 +117,16 @@ appliance: a procd service that starts at boot, restarts on exit, and reads
 `/etc/config/udpspeeder-simd`, so the UCI stanzas in this README work
 verbatim on a binary deployment; `uci commit` applies changes, `logread`
 shows the loss report, and one line in `/etc/sysupgrade.conf` carries the
-binary across firmware upgrades. The whole story, with the init script ready
+binary across firmware upgrades. The full guide, with the init script ready
 to paste: [doc/openwrt.md](doc/openwrt.md).
 
 ## Stack a VPN over it
 
 The tunnel carries UDP; a UDP VPN rides it as payload and brings every
-protocol with it. The measured story is short: the inner link runs at the
-idiomatic Ethernet 1500 (the encoder re-segments beneath it, so the
-customary VPN MTU arithmetic buys nothing), and the outer packets never
-exceed 1313 bytes measured, below even PPPoE's 1492:
+protocol with it. The inner link runs at the idiomatic Ethernet 1500 (the
+encoder re-segments beneath it, so the customary VPN MTU arithmetic buys
+nothing), and the outer packets never exceed 1313 bytes measured, below even
+PPPoE's 1492:
 
 | stack | inner MTU | outer ceiling |
 |---|---|---|
@@ -166,12 +149,12 @@ sequenceDiagram
 ```
 
 OpenVPN's TCP transport cannot ride the tunnel (its SYN meets a UDP
-listener; the ledger records the refusal), and TCP traffic arrives the
-working way: as flows inside a UDP VPN. That is where the one live tension
-of stacking sits, named rather than resolved in the
-[VPN guide](doc/vpn-over-the-tunnel.md): on loss, the tunnel's redundancy
-and TCP's own retransmission both spend, and whether that double spend pays
-depends on whether your loss is burst-shaped or congestion-shaped.
+listener; the ledger records the refusal), and TCP traffic crosses the
+tunnel as flows inside a UDP VPN. The
+[VPN guide](doc/vpn-over-the-tunnel.md) discusses the tradeoff this leaves
+open: on loss, the tunnel's redundancy and TCP's own retransmission both
+spend, and whether that double spend pays depends on whether your loss is
+burst-shaped or congestion-shaped.
 
 ## Tuning a lossy link
 
@@ -188,10 +171,10 @@ then choose the ratio. The arithmetic of what a ratio buys:
 Everything is live-tunable through the fifo: `echo "fec 4:2" > /tmp/fifo`
 retunes a running instance (verified by the recipes check, along with the
 timeout and queue-len levers). The full method, including how to read the
-report against the double-spend tension, is the tuning material above and
-the [VPN guide](doc/vpn-over-the-tunnel.md)'s loss discussion.
+report against the double spend, is in the ratio table above and the
+[VPN guide](doc/vpn-over-the-tunnel.md)'s loss discussion.
 
-The OpenWrt door, the same tuning as UCI:
+On OpenWrt, the same tuning as UCI:
 
 ```
 config udpspeeder-simd 'tunnel1'
@@ -209,7 +192,7 @@ config udpspeeder-simd 'tunnel1'
 
 Give the client a hostname and it follows the address: the lease manager
 resolves `-r` names, refreshes before TTL expiry, and re-points when the
-answer changes, without a restart. A moving endpoint stops reading as an
+answer changes, without a restart. An address change no longer reads as an
 outage.
 
 ```bash
@@ -221,7 +204,7 @@ On OpenWrt the `remote` option takes the hostname the same way.
 
 ## What this is not
 
-Five honest lines, so nobody arrives by mistake:
+So nobody arrives by mistake:
 
 1. Not a TCP tunnel: it carries UDP datagrams; TCP traffic rides a VPN
    stacked on top.
@@ -276,17 +259,17 @@ router as a managed service.
 
 ## Troubleshooting
 
-Four symptoms cover most of what goes wrong, each in symptom-cause-fix
-form, each naming where its claim comes from: the refused startup naming a
-mark, the size threshold where packets vanish, the DSCP value that leaves
-your host and stops being honored past a hop you do not control, and the
-ratio increase that makes loss worse. The guide:
+The common failures, each in symptom-cause-fix form and each naming where
+its claim comes from: the refused startup naming a mark, the size threshold
+where packets vanish, the DSCP value that leaves your host and stops being
+honored past a hop you do not control, and the ratio increase that makes
+loss worse. The guide:
 [doc/troubleshooting.md](doc/troubleshooting.md).
 
 ## The evidence posture
 
-What this fork claims, it tests. The specifics live where they belong: the
-behaviour specifications `socket_marks.allium` and `dns_lease_mgr.allium`
+Every claim in this README is tested. The specifics: the behaviour
+specifications `socket_marks.allium` and `dns_lease_mgr.allium`
 (run by CI), the timing models in `spec/` under TLA+, the SIMD dispatch
 held against named CPU models, the MTU ledger read off captured packets,
 and the marks byte proven on the wire on every host the CI runs. Where
@@ -297,7 +280,7 @@ record.
 
 ## License and credit
 
-The software is MIT (see [LICENSE.md](LICENSE.md)). It stands on
+The software is MIT (see [LICENSE.md](LICENSE.md)). It builds on
 wangyu-'s [UDPspeeder](https://github.com/wangyu-/UDPspeeder): the
 Reed-Solomon tunnel, the FEC design and the tuning instincts are his, and
 this fork carries them forward with its own kernels, marks, endpoint and

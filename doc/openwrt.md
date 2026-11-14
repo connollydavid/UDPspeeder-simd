@@ -1,10 +1,9 @@
 # Running on OpenWrt
 
-The release carries binaries built with the OpenWrt toolchains themselves
-(the same target toolchains CI builds and runs under QEMU), so a router
-deployment is a copy, a service script, and configuration. This guide is the
-whole story: pick the binary, install it, run it as a managed service, keep
-it across upgrades. It uses only the release assets.
+The release carries binaries built with the OpenWrt toolchains (the same
+target toolchains CI builds and runs under QEMU), so a router deployment is
+a copy, a service script, and configuration. This guide uses only the
+release assets.
 
 ## Pick the binary
 
@@ -23,8 +22,7 @@ holds as a check. Match the router's target:
 
 Each binary is static (about 4.2 MB) with no runtime dependencies and no
 kernel module requirements. Where the kernel lacks io_uring the receive path
-probes and falls back at startup (the log line names it), so old router
-kernels are not a barrier.
+probes and falls back at startup (the log line names it).
 
 ## Install
 
@@ -41,11 +39,10 @@ ssh root@192.168.1.1 /usr/bin/udpspeeder-simd -h
 
 ## The service
 
-A procd init script gives the tunnel what an appliance needs: start at boot,
-restart on exit, logs in `logread`. The script below also reads
-`/etc/config/udpspeeder-simd` and maps the UCI options to command-line
-flags, so the configuration stanzas elsewhere in this documentation (every
-section's UCI door) work verbatim on a binary deployment. Save it as
+A procd init script starts the tunnel at boot and sends its output to
+`logread`. The script below also reads `/etc/config/udpspeeder-simd` and maps
+the UCI options to command-line flags, so the configuration stanzas elsewhere
+in this documentation work verbatim on a binary deployment. Save it as
 `/etc/init.d/udpspeeder-simd`:
 
 ```sh
@@ -111,16 +108,15 @@ chmod +x /etc/init.d/udpspeeder-simd
 /etc/init.d/udpspeeder-simd start
 ```
 
-`respawn` with its defaults restarts the instance whenever it exits, which is
-the appliance contract: the tunnel stays up without anyone watching. The
+`respawn` with its defaults restarts the instance whenever it exits. The
 reload trigger means `uci commit udpspeeder-simd` restarts the service with
-the new settings, so tuning the ratio or the endpoint is a config edit, not a
-reboot.
+the new settings, so tuning the ratio or the endpoint needs only a config
+edit.
 
 ## Configure and watch
 
 With the script in place, the UCI surface is the documented one. A client
-tunnel, watching its own loss:
+tunnel with loss reporting:
 
 ```
 # /etc/config/udpspeeder-simd
@@ -141,30 +137,27 @@ logread -f | grep udpspeeder            # health, and the report every 10s
 echo "fec 4:2" > /tmp/udpspeeder-fifo   # retune under load, no restart
 ```
 
-The fifo path lives in `/tmp` (RAM), which is the right place for it: the
-file is recreated by each boot, and the init script names it in the command
-line.
+The fifo path lives in `/tmp` (RAM): the file is recreated by each boot, and
+the init script names it in the command line.
 
 ## Survive the upgrade
 
 `sysupgrade` preserves `/etc/` configuration by default, so the config file
 and the init script survive; the binary in `/usr/bin` does not, because it is
-not part of an installed package. One line fixes that. Append to
+not part of an installed package. Append this line to
 `/etc/sysupgrade.conf`:
 
 ```
 /usr/bin/udpspeeder-simd
 ```
 
-After a firmware upgrade the tunnel comes back on its own: the binary from
-the preserved file, the service from the preserved script, the settings from
-the preserved config.
+After a firmware upgrade the tunnel comes back on its own.
 
 ## Marks and the firewall on a router
 
 The marks options are host-local and work on a router the same as anywhere
-else; the specifics live in [doc/socket-marks.md](socket-marks.md). The one
-router-specific piece is policy routing for `--fwmark` so the tunnel's own
+else; the specifics live in [doc/socket-marks.md](socket-marks.md). The
+router-specific part is policy routing for `--fwmark`, so the tunnel's own
 packets take the WAN uplink and never recurse through a stacked VPN:
 
 ```

@@ -1,8 +1,8 @@
 # Terminology: English and Chinese
 
-The two READMEs are a translation of record: the same structure, the same
-terms, the same numbers. This table holds the shared vocabulary so the
-alignment survives editing. Where a term stays in English in both pages
+The two READMEs are a translation of record: the same structure, terms, and
+numbers. This table holds the shared vocabulary so the alignment survives
+editing. Where a term stays in English in both pages
 (option names, protocol names), the table says so rather than inventing a
 translation.
 
