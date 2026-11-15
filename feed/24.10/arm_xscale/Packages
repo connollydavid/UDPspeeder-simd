@@ -100,7 +100,7 @@ Description:  libusb is a C library that gives applications easy access to USB d
  many different operating systems.
 
 Package: udpspeeder-simd-snapshot
-Version: 1.3.2-r1
+Version: 1.3.2-r2
 Depends: libc, libstdcpp6
 Conflicts: udpspeeder-simd
 License: MIT
@@ -108,9 +108,9 @@ Section: net
 URL: https://github.com/connollydavid/UDPspeeder-simd
 Architecture: arm_xscale
 Installed-Size: 174080
-Filename: udpspeeder-simd-snapshot_1.3.2-r1_arm_xscale.ipk
-Size: 71720
-SHA256sum: 0a0d5f885497d5842000c2117229307a4b944b26e2fb5dd396cf6952aa396c34
+Filename: udpspeeder-simd-snapshot_1.3.2-r2_arm_xscale.ipk
+Size: 71723
+SHA256sum: 890cfb6c3b6e35f5ae46368203ca0a8a634b70823058476a15d35f63aa16ae22
 Description:  A Forward Error Correction UDP tunnel that improves a high-latency, lossy link
  with Reed-Solomon redundancy. A SIMD-accelerated fork of UDPspeeder; on targets
  with no SIMD path (for example MIPS) it uses a portable word-width path. Installs
